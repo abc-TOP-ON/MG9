@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V16 - DEVELOPER INFO 🔥
+-- 🔥 MG9 ULTIMATE HUB V17 - CLEANER INTERFACE 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -303,7 +303,7 @@ createCorner(mainFrame, 16)
 createStroke(mainFrame, colors.primary, 1.5)
 
 ---------------------------------------
--- الهيدر
+-- الهيدر (مرتب بشكل أفضل)
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
 header.Size = UDim2.new(1, 0, 0, 55)
@@ -312,65 +312,68 @@ header.BackgroundTransparency = 0.3
 createCorner(header, 16)
 
 local title = Instance.new("TextLabel", header)
-title.Size = UDim2.new(0.5, 0, 1, 0)
+title.Size = UDim2.new(0.4, 0, 1, 0)
 title.Position = UDim2.new(0, 15, 0, 0)
 title.Text = "✦ MG9"
 title.TextColor3 = colors.primary
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
-title.TextSize = 22
+title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر المعلومات (جديد)
+-- ترتيب الأزرار (من اليسار لليمين): معلومات | ثيم | إعدادات | إغلاق
+-- كل زر بحجم 30x30
+
+-- زر المعلومات ℹ️ (الأول)
 local infoBtn = Instance.new("TextButton", header)
-infoBtn.Size = UDim2.new(0, 35, 0, 35)
-infoBtn.Position = UDim2.new(1, -185, 0.5, -17)
+infoBtn.Size = UDim2.new(0, 30, 0, 30)
+infoBtn.Position = UDim2.new(1, -160, 0.5, -15)
 infoBtn.Text = "ℹ️"
 infoBtn.TextColor3 = colors.info
 infoBtn.BackgroundTransparency = 1
-infoBtn.TextSize = 20
+infoBtn.TextSize = 18
 infoBtn.Font = Enum.Font.GothamBold
 infoBtn.ZIndex = 10
 
--- زر الثيم
+-- زر الثيم 🎨 (الثاني)
 local themeBtn = Instance.new("TextButton", header)
-themeBtn.Size = UDim2.new(0, 35, 0, 35)
-themeBtn.Position = UDim2.new(1, -145, 0.5, -17)
+themeBtn.Size = UDim2.new(0, 30, 0, 30)
+themeBtn.Position = UDim2.new(1, -125, 0.5, -15)
 themeBtn.Text = "🎨"
 themeBtn.TextColor3 = colors.primary
 themeBtn.BackgroundTransparency = 1
-themeBtn.TextSize = 20
+themeBtn.TextSize = 18
 themeBtn.Font = Enum.Font.GothamBold
 themeBtn.ZIndex = 10
 
--- زر الإعدادات
+-- زر الإعدادات ⚙️ (الثالث)
 local settingsBtn = Instance.new("TextButton", header)
-settingsBtn.Size = UDim2.new(0, 35, 0, 35)
-settingsBtn.Position = UDim2.new(1, -105, 0.5, -17)
+settingsBtn.Size = UDim2.new(0, 30, 0, 30)
+settingsBtn.Position = UDim2.new(1, -90, 0.5, -15)
 settingsBtn.Text = "⚙️"
 settingsBtn.TextColor3 = colors.gold
 settingsBtn.BackgroundTransparency = 1
-settingsBtn.TextSize = 20
+settingsBtn.TextSize = 18
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
--- زر الإغلاق
+-- زر الإغلاق ✕ (الرابع)
 local closeBtn = Instance.new("TextButton", header)
-closeBtn.Size = UDim2.new(0, 35, 0, 35)
-closeBtn.Position = UDim2.new(1, -60, 0.5, -17)
+closeBtn.Size = UDim2.new(0, 30, 0, 30)
+closeBtn.Position = UDim2.new(1, -50, 0.5, -15)
 closeBtn.Text = "✕"
 closeBtn.TextColor3 = colors.danger
 closeBtn.BackgroundTransparency = 1
-closeBtn.TextSize = 20
+closeBtn.TextSize = 18
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
 
 ---------------------------------------
--- نافذة المعلومات (منبثقة)
+-- نافذة المعلومات (منبثقة أصغر)
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
-infoFrame.Size = UDim2.new(0.8, 0, 0, 120)
-infoFrame.Position = UDim2.new(0.1, 0, 0.35, 0)
+infoFrame.Size = UDim2.new(0.7, 0, 0, 100)
+infoFrame.Position = UDim2.new(0.15, 0, 0.35, 0)
 infoFrame.BackgroundColor3 = colors.bg2
 infoFrame.BackgroundTransparency = 0.1
 infoFrame.Visible = false
@@ -378,45 +381,41 @@ createCorner(infoFrame, 12)
 createStroke(infoFrame, colors.info, 2)
 infoFrame.ZIndex = 20
 
--- ظل للنافذة
 local infoShadow = Instance.new("ImageLabel", infoFrame)
-infoShadow.Size = UDim2.new(1, 30, 1, 30)
-infoShadow.Position = UDim2.new(0, -15, 0, -15)
+infoShadow.Size = UDim2.new(1, 20, 1, 20)
+infoShadow.Position = UDim2.new(0, -10, 0, -10)
 infoShadow.BackgroundTransparency = 1
 infoShadow.Image = "rbxassetid://131604529"
 infoShadow.ImageTransparency = 0.7
 infoShadow.ZIndex = 0
 
--- أيقونة المعلومات
 local infoIcon = Instance.new("TextLabel", infoFrame)
-infoIcon.Size = UDim2.new(0, 50, 1, 0)
+infoIcon.Size = UDim2.new(0, 40, 1, 0)
 infoIcon.Text = "ℹ️"
 infoIcon.TextColor3 = colors.info
 infoIcon.BackgroundTransparency = 1
-infoIcon.TextSize = 30
+infoIcon.TextSize = 24
 infoIcon.Font = Enum.Font.GothamBold
 
--- نص المعلومات
 local infoText = Instance.new("TextLabel", infoFrame)
-infoText.Size = UDim2.new(1, -60, 1, 0)
-infoText.Position = UDim2.new(0, 55, 0, 0)
-infoText.Text = "👨‍💻 المطور: tariq191188\n📌 الإصدار: V16\n⚡ جميع الحقوق محفوظة"
+infoText.Size = UDim2.new(1, -50, 1, 0)
+infoText.Position = UDim2.new(0, 45, 0, 0)
+infoText.Text = "👨‍💻 tariq191188\n📌 V17"
 infoText.TextColor3 = colors.text
 infoText.BackgroundTransparency = 1
 infoText.Font = Enum.Font.GothamBold
 infoText.TextSize = 13
 infoText.TextXAlignment = Enum.TextXAlignment.Left
 infoText.TextYAlignment = Enum.TextYAlignment.Center
-infoText.LineHeight = 1.3
+infoText.LineHeight = 1.5
 
--- زر إغلاق المعلومات
 local infoClose = Instance.new("TextButton", infoFrame)
-infoClose.Size = UDim2.new(0, 30, 0, 30)
-infoClose.Position = UDim2.new(1, -35, 0, 5)
+infoClose.Size = UDim2.new(0, 25, 0, 25)
+infoClose.Position = UDim2.new(1, -30, 0, 5)
 infoClose.Text = "✕"
 infoClose.TextColor3 = colors.danger
 infoClose.BackgroundTransparency = 1
-infoClose.TextSize = 16
+infoClose.TextSize = 14
 infoClose.Font = Enum.Font.GothamBold
 
 ---------------------------------------
@@ -972,7 +971,6 @@ protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
 protectTitle.TextSize = 13
 
--- دالة إنشاء زر تبديل
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
     frame.Size = UDim2.new(1, 0, 0, 38)
@@ -1286,12 +1284,11 @@ end)
 setupOneClick(infoBtn, function()
     infoFrame.Visible = not infoFrame.Visible
     if infoFrame.Visible then
-        statusLabel.Text = "ℹ️ معلومات المطور"
+        statusLabel.Text = "ℹ️ المطور: tariq191188"
         statusLabel.TextColor3 = colors.info
-        -- تأثير حركي
-        infoFrame.Position = UDim2.new(0.1, 0, 0.5, 0)
+        infoFrame.Position = UDim2.new(0.15, 0, 0.5, 0)
         TweenService:Create(infoFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(0.1, 0, 0.35, 0)
+            Position = UDim2.new(0.15, 0, 0.35, 0)
         }):Play()
     else
         statusLabel.Text = "جاهز للتشغيل"
@@ -1426,9 +1423,9 @@ end)
 -- إظهار الواجهة
 mainFrame.Visible = true
 print("╔══════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V16 - DEVELOPER INFO 🔥       ║")
+print("║  🔥 MG9 ULTIMATE HUB V17 - CLEANER 🔥              ║")
 print("║  👨‍💻 المطور: tariq191188                            ║")
-print("║  ✅ فقط الأزرار تستجيب للضغط                       ║")
+print("║  ✅ أزرار أصغر وأكثر وضوحاً                       ║")
 print("║  ⚡ جميع الأزرار تعمل بضغطة واحدة                  ║")
 print("║  📱 متوافق مع الكمبيوتر والموبايل                  ║")
 print("╚══════════════════════════════════════════════════════╝")
