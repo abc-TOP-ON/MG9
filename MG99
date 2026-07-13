@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V20 - CENTERED + MOVABLE 🔥
+-- 🔥 MG9 ULTIMATE HUB V21 - SIDE BUTTON + FIXED DRAG 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -294,11 +294,11 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- أيقونة الدخول/الخروج (قابلة للتحريك)
+-- أيقونة الدخول/الخروج (على الجانب الأيمن)
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
 toggleBtn.Size = UDim2.new(0, 55, 0, 55)
-toggleBtn.Position = UDim2.new(0.5, -27, 0.5, -27)
+toggleBtn.Position = UDim2.new(1, -70, 0.5, -27)
 toggleBtn.BackgroundColor3 = colors.bg2
 toggleBtn.Image = "rbxassetid://131604529"
 toggleBtn.ImageColor3 = colors.primary
@@ -317,7 +317,7 @@ toggleText.Font = Enum.Font.GothamBold
 toggleText.TextSize = 16
 toggleText.ZIndex = 2
 
--- إضافة إمكانية السحب للأيقونة
+-- إضافة إمكانية السحب للأيقونة مع إصلاح مشكلة الاختفاء
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -340,6 +340,13 @@ local function setupDragging(button)
                 startPos.X.Offset + delta.X,
                 startPos.Y.Scale + delta.Y / (button.Parent.AbsoluteSize.Y or 1),
                 startPos.Y.Offset + delta.Y
+            )
+            -- منع الزر من الخروج عن الشاشة
+            newPos = UDim2.new(
+                math.clamp(newPos.X.Scale, 0, 1 - (button.Size.X.Scale)),
+                newPos.X.Offset,
+                math.clamp(newPos.Y.Scale, 0, 1 - (button.Size.Y.Scale)),
+                newPos.Y.Offset
             )
             button.Position = newPos
         end
@@ -367,9 +374,6 @@ mainFrame.Draggable = true
 mainFrame.Visible = false
 createCorner(mainFrame, 16)
 createStroke(mainFrame, colors.primary, 1.5)
-
--- جعل الواجهة قابلة للسحب أيضاً
-setupDragging(mainFrame)
 
 ---------------------------------------
 -- الهيدر (الأزرار في الأعلى)
@@ -423,7 +427,7 @@ settingsBtn.TextSize = 16
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
--- زر الخروج من السكربت (إخفاء الواجهة)
+-- زر الخروج من السكربت
 local closeBtn = Instance.new("TextButton", header)
 closeBtn.Size = UDim2.new(0, 28, 0, 28)
 closeBtn.Position = UDim2.new(1, -86, 0.5, -14)
@@ -434,7 +438,7 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
 
--- زر إغلاق الواجهة (تصغير)
+-- زر تصغير الواجهة
 local minimizeBtn = Instance.new("TextButton", header)
 minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
 minimizeBtn.Position = UDim2.new(1, -50, 0.5, -14)
@@ -1133,7 +1137,7 @@ createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
 createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
 pos = pos + 22
-createInfoText("📌 الإصدار: V20 (Centered + Movable)", pos)
+createInfoText("📌 الإصدار: V21 (Side Button)", pos)
 pos = pos + 22
 createInfoText("📅 التاريخ: 13/07/2026", pos)
 pos = pos + 22
@@ -1211,7 +1215,7 @@ createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
 pos = pos + 22
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 22
-createInfoText("🔹 آخر تحديث: V20", pos)
+createInfoText("🔹 آخر تحديث: V21", pos)
 pos = pos + 35
 
 createInfoSection("مميزات السكربت", "🔥", pos)
@@ -1224,7 +1228,7 @@ local features = {
     "✅ واجهة سهلة الاستخدام",
     "✅ يعمل بضغطة واحدة",
     "✅ نظام إحصائيات لحظي",
-    "✅ زر دخول وخروج قابل للتحريك",
+    "✅ زر جانبي قابل للتحريك",
 }
 for _, feature in ipairs(features) do
     createInfoText(feature, pos, colors.text, 11)
@@ -1239,7 +1243,7 @@ local tips = {
     "• فعّل الحماية قبل بدء التكرار",
     "• اضغط 🎨 لتغيير الثيم بسرعة",
     "• الأوامر المخصصة تُحفظ تلقائياً",
-    "• اسحب الأيقونة MG9 لأي مكان",
+    "• اسحب الأيقونة الجانبية لأي مكان",
     "• اضغط 🚪 للخروج من السكربت",
 }
 for _, tip in ipairs(tips) do
@@ -1580,10 +1584,10 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V20 - CENTERED + MOVABLE 🔥       ║")
+print("║  🔥 MG9 ULTIMATE HUB V21 - SIDE BUTTON 🔥              ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ السكربت في منتصف الشاشة                           ║")
-print("║  ✅ زر دخول وخروج قابل للتحريك                        ║")
-print("║  ✅ جميع الأزرار في الأعلى                            ║")
+print("║  ✅ زر جانبي قابل للتحريك                              ║")
+print("║  ✅ لا تختفي العناصر عند التحريك                      ║")
 print("║  ✅ اسحب الأيقونة لأي مكان                            ║")
+print("║  ✅ السكربت في منتصف الشاشة                           ║")
 print("╚══════════════════════════════════════════════════════════╝")
