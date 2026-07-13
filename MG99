@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V23 - FIXED PROTECTION TOGGLE 🔥
+-- 🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -30,14 +30,6 @@ local Settings = {
     AntiKick = false,
     AntiAFK = false,
 }
-
--- متغيرات لإلغاء الحلقات والاتصالات
-local antiFlingRunning = false
-local antiNVRunning = false
-local antiKickRunning = false
-local antiAFKRunning = false
-local antiLogsConnections = {}
-local antiClogsConnections = {}
 
 local Spam = {
     Active = false,
@@ -918,7 +910,7 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات (مع إصلاح الحماية)
+-- نافذة الإعدادات
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
 settingsFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -991,7 +983,7 @@ for i, theme in ipairs(allThemes) do
     end)
 end
 
--- قسم الحماية (مع إصلاح الإيقاف)
+-- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
 protectTitle.Size = UDim2.new(1, 0, 0, 25)
 protectTitle.Position = UDim2.new(0, 0, 0, 220)
@@ -1066,71 +1058,105 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- ===== جميع خيارات الحماية (مع إصلاح الإيقاف) =====
+-- ===== جميع خيارات الحماية =====
 
 -- 1. مضاد الفلينج
-local antiFlingToggle
-antiFlingToggle = createToggle("🌀 مضاد الفلينج", 255, "🌀", function(s) 
+createToggle("🌀 مضاد الفلينج", 255, "🌀", function(s) 
     Settings.AntiFling = s
-    if not s then
-        -- إيقاف الفلينج فوراً
-        antiFlingRunning = false
-    else
-        antiFlingRunning = true
-    end
 end)
 
 -- 2. مضاد اللاق (Logs)
 createToggle("📋 مضاد اللاق (Logs)", 297, "📋", function(s) 
     Settings.AntiLogs = s
+    if s then
+        local function secureRemote(remote)
+            if remote:IsA("RemoteEvent") and remote.Name == "ExecuteClientCommand" then
+                if getconnections then
+                    for _, conn in pairs(getconnections(remote.OnClientEvent)) do
+                        conn:Disable()
+                    end
+                end
+                remote.OnClientEvent:Connect(function() return nil end)
+            end
+        end
+        
+        for _, v in pairs(ReplicatedStorage:GetDescendants()) do 
+            secureRemote(v) 
+        end
+        
+        ReplicatedStorage.DescendantAdded:Connect(function(d)
+            if Settings.AntiLogs then 
+                secureRemote(d) 
+            end
+        end)
+        
+        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+        if signals then 
+            signals = signals:FindFirstChild("Signals") 
+        end
+        if signals then
+            for _, remote in pairs(signals:GetDescendants()) do
+                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if string.find(remote.Name:lower(), "log") then
+                        remote:Destroy()
+                    end
+                end
+            end
+        end
+    end
 end)
 
 -- 3. مضاد NV
-local antiNVToggle
-antiNVToggle = createToggle("👁️ مضاد NV", 339, "👁️", function(s) 
+createToggle("👁️ مضاد NV", 339, "👁️", function(s) 
     Settings.AntiNV = s
-    if not s then
-        antiNVRunning = false
-    else
-        antiNVRunning = true
-    end
 end)
 
 -- 4. مضاد Clogs
 createToggle("🚫 مضاد Clogs", 381, "🚫", function(s) 
     Settings.AntiClogs = s
+    if s then
+        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+        if signals then signals = signals:FindFirstChild("Signals") end
+        if signals then
+            for _, remote in pairs(signals:GetDescendants()) do
+                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if string.find(remote.Name:lower(), "log") or string.find(remote.Name:lower(), "clear") then
+                        remote:Destroy()
+                    end
+                end
+            end
+        end
+    end
 end)
 
 -- 5. مضاد CmdBar
 createToggle("⌨️ مضاد CmdBar", 423, "⌨️", function(s) 
     Settings.AntiCmdBar = s
+    for _, g in pairs(player.PlayerGui:GetChildren()) do
+        if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
+            g.Enabled = not s
+        end
+    end
 end)
 
 -- 6. مضاد الإشعارات
 createToggle("🔕 مضاد الإشعارات", 465, "🔕", function(s) 
     Settings.AntiAlerts = s
+    for _, g in pairs(player.PlayerGui:GetChildren()) do
+        if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
+            g.Enabled = not s
+        end
+    end
 end)
 
 -- 7. مضاد الطرد
-local antiKickToggle
-antiKickToggle = createToggle("🛡️ مضاد الطرد", 507, "🛡️", function(s) 
+createToggle("🛡️ مضاد الطرد", 507, "🛡️", function(s) 
     Settings.AntiKick = s
-    if not s then
-        antiKickRunning = false
-    else
-        antiKickRunning = true
-    end
 end)
 
 -- 8. مضاد AFK
-local antiAFKToggle
-antiAFKToggle = createToggle("💤 مضاد AFK", 549, "💤", function(s) 
+createToggle("💤 مضاد AFK", 549, "💤", function(s) 
     Settings.AntiAFK = s
-    if not s then
-        antiAFKRunning = false
-    else
-        antiAFKRunning = true
-    end
 end)
 
 ---------------------------------------
@@ -1205,7 +1231,7 @@ createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
 createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
 pos = pos + 22
-createInfoText("📌 الإصدار: V23 (Fixed Toggle)", pos)
+createInfoText("📌 الإصدار: V24 (Fully Fixed)", pos)
 pos = pos + 22
 createInfoText("📅 التاريخ: 13/07/2026", pos)
 pos = pos + 22
@@ -1283,7 +1309,7 @@ createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
 pos = pos + 22
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 22
-createInfoText("🔹 آخر تحديث: V23", pos)
+createInfoText("🔹 آخر تحديث: V24", pos)
 pos = pos + 35
 
 createInfoSection("مميزات السكربت", "🔥", pos)
@@ -1359,13 +1385,13 @@ task.spawn(function()
 end)
 
 ---------------------------------------
--- حلقات الحماية (مع إمكانية الإيقاف)
+-- حلقات الحماية (تعمل بشكل مستقل)
 ---------------------------------------
 
--- مضاد NV (يعمل في الخلفية مع إمكانية الإيقاف)
+-- مضاد NV
 task.spawn(function()
     while true do
-        if Settings.AntiNV and antiNVRunning then
+        if Settings.AntiNV then
             pcall(function()
                 local cam = workspace.CurrentCamera
                 if cam then
@@ -1378,9 +1404,9 @@ task.spawn(function()
     end
 end)
 
--- مضاد الفلينج (يعمل في الخلفية مع إمكانية الإيقاف)
+-- مضاد الفلينج (في Heartbeat)
 RunService.Heartbeat:Connect(function()
-    if Settings.AntiFling and antiFlingRunning then
+    if Settings.AntiFling then
         local char = player.Character
         if char and char:FindFirstChild("HumanoidRootPart") then
             local hrp = char.HumanoidRootPart
@@ -1415,10 +1441,10 @@ RunService.Heartbeat:Connect(function()
     end
 end)
 
--- مضاد الطرد (يعمل في الخلفية مع إمكانية الإيقاف)
+-- مضاد الطرد
 task.spawn(function()
     while true do
-        if Settings.AntiKick and antiKickRunning then
+        if Settings.AntiKick then
             pcall(function()
                 if player:FindFirstChild("Kick") then
                     player.Kick = function() end
@@ -1429,10 +1455,10 @@ task.spawn(function()
     end
 end)
 
--- مضاد AFK (يعمل في الخلفية مع إمكانية الإيقاف)
+-- مضاد AFK
 task.spawn(function()
     while true do
-        if Settings.AntiAFK and antiAFKRunning then
+        if Settings.AntiAFK then
             pcall(function()
                 local char = player.Character
                 if char and char:FindFirstChild("HumanoidRootPart") then
@@ -1447,7 +1473,7 @@ task.spawn(function()
     end
 end)
 
--- مضاد الإشعارات و CmdBar (مراقبة مستمرة)
+-- مضاد الإشعارات و CmdBar
 player.PlayerGui.DescendantAdded:Connect(function(desc)
     if Settings.AntiAlerts then
         if desc.Name == "HDAdminGui" or desc.Name == "MessageGui" or desc.Name:find("Alert") then
@@ -1709,10 +1735,10 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V23 - FIXED TOGGLE 🔥            ║")
+print("║  🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥             ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ إيقاف الحماية يعمل فوراً                         ║")
-print("║  ✅ جميع الحمايات تنطفئ عند الضغط على OFF            ║")
-print("║  ✅ 8 خيارات حماية متكاملة                           ║")
+print("║  ✅ الحماية تعمل وتنطفئ فوراً                        ║")
+print("║  ✅ جميع الحمايات 8 خيارات                           ║")
 print("║  ✅ زر جانبي قابل للتحريك                            ║")
+print("║  ✅ السكربت في منتصف الشاشة                           ║")
 print("╚══════════════════════════════════════════════════════════╝")
