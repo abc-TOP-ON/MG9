@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥
+-- 🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -7,6 +7,7 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
@@ -41,6 +42,20 @@ local Spam = {
 local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
+
+---------------------------------------
+-- ✅ متغيرات التحكم في الحلقات (لإيقاف الحمايات فوراً)
+---------------------------------------
+local ProtectionThreads = {
+    AntiFling = nil,
+    AntiLogs = nil,
+    AntiNV = nil,
+    AntiClogs = nil,
+    AntiCmdBar = nil,
+    AntiAlerts = nil,
+    AntiKick = nil,
+    AntiAFK = nil,
+}
 
 ---------------------------------------
 -- ⚡ دالة الضغطة الواحدة
@@ -248,6 +263,7 @@ local function applyTheme(themeName)
     closeBtn.TextColor3 = colors.danger
     themeBtn.TextColor3 = colors.primary
     infoBtn.TextColor3 = colors.info
+    toggleBtn.TextColor3 = colors.text
     
     inputBox.BackgroundColor3 = colors.bg2
     inputBox.TextColor3 = colors.text
@@ -289,31 +305,75 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- الأيقونة العائمة
+-- أيقونة الدخول/الخروج (على الجانب الأيمن)
 ---------------------------------------
-local floatBtn = Instance.new("ImageButton", gui)
-floatBtn.Size = UDim2.new(0, 60, 0, 60)
-floatBtn.Position = UDim2.new(1, -75, 0.5, -30)
-floatBtn.BackgroundColor3 = colors.bg2
-floatBtn.Image = "rbxassetid://131604529"
-floatBtn.ImageColor3 = colors.primary
-floatBtn.ImageTransparency = 0.3
-floatBtn.Visible = false
-floatBtn.Draggable = true
-createCorner(floatBtn, 30)
-createStroke(floatBtn, colors.primary, 2)
+local toggleBtn = Instance.new("ImageButton", gui)
+toggleBtn.Size = UDim2.new(0, 55, 0, 55)
+toggleBtn.Position = UDim2.new(1, -70, 0.5, -27)
+toggleBtn.BackgroundColor3 = colors.bg2
+toggleBtn.Image = "rbxassetid://131604529"
+toggleBtn.ImageColor3 = colors.primary
+toggleBtn.ImageTransparency = 0.2
+toggleBtn.Visible = true
+toggleBtn.Draggable = true
+createCorner(toggleBtn, 27)
+createStroke(toggleBtn, colors.primary, 2)
 
-local floatText = Instance.new("TextLabel", floatBtn)
-floatText.Size = UDim2.new(1, 0, 1, 0)
-floatText.Text = "MG9"
-floatText.TextColor3 = colors.text
-floatText.BackgroundTransparency = 1
-floatText.Font = Enum.Font.GothamBold
-floatText.TextSize = 16
-floatText.ZIndex = 2
+local toggleText = Instance.new("TextLabel", toggleBtn)
+toggleText.Size = UDim2.new(1, 0, 1, 0)
+toggleText.Text = "MG9"
+toggleText.TextColor3 = colors.text
+toggleText.BackgroundTransparency = 1
+toggleText.Font = Enum.Font.GothamBold
+toggleText.TextSize = 16
+toggleText.ZIndex = 2
+
+-- إضافة إمكانية السحب للأيقونة
+local function setupDragging(button)
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = button.Position
+            button.ZIndex = 100
+        end
+    end)
+    
+    button.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(
+                startPos.X.Scale + delta.X / (button.Parent.AbsoluteSize.X or 1),
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale + delta.Y / (button.Parent.AbsoluteSize.Y or 1),
+                startPos.Y.Offset + delta.Y
+            )
+            newPos = UDim2.new(
+                math.clamp(newPos.X.Scale, 0, 1 - (button.Size.X.Scale)),
+                newPos.X.Offset,
+                math.clamp(newPos.Y.Scale, 0, 1 - (button.Size.Y.Scale)),
+                newPos.Y.Offset
+            )
+            button.Position = newPos
+        end
+    end)
+    
+    button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            button.ZIndex = 1
+        end
+    end)
+end
+
+setupDragging(toggleBtn)
 
 ---------------------------------------
--- الواجهة الرئيسية
+-- الواجهة الرئيسية (في المنتصف)
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.Size = UDim2.new(0, 380, 0, 520)
@@ -321,11 +381,12 @@ mainFrame.Position = UDim2.new(0.5, -190, 0.5, -260)
 mainFrame.BackgroundColor3 = colors.bg
 mainFrame.Active = true
 mainFrame.Draggable = true
+mainFrame.Visible = false
 createCorner(mainFrame, 16)
 createStroke(mainFrame, colors.primary, 1.5)
 
 ---------------------------------------
--- الهيدر
+-- الهيدر (الأزرار في الأعلى)
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
 header.Size = UDim2.new(1, 0, 0, 55)
@@ -346,7 +407,7 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 -- زر المعلومات
 local infoBtn = Instance.new("TextButton", header)
 infoBtn.Size = UDim2.new(0, 28, 0, 28)
-infoBtn.Position = UDim2.new(1, -155, 0.5, -14)
+infoBtn.Position = UDim2.new(1, -185, 0.5, -14)
 infoBtn.Text = "ℹ️"
 infoBtn.TextColor3 = colors.info
 infoBtn.BackgroundTransparency = 1
@@ -357,7 +418,7 @@ infoBtn.ZIndex = 10
 -- زر الثيم
 local themeBtn = Instance.new("TextButton", header)
 themeBtn.Size = UDim2.new(0, 28, 0, 28)
-themeBtn.Position = UDim2.new(1, -122, 0.5, -14)
+themeBtn.Position = UDim2.new(1, -152, 0.5, -14)
 themeBtn.Text = "🎨"
 themeBtn.TextColor3 = colors.primary
 themeBtn.BackgroundTransparency = 1
@@ -368,7 +429,7 @@ themeBtn.ZIndex = 10
 -- زر الإعدادات
 local settingsBtn = Instance.new("TextButton", header)
 settingsBtn.Size = UDim2.new(0, 28, 0, 28)
-settingsBtn.Position = UDim2.new(1, -89, 0.5, -14)
+settingsBtn.Position = UDim2.new(1, -119, 0.5, -14)
 settingsBtn.Text = "⚙️"
 settingsBtn.TextColor3 = colors.gold
 settingsBtn.BackgroundTransparency = 1
@@ -376,16 +437,27 @@ settingsBtn.TextSize = 16
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
--- زر الإغلاق
+-- زر الخروج من السكربت
 local closeBtn = Instance.new("TextButton", header)
 closeBtn.Size = UDim2.new(0, 28, 0, 28)
-closeBtn.Position = UDim2.new(1, -50, 0.5, -14)
-closeBtn.Text = "✕"
+closeBtn.Position = UDim2.new(1, -86, 0.5, -14)
+closeBtn.Text = "🚪"
 closeBtn.TextColor3 = colors.danger
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
+
+-- زر تصغير الواجهة
+local minimizeBtn = Instance.new("TextButton", header)
+minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+minimizeBtn.Position = UDim2.new(1, -50, 0.5, -14)
+minimizeBtn.Text = "✕"
+minimizeBtn.TextColor3 = colors.textDim
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.TextSize = 16
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.ZIndex = 10
 
 ---------------------------------------
 -- شريط الحالة
@@ -883,7 +955,7 @@ scrollContainer.Position = UDim2.new(0, 5, 0, 35)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 3
 scrollContainer.ScrollBarImageColor3 = colors.primary
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 550)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 600)
 
 -- قسم الثيمات
 local themeTitle = Instance.new("TextLabel", scrollContainer)
@@ -928,7 +1000,7 @@ end
 -- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
 protectTitle.Size = UDim2.new(1, 0, 0, 25)
-protectTitle.Position = UDim2.new(0, 0, 0, 220)
+protectTitle.Position = UDim2.new(0, 0, 0, 240)
 protectTitle.Text = "🛡️ الحماية"
 protectTitle.TextColor3 = colors.primary
 protectTitle.BackgroundTransparency = 1
@@ -982,11 +1054,6 @@ local function createToggle(name, pos, icon, callback)
         toggle.Text = state and "ON" or "OFF"
         toggle.UIStroke.Color = state and colors.success or colors.danger
         callback(state)
-        statusLabel.Text = (state and "✅" or "❌") .. " " .. name .. (state and " مفعل" or " معطل")
-        statusLabel.TextColor3 = state and colors.success or colors.danger
-        task.wait(1.5)
-        statusLabel.Text = "جاهز للتشغيل"
-        statusLabel.TextColor3 = colors.textDim
     end
     
     setupOneClick(toggle, toggleState)
@@ -994,17 +1061,366 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
-createToggle("مضاد الفلينج", 255, "🌀", function(s) Settings.AntiFling = s end)
-createToggle("مضاد اللاق", 297, "📋", function(s) Settings.AntiLogs = s end)
-createToggle("مضاد NV", 339, "👁️", function(s) Settings.AntiNV = s end)
-createToggle("مضاد Clogs", 381, "🚫", function(s) Settings.AntiClogs = s end)
-createToggle("مضاد CmdBar", 423, "⌨️", function(s) Settings.AntiCmdBar = s end)
-createToggle("مضاد الإشعارات", 465, "🔕", function(s) Settings.AntiAlerts = s end)
-createToggle("مضاد الطرد", 507, "🛡️", function(s) Settings.AntiKick = s end)
-createToggle("مضاد AFK", 549, "💤", function(s) Settings.AntiAFK = s end)
+-- ===== ⚠️ جميع خيارات الحماية (تعمل وتنطفئ فوراً) =====
+
+-- 1. مضاد الفلينج ✅
+createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s) 
+    Settings.AntiFling = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiFling = RunService.Heartbeat:Connect(function()
+            if not Settings.AntiFling then return end
+            
+            local char = player.Character
+            if char and char:FindFirstChild("HumanoidRootPart") then
+                local hrp = char.HumanoidRootPart
+                if hrp.Velocity.Magnitude > 150 then
+                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    hrp.RotVelocity = Vector3.new(0, 0, 0)
+                    if lastSafePos then 
+                        hrp.CFrame = lastSafePos 
+                    end
+                else
+                    lastSafePos = hrp.CFrame
+                end
+            end
+            
+            pcall(function()
+                if char then
+                    local hum = char:FindFirstChildOfClass("Humanoid")
+                    if hum then
+                        hum.Sit = false
+                        hum.PlatformStand = false
+                    end
+                    for _, p in pairs(char:GetChildren()) do
+                        if p:IsA("BasePart") and p.Anchored then 
+                            p.Anchored = false 
+                        end
+                        if p:IsA("BodyMover") or p:IsA("BodyVelocity") or p:IsA("BodyGyro") then
+                            p:Destroy()
+                        end
+                    end
+                end
+            end)
+        end)
+        statusLabel.Text = "✅ مضاد الفلينج مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiFling then
+            ProtectionThreads.AntiFling:Disconnect()
+            ProtectionThreads.AntiFling = nil
+        end
+        statusLabel.Text = "❌ مضاد الفلينج معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 2. مضاد اللاق (Logs) ✅
+createToggle("📋 مضاد اللاق (Logs)", 317, "📋", function(s) 
+    Settings.AntiLogs = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiLogs = task.spawn(function()
+            while Settings.AntiLogs do
+                pcall(function()
+                    local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+                    if signals then signals = signals:FindFirstChild("Signals") end
+                    if signals then
+                        for _, remote in pairs(signals:GetDescendants()) do
+                            if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                                if string.find(remote.Name:lower(), "log") then
+                                    remote:Destroy()
+                                end
+                            end
+                        end
+                    end
+                    
+                    local function secureRemote(remote)
+                        if remote:IsA("RemoteEvent") and remote.Name == "ExecuteClientCommand" then
+                            if getconnections then
+                                for _, conn in pairs(getconnections(remote.OnClientEvent)) do
+                                    conn:Disable()
+                                end
+                            end
+                            remote.OnClientEvent:Connect(function() return nil end)
+                        end
+                    end
+                    
+                    for _, v in pairs(ReplicatedStorage:GetDescendants()) do 
+                        secureRemote(v) 
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد Logs مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiLogs then
+            task.cancel(ProtectionThreads.AntiLogs)
+            ProtectionThreads.AntiLogs = nil
+        end
+        statusLabel.Text = "❌ مضاد Logs معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 3. مضاد NV ✅
+createToggle("👁️ مضاد NV", 359, "👁️", function(s) 
+    Settings.AntiNV = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiNV = task.spawn(function()
+            while Settings.AntiNV do
+                pcall(function()
+                    local cam = workspace.CurrentCamera
+                    if cam then
+                        cam.CameraType = Enum.CameraType.Custom
+                        cam.FieldOfView = 70
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد NV مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiNV then
+            task.cancel(ProtectionThreads.AntiNV)
+            ProtectionThreads.AntiNV = nil
+        end
+        statusLabel.Text = "❌ مضاد NV معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 4. مضاد Clogs ✅
+createToggle("🚫 مضاد Clogs", 401, "🚫", function(s) 
+    Settings.AntiClogs = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiClogs = task.spawn(function()
+            while Settings.AntiClogs do
+                pcall(function()
+                    local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+                    if signals then signals = signals:FindFirstChild("Signals") end
+                    if signals then
+                        for _, remote in pairs(signals:GetDescendants()) do
+                            if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                                if string.find(remote.Name:lower(), "log") or string.find(remote.Name:lower(), "clear") then
+                                    remote:Destroy()
+                                end
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد Clogs مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiClogs then
+            task.cancel(ProtectionThreads.AntiClogs)
+            ProtectionThreads.AntiClogs = nil
+        end
+        statusLabel.Text = "❌ مضاد Clogs معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 5. مضاد CmdBar ✅
+createToggle("⌨️ مضاد CmdBar", 443, "⌨️", function(s) 
+    Settings.AntiCmdBar = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
+                g.Enabled = false
+            end
+        end
+        
+        ProtectionThreads.AntiCmdBar = task.spawn(function()
+            while Settings.AntiCmdBar do
+                pcall(function()
+                    for _, g in pairs(player.PlayerGui:GetChildren()) do
+                        if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
+                            g.Enabled = false
+                        end
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد CmdBar مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiCmdBar then
+            task.cancel(ProtectionThreads.AntiCmdBar)
+            ProtectionThreads.AntiCmdBar = nil
+        end
+        -- إعادة تفعيل الواجهات
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
+                g.Enabled = true
+            end
+        end
+        statusLabel.Text = "❌ مضاد CmdBar معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 6. مضاد الإشعارات ✅
+createToggle("🔕 مضاد الإشعارات", 485, "🔕", function(s) 
+    Settings.AntiAlerts = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
+                g.Enabled = false
+            end
+        end
+        
+        ProtectionThreads.AntiAlerts = task.spawn(function()
+            while Settings.AntiAlerts do
+                pcall(function()
+                    for _, g in pairs(player.PlayerGui:GetChildren()) do
+                        if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
+                            g.Enabled = false
+                        end
+                        if g:IsA("ScreenGui") then
+                            for _, child in pairs(g:GetDescendants()) do
+                                if child:IsA("TextLabel") and (child.Text:find("System") or child.Text:find("too fast")) then
+                                    local container = child.Parent
+                                    if container and container:IsA("Frame") then 
+                                        container.Visible = false 
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد الإشعارات مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiAlerts then
+            task.cancel(ProtectionThreads.AntiAlerts)
+            ProtectionThreads.AntiAlerts = nil
+        end
+        -- إعادة تفعيل الواجهات
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
+                g.Enabled = true
+            end
+        end
+        statusLabel.Text = "❌ مضاد الإشعارات معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 7. مضاد الطرد ✅
+createToggle("🛡️ مضاد الطرد", 527, "🛡️", function(s) 
+    Settings.AntiKick = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiKick = task.spawn(function()
+            while Settings.AntiKick do
+                pcall(function()
+                    if player:FindFirstChild("Kick") then
+                        player.Kick = function() end
+                    end
+                end)
+                task.wait(1)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد الطرد مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiKick then
+            task.cancel(ProtectionThreads.AntiKick)
+            ProtectionThreads.AntiKick = nil
+        end
+        statusLabel.Text = "❌ مضاد الطرد معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 8. مضاد AFK ✅
+createToggle("💤 مضاد AFK", 569, "💤", function(s) 
+    Settings.AntiAFK = s
+    
+    if s then
+        -- ✅ تشغيل الحماية
+        ProtectionThreads.AntiAFK = task.spawn(function()
+            while Settings.AntiAFK do
+                pcall(function()
+                    local char = player.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        local hrp = char.HumanoidRootPart
+                        hrp.CFrame = hrp.CFrame + Vector3.new(0, 0, 0.01)
+                        task.wait(0.1)
+                        hrp.CFrame = hrp.CFrame - Vector3.new(0, 0, 0.01)
+                    end
+                end)
+                task.wait(30)
+            end
+        end)
+        statusLabel.Text = "✅ مضاد AFK مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        -- ❌ إيقاف الحماية فوراً
+        if ProtectionThreads.AntiAFK then
+            task.cancel(ProtectionThreads.AntiAFK)
+            ProtectionThreads.AntiAFK = nil
+        end
+        statusLabel.Text = "❌ مضاد AFK معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
 
 ---------------------------------------
--- نافذة المعلومات (مثل الإعدادات)
+-- نافذة المعلومات
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
 infoFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -1029,7 +1445,6 @@ infoTitle.Font = Enum.Font.GothamBold
 infoTitle.TextSize = 14
 infoTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- حاوية المعلومات (قابلة للتمرير)
 local infoScroll = Instance.new("ScrollingFrame", infoFrame)
 infoScroll.Size = UDim2.new(1, -10, 1, -40)
 infoScroll.Position = UDim2.new(0, 5, 0, 35)
@@ -1037,8 +1452,6 @@ infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 3
 infoScroll.ScrollBarImageColor3 = colors.info
 infoScroll.CanvasSize = UDim2.new(0, 0, 0, 700)
-
--- ===== دوال لإنشاء أقسام المعلومات =====
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
@@ -1074,19 +1487,17 @@ end
 
 local pos = 5
 
--- 1. معلومات أساسية
 createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
 createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
 pos = pos + 22
-createInfoText("📌 الإصدار: V19 (Info like Settings)", pos)
+createInfoText("📌 الإصدار: V24 (Fully Fixed)", pos)
 pos = pos + 22
 createInfoText("📅 التاريخ: 13/07/2026", pos)
 pos = pos + 22
 createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
 pos = pos + 35
 
--- 2. إحصائيات المستخدم
 createInfoSection("إحصائيات المستخدم", "📊", pos)
 pos = pos + 33
 
@@ -1134,10 +1545,8 @@ cmdCountStats.TextSize = 11
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
 pos = pos + 35
 
--- 3. رسالة ترحيبية
 createInfoSection("رسالة ترحيبية", "🎯", pos)
 pos = pos + 33
-
 local welcomeText = Instance.new("TextLabel", infoScroll)
 welcomeText.Size = UDim2.new(1, -10, 0, 50)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
@@ -1150,7 +1559,6 @@ welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.LineHeight = 1.4
 pos = pos + 55
 
--- 4. معلومات تقنية
 createInfoSection("معلومات تقنية", "⚙️", pos)
 pos = pos + 33
 createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
@@ -1161,22 +1569,20 @@ createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
 pos = pos + 22
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 22
-createInfoText("🔹 آخر تحديث: V19", pos)
+createInfoText("🔹 آخر تحديث: V24", pos)
 pos = pos + 35
 
--- 5. مميزات السكربت
 createInfoSection("مميزات السكربت", "🔥", pos)
 pos = pos + 33
-
 local features = {
     "✅ 10 ثيمات احترافية",
     "✅ 8 خيارات حماية متكاملة",
+    "✅ مضاد Logs مدمج",
+    "✅ إيقاف الحماية فوراً",
     "✅ 8 أوامر مخصصة قابلة للحفظ",
     "✅ سرعة تكرار قابلة للتعديل",
     "✅ واجهة سهلة الاستخدام",
-    "✅ يعمل بضغطة واحدة",
-    "✅ نظام إحصائيات لحظي",
-    "✅ نافذة معلومات متطورة",
+    "✅ زر جانبي قابل للتحريك",
 }
 for _, feature in ipairs(features) do
     createInfoText(feature, pos, colors.text, 11)
@@ -1184,17 +1590,15 @@ for _, feature in ipairs(features) do
 end
 pos = pos + 15
 
--- 6. نصائح واستخدامات
 createInfoSection("نصائح واستخدامات", "💡", pos)
 pos = pos + 33
-
 local tips = {
     "• استخدم ; للفصل بين الأوامر المتعددة",
     "• فعّل الحماية قبل بدء التكرار",
     "• اضغط 🎨 لتغيير الثيم بسرعة",
     "• الأوامر المخصصة تُحفظ تلقائياً",
-    "• سرعة التكرار 0.5 = مثالية",
-    "• اضغط ℹ️ لعرض هذه المعلومات",
+    "• اسحب الأيقونة الجانبية لأي مكان",
+    "• الحماية تنطفئ فوراً عند الضغط على OFF",
 }
 for _, tip in ipairs(tips) do
     createInfoText(tip, pos, colors.textDim, 11)
@@ -1202,10 +1606,8 @@ for _, tip in ipairs(tips) do
 end
 pos = pos + 15
 
--- 7. تحديثات قادمة
 createInfoSection("تحديثات قادمة", "🚀", pos)
 pos = pos + 33
-
 local updates = {
     "🔹 وضع التكرار الذكي (Smart Spam)",
     "🔹 حفظ الإعدادات تلقائياً",
@@ -1381,6 +1783,20 @@ end)
 ---------------------------------------
 -- أحداث الأزرار
 ---------------------------------------
+setupOneClick(toggleBtn, function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        toggleBtn.Visible = false
+        statusLabel.Text = "تم فتح السكربت"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1.5)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    else
+        toggleBtn.Visible = true
+    end
+end)
+
 setupOneClick(infoBtn, function()
     infoFrame.Visible = not infoFrame.Visible
     if infoFrame.Visible then
@@ -1401,7 +1817,14 @@ setupOneClick(infoBtn, function()
 end)
 
 setupOneClick(themeBtn, function()
-    local currentIndex = table.find(allThemes, currentTheme) or 1
+    local currentIndex = nil
+    for i, theme in ipairs(allThemes) do
+        if theme == currentTheme then
+            currentIndex = i
+            break
+        end
+    end
+    if not currentIndex then currentIndex = 1 end
     local nextIndex = currentIndex % #allThemes + 1
     local nextTheme = allThemes[nextIndex]
     applyTheme(nextTheme)
@@ -1428,71 +1851,17 @@ end)
 
 setupOneClick(closeBtn, function()
     mainFrame.Visible = false
-    floatBtn.Visible = true
+    toggleBtn.Visible = true
+    statusLabel.Text = "🚪 خروج من السكربت"
+    statusLabel.TextColor3 = colors.danger
+    task.wait(1)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
 end)
 
-setupOneClick(floatBtn, function()
-    mainFrame.Visible = true
-    floatBtn.Visible = false
-    spamContainer.Visible = true
-    commandsContainer.Visible = false
-    settingsFrame.Visible = false
-    infoFrame.Visible = false
-    settingsBtn.Text = "⚙️"
-    settingsBtn.TextColor3 = colors.gold
-    infoBtn.Text = "ℹ️"
-    infoBtn.TextColor3 = colors.info
-end)
-
----------------------------------------
--- نظام الحماية الخلفي
----------------------------------------
-player.PlayerGui.DescendantAdded:Connect(function(desc)
-    if Settings.AntiAlerts then
-        if desc.Name == "HDAdminGui" or desc.Name == "MessageGui" or desc.Name:find("Alert") then
-            desc.Enabled = false
-        elseif desc:IsA("TextLabel") and (desc.Text:find("System") or desc.Text:find("too fast")) then
-            local container = desc.Parent
-            if container and container:IsA("Frame") then container.Visible = false end
-        end
-    end
-    if Settings.AntiCmdBar then
-        if desc:IsA("ScreenGui") and (desc.Name:find("Cmd") or desc.Name:find("Command") or desc.Name:find("Bar")) then
-            desc.Enabled = false
-        end
-    end
-end)
-
-RunService.Heartbeat:Connect(function()
-    if Settings.AntiFling then
-        local char = player.Character
-        if char and char:FindFirstChild("HumanoidRootPart") then
-            local hrp = char.HumanoidRootPart
-            if hrp.Velocity.Magnitude > 150 then
-                hrp.Velocity = Vector3.new(0, 0, 0)
-                hrp.RotVelocity = Vector3.new(0, 0, 0)
-                if lastSafePos then hrp.CFrame = lastSafePos end
-            else
-                lastSafePos = hrp.CFrame
-            end
-        end
-        
-        pcall(function()
-            if char then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum then
-                    hum.Sit = false
-                    hum.PlatformStand = false
-                end
-                for _, p in pairs(char:GetChildren()) do
-                    if p:IsA("BasePart") and p.Anchored then p.Anchored = false end
-                    if p:IsA("BodyMover") or p:IsA("BodyVelocity") or p:IsA("BodyGyro") then
-                        p:Destroy()
-                    end
-                end
-            end
-        end)
-    end
+setupOneClick(minimizeBtn, function()
+    mainFrame.Visible = false
+    toggleBtn.Visible = true
 end)
 
 ---------------------------------------
@@ -1507,30 +1876,28 @@ task.spawn(function()
         if stroke then
             TweenService:Create(stroke, info, {Color = colors.primary}):Play()
         end
-        TweenService:Create(floatBtn.UIStroke, info, {Color = colors.primary}):Play()
+        TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.primary}):Play()
         
         task.wait(4)
         
         if stroke then
             TweenService:Create(stroke, info, {Color = colors.secondary}):Play()
         end
-        TweenService:Create(floatBtn.UIStroke, info, {Color = colors.secondary}):Play()
+        TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.secondary}):Play()
         
         task.wait(4)
     end
 end)
 
--- إظهار الواجهة
-mainFrame.Visible = true
+-- إظهار الأيقونة فقط في البداية
+mainFrame.Visible = false
+toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥       ║")
+print("║  🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥             ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ نافذة المعلومات مثل الإعدادات                     ║")
-print("║  📊 إحصائيات لحظية                                   ║")
-print("║  🎯 رسالة ترحيبية                                    ║")
-print("║  ⚙️ معلومات تقنية                                    ║")
-print("║  🔥 مميزات السكربت                                   ║")
-print("║  💡 نصائح واستخدامات                                 ║")
-print("║  🚀 تحديثات قادمة                                    ║")
+print("║  ✅ الحماية تعمل وتنطفئ فوراً                        ║")
+print("║  ✅ جميع الحمايات 8 خيارات                           ║")
+print("║  ✅ زر جانبي قابل للتحريك                            ║")
+print("║  ✅ السكربت في منتصف الشاشة                           ║")
 print("╚══════════════════════════════════════════════════════════╝")
