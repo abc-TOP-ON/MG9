@@ -1,0 +1,553 @@
+-- ============================================================
+-- 🚀 MG9 ULTIMATE HUB - شاشة تحميل أسطورية
+-- 📌 إصدار V24 - تصميم سينمائي فائق التطور
+-- ✨ أفضل 100× من أي واجهة أخرى
+-- ============================================================
+
+local TweenService = game:GetService("TweenService")
+local Players = game:GetService("Players")
+local RunService = game:GetService("RunService")
+local Lighting = game:GetService("Lighting")
+local CoreGui = game:GetService("CoreGui")
+local SoundService = game:GetService("SoundService")
+local UserInputService = game:GetService("UserInputService")
+
+local LocalPlayer = Players.LocalPlayer
+
+-- ✅ شاشة كاملة 100%
+local LoaderGui = Instance.new("ScreenGui")
+LoaderGui.Name = "MG9_Loader"
+LoaderGui.ResetOnSpawn = false
+LoaderGui.IgnoreGuiInset = true
+LoaderGui.Parent = LocalPlayer:WaitForChild("PlayerGui")
+
+-- ============================================================
+-- 🌌 الخلفية المتطورة
+-- ============================================================
+
+-- ✅ خلفية سوداء مع تدرج أزرق
+local Background = Instance.new("Frame")
+Background.Size = UDim2.new(1, 0, 1, 0)
+Background.BackgroundColor3 = Color3.fromRGB(2, 5, 15)
+Background.BackgroundTransparency = 0
+Background.BorderSizePixel = 0
+Background.Parent = LoaderGui
+
+-- ✅ تدرج متحرك 3 طبقات
+local Gradient1 = Instance.new("UIGradient")
+Gradient1.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(2, 5, 15)),
+    ColorSequenceKeypoint.new(0.3, Color3.fromRGB(8, 20, 50)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(5, 15, 70)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(2, 5, 15))
+})
+Gradient1.Rotation = 30
+Gradient1.Parent = Background
+
+-- ✅ طبقة ثانية للتأثير
+local Gradient2 = Instance.new("UIGradient")
+Gradient2.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(0, 50, 150)),
+    ColorSequenceKeypoint.new(0.5, Color3.fromRGB(0, 100, 200)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(0, 50, 150))
+})
+Gradient2.Rotation = 120
+Gradient2.Transparency = NumberSequence.new(0.9)
+Gradient2.Parent = Background
+
+-- ============================================================
+-- ✨ نظام الجسيمات النجمية (Particles)
+-- ============================================================
+
+local ParticleContainer = Instance.new("Frame")
+ParticleContainer.Size = UDim2.new(1, 0, 1, 0)
+ParticleContainer.BackgroundTransparency = 1
+ParticleContainer.Parent = LoaderGui
+
+local stars = {}
+for i = 1, 80 do
+    local star = Instance.new("Frame")
+    star.Size = UDim2.new(0, math.random(1, 3), 0, math.random(1, 3))
+    star.Position = UDim2.new(math.random() / 1.5, 0, math.random() / 1.5, 0)
+    star.BackgroundColor3 = Color3.fromRGB(150, 200, 255)
+    star.BackgroundTransparency = math.random(3, 7) / 10
+    star.BorderSizePixel = 0
+    star.Parent = ParticleContainer
+    
+    local corner = Instance.new("UICorner")
+    corner.CornerRadius = UDim.new(1, 0)
+    corner.Parent = star
+    
+    table.insert(stars, {
+        element = star,
+        speed = math.random(2, 8) / 100,
+        direction = math.random(1, 4)
+    })
+end
+
+-- ✅ حركة النجوم
+task.spawn(function()
+    while LoaderGui.Parent do
+        for _, star in ipairs(stars) do
+            local pos = star.element.Position
+            local x = pos.X.Scale + star.speed * 0.1
+            local y = pos.Y.Scale + star.speed * 0.05
+            
+            if x > 1 then x = 0 end
+            if y > 1 then y = 0 end
+            
+            star.element.Position = UDim2.new(x, 0, y, 0)
+        end
+        task.wait(0.05)
+    end
+end)
+
+-- ============================================================
+-- 💫 تأثيرات الضوء والوهج
+-- ============================================================
+
+-- ✅ تمويه متعدد الطبقات
+local Blur1 = Instance.new("BlurEffect")
+Blur1.Size = 0
+Blur1.Parent = Lighting
+
+local Blur2 = Instance.new("BlurEffect")
+Blur2.Size = 0
+Blur2.Parent = Lighting
+
+TweenService:Create(Blur1, TweenInfo.new(1), {Size = 30}):Play()
+TweenService:Create(Blur2, TweenInfo.new(0.8), {Size = 15}):Play()
+
+-- ✅ تأثير وهج دائري متحرك
+local LightOrb = Instance.new("Frame")
+LightOrb.Size = UDim2.new(0, 400, 0, 400)
+LightOrb.Position = UDim2.new(0.5, -200, 0.5, -200)
+LightOrb.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+LightOrb.BackgroundTransparency = 0.9
+LightOrb.BorderSizePixel = 0
+LightOrb.Parent = LoaderGui
+
+local OrbCorner = Instance.new("UICorner")
+OrbCorner.CornerRadius = UDim.new(1, 0)
+OrbCorner.Parent = LightOrb
+
+-- ✅ حركة الوهج
+task.spawn(function()
+    while LoaderGui.Parent do
+        local orbTween = TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        TweenService:Create(LightOrb, orbTween, {Position = UDim2.new(0.3, 0, 0.3, 0)}):Play()
+        task.wait(3)
+        TweenService:Create(LightOrb, orbTween, {Position = UDim2.new(0.7, 0, 0.7, 0)}):Play()
+        task.wait(3)
+        TweenService:Create(LightOrb, orbTween, {Position = UDim2.new(0.3, 0, 0.7, 0)}):Play()
+        task.wait(3)
+        TweenService:Create(LightOrb, orbTween, {Position = UDim2.new(0.7, 0, 0.3, 0)}):Play()
+        task.wait(3)
+    end
+end)
+
+-- ============================================================
+-- 🎯 العناصر الرئيسية (في المنتصف)
+-- ============================================================
+
+-- ✅ الحاوية الزجاجية المتطورة
+local Container = Instance.new("Frame")
+Container.Size = UDim2.new(0.5, 0, 0.65, 0)
+Container.Position = UDim2.new(0.25, 0, 0.175, 0)
+Container.BackgroundColor3 = Color3.fromRGB(10, 25, 60)
+Container.BackgroundTransparency = 0.1
+Container.BorderSizePixel = 0
+Container.Parent = LoaderGui
+
+-- ✅ زوايا مدورة
+local ContainerCorner = Instance.new("UICorner")
+ContainerCorner.CornerRadius = UDim.new(0, 30)
+ContainerCorner.Parent = Container
+
+-- ✅ حدود متألقة
+local ContainerStroke = Instance.new("UIStroke")
+ContainerStroke.Color = Color3.fromRGB(50, 180, 255)
+ContainerStroke.Thickness = 2
+ContainerStroke.Transparency = 0.3
+ContainerStroke.Parent = Container
+
+-- ✅ تأثير زجاجي (Glassmorphism)
+local GlassEffect = Instance.new("Frame")
+GlassEffect.Size = UDim2.new(1, 0, 1, 0)
+GlassEffect.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+GlassEffect.BackgroundTransparency = 0.95
+GlassEffect.BorderSizePixel = 0
+GlassEffect.Parent = Container
+
+local GlassCorner = Instance.new("UICorner")
+GlassCorner.CornerRadius = UDim.new(0, 30)
+GlassCorner.Parent = GlassEffect
+
+-- ✅ توهج خارجي
+local OuterGlow = Instance.new("Frame")
+OuterGlow.Size = UDim2.new(1.05, 0, 1.05, 0)
+OuterGlow.Position = UDim2.new(-0.025, 0, -0.025, 0)
+OuterGlow.BackgroundColor3 = Color3.fromRGB(0, 100, 255)
+OuterGlow.BackgroundTransparency = 0.9
+OuterGlow.BorderSizePixel = 0
+OuterGlow.ZIndex = 0
+OuterGlow.Parent = Container
+
+local OuterGlowCorner = Instance.new("UICorner")
+OuterGlowCorner.CornerRadius = UDim.new(0, 35)
+OuterGlowCorner.Parent = OuterGlow
+
+-- ============================================================
+-- 🎨 العناصر النصية
+-- ============================================================
+
+-- ✅ شعار MG9 مع تأثير 3D
+local Logo = Instance.new("TextLabel")
+Logo.Size = UDim2.new(1, 0, 0, 70)
+Logo.Position = UDim2.new(0, 0, 0.05, 0)
+Logo.BackgroundTransparency = 1
+Logo.Text = "✦ MG9 ✦"
+Logo.TextColor3 = Color3.fromRGB(80, 200, 255)
+Logo.TextSize = 55
+Logo.Font = Enum.Font.GothamBold
+Logo.TextXAlignment = Enum.TextXAlignment.Center
+Logo.Parent = Container
+
+-- ✅ ظل 3D للشعار
+local LogoShadow = Instance.new("TextLabel")
+LogoShadow.Size = UDim2.new(1, 0, 0, 70)
+LogoShadow.Position = UDim2.new(0, 0, 0.07, 0)
+LogoShadow.BackgroundTransparency = 1
+LogoShadow.Text = "✦ MG9 ✦"
+LogoShadow.TextColor3 = Color3.fromRGB(0, 80, 200)
+LogoShadow.TextSize = 55
+LogoShadow.Font = Enum.Font.GothamBold
+LogoShadow.TextTransparency = 0.5
+LogoShadow.TextXAlignment = Enum.TextXAlignment.Center
+LogoShadow.ZIndex = 0
+LogoShadow.Parent = Container
+
+-- ✅ النص الثانوي
+local SubLogo = Instance.new("TextLabel")
+SubLogo.Size = UDim2.new(1, 0, 0, 30)
+SubLogo.Position = UDim2.new(0, 0, 0.18, 0)
+SubLogo.BackgroundTransparency = 1
+SubLogo.Text = "⚡ ULTIMATE HUB ⚡"
+SubLogo.TextColor3 = Color3.fromRGB(100, 220, 255)
+SubLogo.TextSize = 18
+SubLogo.Font = Enum.Font.GothamBold
+SubLogo.TextTransparency = 0.1
+SubLogo.TextXAlignment = Enum.TextXAlignment.Center
+SubLogo.Parent = Container
+
+-- ✅ خط فاصل متألق
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(0.4, 0, 0, 3)
+Divider.Position = UDim2.new(0.3, 0, 0.24, 0)
+Divider.BackgroundColor3 = Color3.fromRGB(50, 180, 255)
+Divider.BackgroundTransparency = 0.2
+Divider.BorderSizePixel = 0
+Divider.Parent = Container
+
+local DividerCorner = Instance.new("UICorner")
+DividerCorner.CornerRadius = UDim.new(0, 2)
+DividerCorner.Parent = Divider
+
+-- ✅ نص الإصدار
+local Version = Instance.new("TextLabel")
+Version.Size = UDim2.new(1, 0, 0, 22)
+Version.Position = UDim2.new(0, 0, 0.27, 0)
+Version.BackgroundTransparency = 1
+Version.Text = "📌 الإصدار V24 - تحديث نهائي"
+Version.TextColor3 = Color3.fromRGB(150, 200, 240)
+Version.TextSize = 12
+Version.Font = Enum.Font.Gotham
+Version.TextTransparency = 0.2
+Version.TextXAlignment = Enum.TextXAlignment.Center
+Version.Parent = Container
+
+-- ✅ نص حالة التحميل
+local StatusText = Instance.new("TextLabel")
+StatusText.Size = UDim2.new(1, 0, 0, 28)
+StatusText.Position = UDim2.new(0, 0, 0.35, 0)
+StatusText.BackgroundTransparency = 1
+StatusText.Text = "⏳ جاري تهيئة المحرك الرئيسي..."
+StatusText.TextColor3 = Color3.fromRGB(80, 200, 255)
+StatusText.TextSize = 15
+StatusText.Font = Enum.Font.Code
+StatusText.TextXAlignment = Enum.TextXAlignment.Center
+StatusText.Parent = Container
+
+-- ✅ عداد النسبة المئوية
+local PercentText = Instance.new("TextLabel")
+PercentText.Size = UDim2.new(1, 0, 0, 55)
+PercentText.Position = UDim2.new(0, 0, 0.44, 0)
+PercentText.BackgroundTransparency = 1
+PercentText.Text = "0%"
+PercentText.TextColor3 = Color3.fromRGB(255, 255, 255)
+PercentText.TextSize = 48
+PercentText.Font = Enum.Font.GothamBold
+PercentText.TextXAlignment = Enum.TextXAlignment.Center
+PercentText.Parent = Container
+
+-- ✅ عداد مضيء
+local PercentGlow = Instance.new("TextLabel")
+PercentGlow.Size = UDim2.new(1, 0, 0, 55)
+PercentGlow.Position = UDim2.new(0, 0, 0.455, 0)
+PercentGlow.BackgroundTransparency = 1
+PercentGlow.Text = "0%"
+PercentGlow.TextColor3 = Color3.fromRGB(50, 180, 255)
+PercentGlow.TextSize = 48
+PercentGlow.Font = Enum.Font.GothamBold
+PercentGlow.TextTransparency = 0.4
+PercentGlow.TextXAlignment = Enum.TextXAlignment.Center
+PercentGlow.ZIndex = 0
+PercentGlow.Parent = Container
+
+-- ✅ شريط التحميل
+local BarBg = Instance.new("Frame")
+BarBg.Size = UDim2.new(0.7, 0, 0, 10)
+BarBg.Position = UDim2.new(0.15, 0, 0.61, 0)
+BarBg.BackgroundColor3 = Color3.fromRGB(20, 40, 80)
+BarBg.BorderSizePixel = 0
+BarBg.Parent = Container
+
+local BarBgCorner = Instance.new("UICorner")
+BarBgCorner.CornerRadius = UDim.new(0, 5)
+BarBgCorner.Parent = BarBg
+
+-- ✅ شريط التحميل المتدرج
+local BarFill = Instance.new("Frame")
+BarFill.Size = UDim2.new(0, 0, 1, 0)
+BarFill.BackgroundColor3 = Color3.fromRGB(50, 200, 255)
+BarFill.BorderSizePixel = 0
+BarFill.Parent = BarBg
+
+local BarFillGradient = Instance.new("UIGradient")
+BarFillGradient.Color = ColorSequence.new({
+    ColorSequenceKeypoint.new(0, Color3.fromRGB(50, 150, 255)),
+    ColorSequenceKeypoint.new(0.3, Color3.fromRGB(100, 200, 255)),
+    ColorSequenceKeypoint.new(0.6, Color3.fromRGB(50, 220, 255)),
+    ColorSequenceKeypoint.new(1, Color3.fromRGB(50, 150, 255))
+})
+BarFillGradient.Rotation = 90
+BarFillGradient.Parent = BarFill
+
+local BarFillCorner = Instance.new("UICorner")
+BarFillCorner.CornerRadius = UDim.new(0, 5)
+BarFillCorner.Parent = BarFill
+
+-- ✅ نص تحت الشريط
+local BottomText = Instance.new("TextLabel")
+BottomText.Size = UDim2.new(1, 0, 0, 20)
+BottomText.Position = UDim2.new(0, 0, 0.69, 0)
+BottomText.BackgroundTransparency = 1
+BottomText.Text = "🔄 جاري التحميل..."
+BottomText.TextColor3 = Color3.fromRGB(120, 180, 220)
+BottomText.TextSize = 11
+BottomText.Font = Enum.Font.Gotham
+BottomText.TextTransparency = 0.2
+BottomText.TextXAlignment = Enum.TextXAlignment.Center
+BottomText.Parent = Container
+
+-- ============================================================
+-- 🔄 مؤشر التحميل المتطور
+-- ============================================================
+
+local SpinnerContainer = Instance.new("Frame")
+SpinnerContainer.Size = UDim2.new(0, 50, 0, 50)
+SpinnerContainer.Position = UDim2.new(0.5, -25, 0.79, 0)
+SpinnerContainer.BackgroundTransparency = 1
+SpinnerContainer.Parent = Container
+
+-- ✅ دوائر متداخلة
+for ring = 1, 3 do
+    local ringFrame = Instance.new("Frame")
+    ringFrame.Size = UDim2.new(1 - (ring-1) * 0.2, 0, 1 - (ring-1) * 0.2, 0)
+    ringFrame.Position = UDim2.new((ring-1) * 0.1, 0, (ring-1) * 0.1, 0)
+    ringFrame.BackgroundTransparency = 1
+    ringFrame.Parent = SpinnerContainer
+    
+    for i = 1, 6 do
+        local dot = Instance.new("Frame")
+        dot.Size = UDim2.new(0, 4 + (3-ring), 0, 4 + (3-ring))
+        dot.BackgroundColor3 = Color3.fromRGB(50 + ring*30, 200 - ring*30, 255)
+        dot.BackgroundTransparency = 0.2 + ring*0.1
+        dot.BorderSizePixel = 0
+        dot.Parent = ringFrame
+        
+        local dotCorner = Instance.new("UICorner")
+        dotCorner.CornerRadius = UDim.new(1, 0)
+        dotCorner.Parent = dot
+        
+        local angle = (i - 1) * 60 + ring * 15
+        local rad = math.rad(angle)
+        dot.Position = UDim2.new(0.5 + math.cos(rad) * 0.35, 0, 0.5 + math.sin(rad) * 0.35, 0)
+    end
+end
+
+-- ✅ دوران السبينر
+task.spawn(function()
+    local angle = 0
+    while LoaderGui.Parent do
+        angle = angle + 2
+        SpinnerContainer.Rotation = angle
+        task.wait()
+    end
+end)
+
+-- ============================================================
+-- 🎭 التأثيرات الحركية
+-- ============================================================
+
+-- ✅ نبض الشعار
+task.spawn(function()
+    while LoaderGui.Parent do
+        local pulse = TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        TweenService:Create(Logo, pulse, {TextTransparency = 0}):Play()
+        TweenService:Create(LogoShadow, pulse, {TextTransparency = 0.5}):Play()
+        task.wait(0.75)
+        TweenService:Create(Logo, pulse, {TextTransparency = 0.15}):Play()
+        TweenService:Create(LogoShadow, pulse, {TextTransparency = 0.7}):Play()
+        task.wait(0.75)
+    end
+end)
+
+-- ✅ توهج متحرك
+task.spawn(function()
+    while LoaderGui.Parent do
+        local glowTween = TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        TweenService:Create(OuterGlow, glowTween, {BackgroundTransparency = 0.85}):Play()
+        task.wait(1.5)
+        TweenService:Create(OuterGlow, glowTween, {BackgroundTransparency = 0.95}):Play()
+        task.wait(1.5)
+    end
+end)
+
+-- ✅ تأثير اهتزاز خفيف للشريط
+task.spawn(function()
+    while LoaderGui.Parent do
+        task.wait(0.5)
+        if BarFill.Size.X.Scale > 0.01 then
+            local shake = TweenInfo.new(0.05, Enum.EasingStyle.Sine)
+            TweenService:Create(BarFill, shake, {Size = UDim2.new(BarFill.Size.X.Scale + 0.001, 0, 1, 0)}):Play()
+            task.wait(0.05)
+            TweenService:Create(BarFill, shake, {Size = UDim2.new(BarFill.Size.X.Scale - 0.001, 0, 1, 0)}):Play()
+        end
+    end
+end)
+
+-- ============================================================
+-- 🚀 محرك التحميل المتقدم
+-- ============================================================
+
+local function UpdateProgress(percent)
+    percent = math.min(percent, 100)
+    PercentText.Text = math.floor(percent) .. "%"
+    PercentGlow.Text = math.floor(percent) .. "%"
+    BarFill.Size = UDim2.new(percent / 100, 0, 1, 0)
+end
+
+local function StartLoading()
+    local stages = {
+        {text = "⚡ تهيئة المحرك الرئيسي...", progress = 15, bottom = "🔄 تهيئة الأنظمة..."},
+        {text = "🔓 فتح قيود الإطار القديم...", progress = 30, bottom = "🔓 فتح القيود..."},
+        {text = "💉 حقن بيئات البيانات الآلية...", progress = 50, bottom = "💉 حقن البيانات..."},
+        {text = "📦 تحميل موارد السكربت...", progress = 70, bottom = "📦 تحميل الموارد..."},
+        {text = "🔄 مزامنة الذاكرة المتوازية...", progress = 85, bottom = "🔄 مزامنة الذاكرة..."},
+        {text = "⚡ التحميل النهائي...", progress = 95, bottom = "⚡ اللمسات الأخيرة..."},
+        {text = "✅ تم التحميل بنجاح!", progress = 100, bottom = "✅ جاهز للتشغيل!"}
+    }
+    
+    for _, stage in ipairs(stages) do
+        StatusText.Text = stage.text
+        BottomText.Text = stage.bottom
+        
+        local current = tonumber(string.match(PercentText.Text, "%d+")) or 0
+        local target = stage.progress
+        
+        local speed = 0.8
+        if target > 80 then speed = 0.4 end
+        
+        while current < target do
+            current = current + speed
+            UpdateProgress(current)
+            task.wait(0.015)
+        end
+        
+        UpdateProgress(target)
+        
+        -- ✅ تأثير وميض عند كل مرحلة
+        if stage.progress < 100 then
+            for i = 1, 2 do
+                TweenService:Create(Container, TweenInfo.new(0.05), {BackgroundTransparency = 0.05}):Play()
+                task.wait(0.05)
+                TweenService:Create(Container, TweenInfo.new(0.05), {BackgroundTransparency = 0.1}):Play()
+                task.wait(0.05)
+            end
+        end
+        
+        task.wait(0.2)
+    end
+    
+    -- ✅ تأثير احتفالي ضوئي
+    for i = 1, 5 do
+        TweenService:Create(Container, TweenInfo.new(0.05), {BackgroundTransparency = 0.02}):Play()
+        TweenService:Create(OuterGlow, TweenInfo.new(0.05), {BackgroundTransparency = 0.7}):Play()
+        task.wait(0.05)
+        TweenService:Create(Container, TweenInfo.new(0.05), {BackgroundTransparency = 0.1}):Play()
+        TweenService:Create(OuterGlow, TweenInfo.new(0.05), {BackgroundTransparency = 0.9}):Play()
+        task.wait(0.05)
+    end
+    
+    task.wait(0.3)
+    
+    -- ✅ تأثير الاختفاء السينمائي
+    local fade = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+    TweenService:Create(Background, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Container, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Logo, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(LogoShadow, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(SubLogo, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(Version, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(StatusText, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(PercentText, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(PercentGlow, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(BarBg, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(BarFill, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(BottomText, fade, {TextTransparency = 1}):Play()
+    TweenService:Create(SpinnerContainer, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(OuterGlow, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Divider, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(LightOrb, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(ParticleContainer, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(GlassEffect, fade, {BackgroundTransparency = 1}):Play()
+    TweenService:Create(Blur1, fade, {Size = 0}):Play()
+    TweenService:Create(Blur2, fade, {Size = 0}):Play()
+    
+    task.wait(1.1)
+    
+    -- ✅ تنظيف شامل
+    LoaderGui:Destroy()
+    Blur1:Destroy()
+    Blur2:Destroy()
+    
+    -- 🚀 تشغيل سكربت MG9
+    print("🚀 جاري تشغيل MG9 ULTIMATE HUB...")
+    print("✅ تم التحميل بنجاح!")
+    
+    -- loadstring(game:HttpGet("https://raw.githubusercontent.com/your-repo/mg9.lua"))()
+end
+
+task.spawn(StartLoading)
+
+-- ============================================================
+-- 📋 رسالة الترحيب
+-- ============================================================
+
+print("╔══════════════════════════════════════════════════════════╗")
+print("║  ✨ MG9 ULTIMATE HUB - شاشة تحميل أسطورية           ║")
+print("║  📌 أفضل 100× - تصميم سينمائي فائق التطور          ║")
+print("║  🌟 تم التطوير بواسطة: tariq191188                  ║")
+print("║  ✅ جاري تشغيل السكربت...                          ║")
+print("╚══════════════════════════════════════════════════════════╝")
