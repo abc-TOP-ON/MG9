@@ -1,4 +1,4 @@
--- Zoins Hub - Mobile Optimized Mega Edition
+-- MG9 Hub - Premium Edition
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -9,12 +9,12 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
-if CoreGui:FindFirstChild("ZoinsHub_Mobile") then 
-    CoreGui.ZoinsHub_Mobile:Destroy() 
+if CoreGui:FindFirstChild("MG9_Hub") then 
+    CoreGui.MG9_Hub:Destroy() 
 end
 
 local gui = Instance.new("ScreenGui", CoreGui)
-gui.Name = "ZoinsHub_Mobile"
+gui.Name = "MG9_Hub"
 gui.IgnoreGuiInset = true
 
 -- متغيرات التحكم
@@ -24,6 +24,7 @@ _G.FlingActive = false
 _G.AntiKickActive = false
 local spamActive = false
 local lastSafePos = nil
+local isScriptActive = true  -- للتحكم في الدخول/الخروج
 
 ---------------------------------------
 -- دوال مساعدة
@@ -41,72 +42,154 @@ local function createStroke(parent, color, thickness)
     return stroke
 end
 
----------------------------------------
--- الزر العائم الرئيسي (دائري كبير)
----------------------------------------
-local mainButton = Instance.new("ImageButton", gui)
-mainButton.Size = UDim2.new(0, 70, 0, 70)
-mainButton.Position = UDim2.new(0.5, -35, 0.85, 0)
-mainButton.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
-mainButton.Image = "rbxassetid://3926305904"
-mainButton.ImageColor3 = Color3.fromRGB(0, 200, 255)
-mainButton.ScaleType = Enum.ScaleType.Fit
-mainButton.Visible = true
-createCorner(mainButton, 35)
-local mainStroke = createStroke(mainButton, Color3.fromRGB(0, 200, 255), 3)
-
--- تأثير نبض للزر الرئيسي
-task.spawn(function()
-    while mainButton.Visible do
-        for i = 0, 1, 0.05 do
-            local scale = 1 + (i * 0.08)
-            mainButton.Size = UDim2.new(0, 70 * scale, 0, 70 * scale)
+-- دالة لإنشاء إطار نيترو متحرك (قوس قزح)
+local function createNeonFrame(parent, size, position, thickness)
+    local frame = Instance.new("Frame", parent)
+    frame.Size = size
+    frame.Position = position
+    frame.BackgroundTransparency = 1
+    frame.ZIndex = 0
+    
+    -- الإطار المتوهج
+    local stroke = Instance.new("UIStroke", frame)
+    stroke.Thickness = thickness or 3
+    stroke.Color = Color3.fromRGB(255, 0, 0)
+    stroke.Transparency = 0.3
+    
+    -- تأثير التوهج (Glow)
+    local glow = Instance.new("ImageLabel", frame)
+    glow.Size = UDim2.new(1.2, 0, 1.2, 0)
+    glow.Position = UDim2.new(-0.1, 0, -0.1, 0)
+    glow.BackgroundTransparency = 1
+    glow.Image = "rbxassetid://5028857084"  -- تأثير توهج
+    glow.ImageColor3 = Color3.fromRGB(255, 0, 255)
+    glow.ImageTransparency = 0.5
+    glow.ZIndex = 0
+    
+    -- تحريك الألوان
+    task.spawn(function()
+        local hue = 0
+        while frame.Parent and frame.Visible do
+            hue = (hue + 0.005) % 1
+            local color = Color3.fromHSV(hue, 1, 1)
+            stroke.Color = color
+            glow.ImageColor3 = color
             task.wait(0.02)
         end
-        for i = 1, 0, -0.05 do
-            local scale = 1 + (i * 0.08)
-            mainButton.Size = UDim2.new(0, 70 * scale, 0, 70 * scale)
-            task.wait(0.02)
+    end)
+    
+    return frame
+end
+
+---------------------------------------
+-- الزر الرئيسي الدائري (MG9)
+---------------------------------------
+local mainButton = Instance.new("ImageButton", gui)
+mainButton.Size = UDim2.new(0, 80, 0, 80)
+mainButton.Position = UDim2.new(0.5, -40, 0.85, 0)
+mainButton.BackgroundColor3 = Color3.fromRGB(0, 0, 0)  -- أسود
+mainButton.Image = "rbxassetid://3926305904"
+mainButton.ImageColor3 = Color3.fromRGB(255, 255, 255)
+mainButton.ScaleType = Enum.ScaleType.Fit
+mainButton.Visible = true
+createCorner(mainButton, 40)
+
+-- إطار نيترو متحرك حول الزر الرئيسي
+local mainNeon = createNeonFrame(gui, UDim2.new(0, 90, 0, 90), UDim2.new(0.5, -45, 0.85, -45), 4)
+
+-- نص MG9 داخل الزر
+local mg9Text = Instance.new("TextLabel", mainButton)
+mg9Text.Size = UDim2.new(1, 0, 1, 0)
+mg9Text.Position = UDim2.new(0, 0, 0, 0)
+mg9Text.Text = "MG9"
+mg9Text.TextColor3 = Color3.fromRGB(255, 255, 255)
+mg9Text.BackgroundTransparency = 1
+mg9Text.Font = Enum.Font.GothamBold
+mg9Text.TextSize = 22
+mg9Text.TextScaled = true
+mg9Text.ZIndex = 2
+
+-- تأثير نبض للزر
+task.spawn(function()
+    while mainButton.Visible do
+        for i = 0, 1, 0.03 do
+            local scale = 1 + (i * 0.06)
+            mainButton.Size = UDim2.new(0, 80 * scale, 0, 80 * scale)
+            mainNeon.Size = UDim2.new(0, 90 * scale, 0, 90 * scale)
+            mainNeon.Position = UDim2.new(0.5, -45 * scale, 0.85, -45 * scale)
+            task.wait(0.015)
+        end
+        for i = 1, 0, -0.03 do
+            local scale = 1 + (i * 0.06)
+            mainButton.Size = UDim2.new(0, 80 * scale, 0, 80 * scale)
+            mainNeon.Size = UDim2.new(0, 90 * scale, 0, 90 * scale)
+            mainNeon.Position = UDim2.new(0.5, -45 * scale, 0.85, -45 * scale)
+            task.wait(0.015)
         end
     end
 end)
 
 ---------------------------------------
--- القائمة الرئيسية (كبيرة ومناسبة للشاشة)
+-- خلفية شفافة
+---------------------------------------
+local bgBlur = Instance.new("Frame", gui)
+bgBlur.Size = UDim2.new(1, 0, 1, 0)
+bgBlur.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bgBlur.BackgroundTransparency = 0.6
+bgBlur.Visible = false
+bgBlur.ZIndex = 5
+
+---------------------------------------
+-- القائمة الرئيسية
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
 mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-mainFrame.BackgroundTransparency = 0.95
+mainFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
 mainFrame.Visible = false
 mainFrame.Active = true
 mainFrame.Draggable = true
+mainFrame.ZIndex = 10
 createCorner(mainFrame, 25)
-local frameStroke = createStroke(mainFrame, Color3.fromRGB(0, 200, 255), 2)
 
--- خلفية شفافة خلف القائمة
-local bgBlur = Instance.new("Frame", gui)
-bgBlur.Size = UDim2.new(1, 0, 1, 0)
-bgBlur.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-bgBlur.BackgroundTransparency = 0.5
-bgBlur.Visible = false
+-- إطار نيترو متحرك حول القائمة
+local mainNeonFrame = createNeonFrame(gui, UDim2.new(0.92, 0, 0.77, 0), UDim2.new(0.04, 0, 0.095, 0), 3)
+mainNeonFrame.Visible = false
+mainNeonFrame.ZIndex = 9
 
--- عنوان القائمة
+-- عنوان القائمة مع اسم MG9
 local titleBar = Instance.new("Frame", mainFrame)
 titleBar.Size = UDim2.new(1, 0, 0, 60)
 titleBar.BackgroundTransparency = 1
+titleBar.ZIndex = 11
 
-local title = Instance.new("TextLabel", titleBar)
-title.Size = UDim2.new(0.8, 0, 1, 0)
-title.Position = UDim2.new(0.1, 0, 0, 0)
-title.Text = "⚡ زوينز هاب"
-title.TextColor3 = Color3.fromRGB(0, 200, 255)
-title.BackgroundTransparency = 1
-title.Font = Enum.Font.GothamBold
-title.TextSize = 26
-title.TextScaled = true
+-- اسم MG9 في الزاوية اليمنى
+local mg9Corner = Instance.new("TextLabel", titleBar)
+mg9Corner.Size = UDim2.new(0.3, 0, 1, 0)
+mg9Corner.Position = UDim2.new(0.7, 0, 0, 0)
+mg9Corner.Text = "MG9"
+mg9Corner.TextColor3 = Color3.fromRGB(0, 200, 255)
+mg9Corner.BackgroundTransparency = 1
+mg9Corner.Font = Enum.Font.GothamBold
+mg9Corner.TextSize = 28
+mg9Corner.TextScaled = true
+mg9Corner.TextXAlignment = Enum.TextXAlignment.Right
+mg9Corner.ZIndex = 11
 
+-- اسم السكربت في الزاوية اليسرى
+local scriptName = Instance.new("TextLabel", titleBar)
+scriptName.Size = UDim2.new(0.5, 0, 1, 0)
+scriptName.Position = UDim2.new(0.05, 0, 0, 0)
+scriptName.Text = "⚡ MG9 HUB"
+scriptName.TextColor3 = Color3.fromRGB(255, 255, 255)
+scriptName.BackgroundTransparency = 1
+scriptName.Font = Enum.Font.GothamBold
+scriptName.TextSize = 20
+scriptName.TextScaled = true
+scriptName.TextXAlignment = Enum.TextXAlignment.Left
+scriptName.ZIndex = 11
+
+-- زر الخروج (X)
 local closeBtn = Instance.new("TextButton", titleBar)
 closeBtn.Size = UDim2.new(0, 45, 0, 45)
 closeBtn.Position = UDim2.new(1, -55, 0, 7)
@@ -115,20 +198,33 @@ closeBtn.TextColor3 = Color3.fromRGB(255, 50, 50)
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 28
 closeBtn.Font = Enum.Font.GothamBold
+closeBtn.ZIndex = 11
+
+-- زر الدخول/الخروج من السكربت
+local toggleScriptBtn = Instance.new("TextButton", mainFrame)
+toggleScriptBtn.Size = UDim2.new(0.42, 0, 0.10, 0)
+toggleScriptBtn.Position = UDim2.new(0.29, 0, 0.85, 0)
+toggleScriptBtn.Text = "🔴 خروج من السكربت"
+toggleScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+toggleScriptBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+toggleScriptBtn.TextSize = 18
+toggleScriptBtn.ZIndex = 11
+createCorner(toggleScriptBtn, 12)
+createStroke(toggleScriptBtn, Color3.fromRGB(255, 0, 0), 2)
 
 ---------------------------------------
--- أزرار القائمة الرئيسية (كبيرة)
+-- أزرار القائمة الرئيسية
 ---------------------------------------
-local function createMainButton(name, icon, yPos, color, subText)
+local function createMainButton(name, icon, yPos, color)
     local btn = Instance.new("TextButton", mainFrame)
-    btn.Size = UDim2.new(0.9, 0, 0, 55)
+    btn.Size = UDim2.new(0.9, 0, 0.14, 0)
     btn.Position = UDim2.new(0.05, 0, 0, yPos)
-    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+    btn.BackgroundColor3 = Color3.fromRGB(20, 20, 40)
     btn.Text = ""
+    btn.ZIndex = 11
     createCorner(btn, 15)
     createStroke(btn, color or Color3.fromRGB(0, 150, 255), 2)
     
-    -- نص الأيقونة
     local iconLabel = Instance.new("TextLabel", btn)
     iconLabel.Size = UDim2.new(0, 50, 1, 0)
     iconLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -137,8 +233,8 @@ local function createMainButton(name, icon, yPos, color, subText)
     iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
     iconLabel.TextSize = 24
     iconLabel.Font = Enum.Font.GothamBold
+    iconLabel.ZIndex = 11
     
-    -- نص الزر
     local textLabel = Instance.new("TextLabel", btn)
     textLabel.Size = UDim2.new(0.5, 0, 1, 0)
     textLabel.Position = UDim2.new(0, 65, 0, 0)
@@ -148,67 +244,50 @@ local function createMainButton(name, icon, yPos, color, subText)
     textLabel.TextSize = 18
     textLabel.Font = Enum.Font.GothamBold
     textLabel.TextXAlignment = Enum.TextXAlignment.Left
-    
-    -- النص الصغير (اختياري)
-    if subText then
-        local sub = Instance.new("TextLabel", btn)
-        sub.Size = UDim2.new(0.5, 0, 0, 20)
-        sub.Position = UDim2.new(0, 65, 0.6, 0)
-        sub.Text = subText
-        sub.TextColor3 = Color3.fromRGB(150, 150, 180)
-        sub.BackgroundTransparency = 1
-        sub.TextSize = 12
-        sub.Font = Enum.Font.Gotham
-        sub.TextXAlignment = Enum.TextXAlignment.Left
-    end
+    textLabel.ZIndex = 11
     
     return btn
 end
 
 -- الأزرار
-local spamBtn = createMainButton("📋 سبام الأوامر", "📋", 75, Color3.fromRGB(0, 200, 100), "إرسال أوامر تلقائية")
-local protectBtn = createMainButton("🛡 الحماية", "🛡", 145, Color3.fromRGB(0, 150, 255), "مضاد فلينج، جلوس، إشعارات")
-local settingsBtn = createMainButton("⚙️ الإعدادات", "⚙️", 215, Color3.fromRGB(255, 200, 0), "تعديل الإعدادات العامة")
-local reconnectBtn = createMainButton("🔄 إعادة الاتصال", "🔄", 285, Color3.fromRGB(255, 100, 50), "إعادة الدخول إلى السيرفر")
-local creditsBtn = createMainButton("💎 عن السكربت", "💎", 355, Color3.fromRGB(200, 100, 255), "الإصدار 3.0 - مطور")
-
--- زر إغلاق القائمة
-local hideMainBtn = Instance.new("TextButton", mainFrame)
-hideMainBtn.Size = UDim2.new(0.85, 0, 0, 45)
-hideMainBtn.Position = UDim2.new(0.075, 0, 0.88, 0)
-hideMainBtn.Text = "🔽 إخفاء القائمة"
-hideMainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-hideMainBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
-createCorner(hideMainBtn, 15)
-createStroke(hideMainBtn, Color3.fromRGB(255, 80, 80), 2)
+local spamBtn = createMainButton("📋 سبام الأوامر", "📋", 0.12, Color3.fromRGB(0, 200, 100))
+local protectBtn = createMainButton("🛡 الحماية", "🛡", 0.30, Color3.fromRGB(0, 150, 255))
 
 ---------------------------------------
--- واجهة السبام (كبيرة)
+-- واجهة السبام
 ---------------------------------------
 local spamFrame = Instance.new("Frame", gui)
 spamFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
 spamFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-spamFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+spamFrame.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
 spamFrame.Visible = false
 spamFrame.Active = true
 spamFrame.Draggable = true
+spamFrame.ZIndex = 10
 createCorner(spamFrame, 25)
-local spamStroke = createStroke(spamFrame, Color3.fromRGB(0, 200, 100), 2)
 
--- عنوان
+-- إطار نيترو للسبام
+local spamNeon = createNeonFrame(gui, UDim2.new(0.92, 0, 0.77, 0), UDim2.new(0.04, 0, 0.095, 0), 3)
+spamNeon.Visible = false
+spamNeon.ZIndex = 9
+
+-- عنوان السبام
 local spamTitle = Instance.new("Frame", spamFrame)
 spamTitle.Size = UDim2.new(1, 0, 0, 55)
 spamTitle.BackgroundTransparency = 1
+spamTitle.ZIndex = 11
 
 local stTitle = Instance.new("TextLabel", spamTitle)
 stTitle.Size = UDim2.new(0.7, 0, 1, 0)
-stTitle.Position = UDim2.new(0.15, 0, 0, 0)
+stTitle.Position = UDim2.new(0.05, 0, 0, 0)
 stTitle.Text = "📋 سبام الأوامر"
 stTitle.TextColor3 = Color3.fromRGB(0, 200, 100)
 stTitle.BackgroundTransparency = 1
 stTitle.Font = Enum.Font.GothamBold
-stTitle.TextSize = 24
+stTitle.TextSize = 22
 stTitle.TextScaled = true
+stTitle.TextXAlignment = Enum.TextXAlignment.Left
+stTitle.ZIndex = 11
 
 local spamClose = Instance.new("TextButton", spamTitle)
 spamClose.Size = UDim2.new(0, 45, 0, 45)
@@ -217,139 +296,148 @@ spamClose.Text = "✕"
 spamClose.TextColor3 = Color3.fromRGB(255, 50, 50)
 spamClose.BackgroundTransparency = 1
 spamClose.TextSize = 28
+spamClose.ZIndex = 11
 
--- مربع النص (كبير للكتابة)
+-- مربع النص
 local spamBox = Instance.new("TextBox", spamFrame)
 spamBox.Size = UDim2.new(0.9, 0, 0.25, 0)
 spamBox.Position = UDim2.new(0.05, 0, 0.12, 0)
 spamBox.Text = ""
-spamBox.PlaceholderText = "📝 اكتب الأوامر هنا...\nافصل بينها بـ ;\nمثال: ;fly ;speed 50"
+spamBox.PlaceholderText = "📝 اكتب الأوامر هنا...\nافصل بينها بـ ;"
 spamBox.TextColor3 = Color3.fromRGB(255, 255, 255)
 spamBox.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
 spamBox.MultiLine = true
 spamBox.ClearTextOnFocus = false
 spamBox.TextSize = 16
 spamBox.Font = Enum.Font.Gotham
+spamBox.ZIndex = 11
 createCorner(spamBox, 12)
 
--- خيار التأخير
-local delayFrame = Instance.new("Frame", spamFrame)
-delayFrame.Size = UDim2.new(0.9, 0, 0.08, 0)
-delayFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
-delayFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
-createCorner(delayFrame, 10)
+-- التأخير
+local delayFrame2 = Instance.new("Frame", spamFrame)
+delayFrame2.Size = UDim2.new(0.9, 0, 0.08, 0)
+delayFrame2.Position = UDim2.new(0.05, 0, 0.4, 0)
+delayFrame2.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+delayFrame2.ZIndex = 11
+createCorner(delayFrame2, 10)
 
-local delayLabel = Instance.new("TextLabel", delayFrame)
-delayLabel.Size = UDim2.new(0.3, 0, 1, 0)
-delayLabel.Position = UDim2.new(0.05, 0, 0, 0)
-delayLabel.Text = "⏱ التأخير:"
-delayLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-delayLabel.BackgroundTransparency = 1
-delayLabel.TextSize = 16
+local delayLabel2 = Instance.new("TextLabel", delayFrame2)
+delayLabel2.Size = UDim2.new(0.3, 0, 1, 0)
+delayLabel2.Position = UDim2.new(0.05, 0, 0, 0)
+delayLabel2.Text = "⏱ التأخير:"
+delayLabel2.TextColor3 = Color3.fromRGB(200, 200, 200)
+delayLabel2.BackgroundTransparency = 1
+delayLabel2.TextSize = 16
+delayLabel2.ZIndex = 11
 
-local delayBox = Instance.new("TextBox", delayFrame)
-delayBox.Size = UDim2.new(0.2, 0, 0.7, 0)
-delayBox.Position = UDim2.new(0.37, 0, 0.15, 0)
-delayBox.Text = "1"
-delayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-delayBox.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
-delayBox.TextSize = 18
-delayBox.Font = Enum.Font.GothamBold
-createCorner(delayBox, 8)
+local delayBox2 = Instance.new("TextBox", delayFrame2)
+delayBox2.Size = UDim2.new(0.2, 0, 0.7, 0)
+delayBox2.Position = UDim2.new(0.37, 0, 0.15, 0)
+delayBox2.Text = "1"
+delayBox2.TextColor3 = Color3.fromRGB(255, 255, 255)
+delayBox2.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+delayBox2.TextSize = 18
+delayBox2.Font = Enum.Font.GothamBold
+delayBox2.ZIndex = 11
+createCorner(delayBox2, 8)
 
-local secLabel = Instance.new("TextLabel", delayFrame)
-secLabel.Size = UDim2.new(0.15, 0, 1, 0)
-secLabel.Position = UDim2.new(0.6, 0, 0, 0)
-secLabel.Text = "ثانية"
-secLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
-secLabel.BackgroundTransparency = 1
-secLabel.TextSize = 14
+-- الحالة
+local spamStatus2 = Instance.new("TextLabel", spamFrame)
+spamStatus2.Size = UDim2.new(0.9, 0, 0.06, 0)
+spamStatus2.Position = UDim2.new(0.05, 0, 0.50, 0)
+spamStatus2.Text = "⏹ غير نشط"
+spamStatus2.TextColor3 = Color3.fromRGB(150, 150, 150)
+spamStatus2.BackgroundTransparency = 1
+spamStatus2.TextSize = 18
+spamStatus2.ZIndex = 11
 
--- حالة السبام
-local spamStatus = Instance.new("TextLabel", spamFrame)
-spamStatus.Size = UDim2.new(0.9, 0, 0.06, 0)
-spamStatus.Position = UDim2.new(0.05, 0, 0.5, 0)
-spamStatus.Text = "⏹ غير نشط"
-spamStatus.TextColor3 = Color3.fromRGB(150, 150, 150)
-spamStatus.BackgroundTransparency = 1
-spamStatus.TextSize = 18
+-- أزرار التحكم
+local startSpamBtn2 = Instance.new("TextButton", spamFrame)
+startSpamBtn2.Size = UDim2.new(0.42, 0, 0.12, 0)
+startSpamBtn2.Position = UDim2.new(0.05, 0, 0.58, 0)
+startSpamBtn2.Text = "▶ ابدأ"
+startSpamBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+startSpamBtn2.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+startSpamBtn2.TextSize = 20
+startSpamBtn2.ZIndex = 11
+createCorner(startSpamBtn2, 15)
 
--- أزرار التحكم (كبيرة)
-local startSpamBtn = Instance.new("TextButton", spamFrame)
-startSpamBtn.Size = UDim2.new(0.42, 0, 0.12, 0)
-startSpamBtn.Position = UDim2.new(0.05, 0, 0.58, 0)
-startSpamBtn.Text = "▶ ابدأ"
-startSpamBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-startSpamBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
-startSpamBtn.TextSize = 20
-createCorner(startSpamBtn, 15)
+local stopSpamBtn2 = Instance.new("TextButton", spamFrame)
+stopSpamBtn2.Size = UDim2.new(0.42, 0, 0.12, 0)
+stopSpamBtn2.Position = UDim2.new(0.53, 0, 0.58, 0)
+stopSpamBtn2.Text = "⏹ إيقاف"
+stopSpamBtn2.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopSpamBtn2.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+stopSpamBtn2.TextSize = 20
+stopSpamBtn2.ZIndex = 11
+createCorner(stopSpamBtn2, 15)
 
-local stopSpamBtn = Instance.new("TextButton", spamFrame)
-stopSpamBtn.Size = UDim2.new(0.42, 0, 0.12, 0)
-stopSpamBtn.Position = UDim2.new(0.53, 0, 0.58, 0)
-stopSpamBtn.Text = "⏹ إيقاف"
-stopSpamBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-stopSpamBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
-stopSpamBtn.TextSize = 20
-createCorner(stopSpamBtn, 15)
-
--- زر العودة
-local backFromSpam = Instance.new("TextButton", spamFrame)
-backFromSpam.Size = UDim2.new(0.42, 0, 0.10, 0)
-backFromSpam.Position = UDim2.new(0.29, 0, 0.75, 0)
-backFromSpam.Text = "🔙 رجوع"
-backFromSpam.TextColor3 = Color3.fromRGB(255, 255, 255)
-backFromSpam.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-backFromSpam.TextSize = 18
-createCorner(backFromSpam, 12)
+local backFromSpam2 = Instance.new("TextButton", spamFrame)
+backFromSpam2.Size = UDim2.new(0.42, 0, 0.10, 0)
+backFromSpam2.Position = UDim2.new(0.29, 0, 0.75, 0)
+backFromSpam2.Text = "🔙 رجوع"
+backFromSpam2.TextColor3 = Color3.fromRGB(255, 255, 255)
+backFromSpam2.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+backFromSpam2.TextSize = 18
+backFromSpam2.ZIndex = 11
+createCorner(backFromSpam2, 12)
 
 ---------------------------------------
--- واجهة الحماية (كبيرة)
+-- واجهة الحماية
 ---------------------------------------
-local protectFrame = Instance.new("Frame", gui)
-protectFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
-protectFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
-protectFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
-protectFrame.Visible = false
-protectFrame.Active = true
-protectFrame.Draggable = true
-createCorner(protectFrame, 25)
-local protectStroke = createStroke(protectFrame, Color3.fromRGB(0, 150, 255), 2)
+local protectFrame2 = Instance.new("Frame", gui)
+protectFrame2.Size = UDim2.new(0.9, 0, 0.75, 0)
+protectFrame2.Position = UDim2.new(0.05, 0, 0.1, 0)
+protectFrame2.BackgroundColor3 = Color3.fromRGB(10, 10, 20)
+protectFrame2.Visible = false
+protectFrame2.Active = true
+protectFrame2.Draggable = true
+protectFrame2.ZIndex = 10
+createCorner(protectFrame2, 25)
+
+-- إطار نيترو للحماية
+local protectNeon = createNeonFrame(gui, UDim2.new(0.92, 0, 0.77, 0), UDim2.new(0.04, 0, 0.095, 0), 3)
+protectNeon.Visible = false
+protectNeon.ZIndex = 9
 
 -- عنوان الحماية
-local pTitleFrame = Instance.new("Frame", protectFrame)
-pTitleFrame.Size = UDim2.new(1, 0, 0, 55)
-pTitleFrame.BackgroundTransparency = 1
+local pTitleFrame2 = Instance.new("Frame", protectFrame2)
+pTitleFrame2.Size = UDim2.new(1, 0, 0, 55)
+pTitleFrame2.BackgroundTransparency = 1
+pTitleFrame2.ZIndex = 11
 
-local pTitle = Instance.new("TextLabel", pTitleFrame)
-pTitle.Size = UDim2.new(0.7, 0, 1, 0)
-pTitle.Position = UDim2.new(0.15, 0, 0, 0)
-pTitle.Text = "🛡 الحماية"
-pTitle.TextColor3 = Color3.fromRGB(0, 150, 255)
-pTitle.BackgroundTransparency = 1
-pTitle.Font = Enum.Font.GothamBold
-pTitle.TextSize = 24
-pTitle.TextScaled = true
+local pTitle2 = Instance.new("TextLabel", pTitleFrame2)
+pTitle2.Size = UDim2.new(0.7, 0, 1, 0)
+pTitle2.Position = UDim2.new(0.05, 0, 0, 0)
+pTitle2.Text = "🛡 الحماية"
+pTitle2.TextColor3 = Color3.fromRGB(0, 150, 255)
+pTitle2.BackgroundTransparency = 1
+pTitle2.Font = Enum.Font.GothamBold
+pTitle2.TextSize = 22
+pTitle2.TextScaled = true
+pTitle2.TextXAlignment = Enum.TextXAlignment.Left
+pTitle2.ZIndex = 11
 
-local protectClose = Instance.new("TextButton", pTitleFrame)
-protectClose.Size = UDim2.new(0, 45, 0, 45)
-protectClose.Position = UDim2.new(1, -55, 0, 5)
-protectClose.Text = "✕"
-protectClose.TextColor3 = Color3.fromRGB(255, 50, 50)
-protectClose.BackgroundTransparency = 1
-protectClose.TextSize = 28
+local protectClose2 = Instance.new("TextButton", pTitleFrame2)
+protectClose2.Size = UDim2.new(0, 45, 0, 45)
+protectClose2.Position = UDim2.new(1, -55, 0, 5)
+protectClose2.Text = "✕"
+protectClose2.TextColor3 = Color3.fromRGB(255, 50, 50)
+protectClose2.BackgroundTransparency = 1
+protectClose2.TextSize = 28
+protectClose2.ZIndex = 11
 
--- دوال إنشاء أزرار التبديل (كبيرة)
-local function createSwitch(parent, name, icon, yPos, callback)
+-- دوال إنشاء أزرار التبديل
+local function createSwitch2(parent, name, icon, yPos, callback)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0.9, 0, 0.12, 0)
     btn.Position = UDim2.new(0.05, 0, 0, yPos)
     btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
     btn.Text = ""
+    btn.ZIndex = 11
     createCorner(btn, 12)
     local stroke = createStroke(btn, Color3.fromRGB(255, 50, 50), 2.5)
     
-    -- الأيقونة
     local iconL = Instance.new("TextLabel", btn)
     iconL.Size = UDim2.new(0, 45, 1, 0)
     iconL.Position = UDim2.new(0, 10, 0, 0)
@@ -358,8 +446,8 @@ local function createSwitch(parent, name, icon, yPos, callback)
     iconL.TextColor3 = Color3.fromRGB(255, 255, 255)
     iconL.TextSize = 22
     iconL.Font = Enum.Font.GothamBold
+    iconL.ZIndex = 11
     
-    -- النص
     local txt = Instance.new("TextLabel", btn)
     txt.Size = UDim2.new(0.5, 0, 1, 0)
     txt.Position = UDim2.new(0, 60, 0, 0)
@@ -369,12 +457,13 @@ local function createSwitch(parent, name, icon, yPos, callback)
     txt.TextSize = 17
     txt.Font = Enum.Font.GothamBold
     txt.TextXAlignment = Enum.TextXAlignment.Left
+    txt.ZIndex = 11
     
-    -- مؤشر الحالة
     local indicator = Instance.new("Frame", btn)
     indicator.Size = UDim2.new(0, 25, 0, 25)
     indicator.Position = UDim2.new(1, -40, 0.5, -12.5)
     indicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    indicator.ZIndex = 11
     createCorner(indicator, 12)
     
     local active = false
@@ -389,7 +478,7 @@ local function createSwitch(parent, name, icon, yPos, callback)
 end
 
 -- أزرار الحماية
-createSwitch(protectFrame, "مضاد اللاق والسجلات", "🛡", 0.14, function(state)
+createSwitch2(protectFrame2, "مضاد اللاق والسجلات", "🛡", 0.14, function(state)
     _G.DefenseActive = state
     if state then
         pcall(function()
@@ -429,7 +518,7 @@ createSwitch(protectFrame, "مضاد اللاق والسجلات", "🛡", 0.14,
     end
 end)
 
-createSwitch(protectFrame, "مضاد الإشعارات", "🔇", 0.29, function(state)
+createSwitch2(protectFrame2, "مضاد الإشعارات", "🔇", 0.29, function(state)
     _G.AlertsActive = state
     pcall(function()
         for _, g in pairs(player.PlayerGui:GetChildren()) do
@@ -440,24 +529,24 @@ createSwitch(protectFrame, "مضاد الإشعارات", "🔇", 0.29, function
     end)
 end)
 
-createSwitch(protectFrame, "مضاد الفلينج", "🌀", 0.44, function(state)
+createSwitch2(protectFrame2, "مضاد الفلينج", "🌀", 0.44, function(state)
     _G.FlingActive = state
     if state then lastSafePos = nil end
 end)
 
-createSwitch(protectFrame, "مضاد الجلوس", "🦵", 0.59, function(state)
+createSwitch2(protectFrame2, "مضاد الجلوس", "🦵", 0.59, function(state)
     _G.AntiKickActive = state
 end)
 
--- زر العودة من الحماية
-local backFromProtect = Instance.new("TextButton", protectFrame)
-backFromProtect.Size = UDim2.new(0.42, 0, 0.10, 0)
-backFromProtect.Position = UDim2.new(0.29, 0, 0.78, 0)
-backFromProtect.Text = "🔙 رجوع"
-backFromProtect.TextColor3 = Color3.fromRGB(255, 255, 255)
-backFromProtect.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
-backFromProtect.TextSize = 18
-createCorner(backFromProtect, 12)
+local backFromProtect2 = Instance.new("TextButton", protectFrame2)
+backFromProtect2.Size = UDim2.new(0.42, 0, 0.10, 0)
+backFromProtect2.Position = UDim2.new(0.29, 0, 0.78, 0)
+backFromProtect2.Text = "🔙 رجوع"
+backFromProtect2.TextColor3 = Color3.fromRGB(255, 255, 255)
+backFromProtect2.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+backFromProtect2.TextSize = 18
+backFromProtect2.ZIndex = 11
+createCorner(backFromProtect2, 12)
 
 ---------------------------------------
 -- منطق السبام
@@ -481,7 +570,7 @@ local function fireSpam(cmd)
     end)
 end
 
-startSpamBtn.MouseButton1Click:Connect(function()
+startSpamBtn2.MouseButton1Click:Connect(function()
     local cmds = {}
     local text = spamBox.Text
     for c in string.gmatch(text, "[^;\n]+") do
@@ -490,17 +579,17 @@ startSpamBtn.MouseButton1Click:Connect(function()
     end
     
     if #cmds == 0 then
-        spamStatus.Text = "⚠ لا توجد أوامر!"
-        spamStatus.TextColor3 = Color3.fromRGB(255, 200, 0)
+        spamStatus2.Text = "⚠ لا توجد أوامر!"
+        spamStatus2.TextColor3 = Color3.fromRGB(255, 200, 0)
         return
     end
     
-    local delay = tonumber(delayBox.Text) or 1
+    local delay = tonumber(delayBox2.Text) or 1
     delay = math.max(0.1, math.min(10, delay))
     
     spamActive = true
-    spamStatus.Text = "▶ نشط (" .. #cmds .. " أمر)"
-    spamStatus.TextColor3 = Color3.fromRGB(0, 255, 100)
+    spamStatus2.Text = "▶ نشط (" .. #cmds .. " أمر)"
+    spamStatus2.TextColor3 = Color3.fromRGB(0, 255, 100)
     
     task.spawn(function()
         while spamActive do
@@ -516,16 +605,15 @@ startSpamBtn.MouseButton1Click:Connect(function()
     end)
 end)
 
-stopSpamBtn.MouseButton1Click:Connect(function()
+stopSpamBtn2.MouseButton1Click:Connect(function()
     spamActive = false
-    spamStatus.Text = "⏹ متوقف"
-    spamStatus.TextColor3 = Color3.fromRGB(150, 150, 150)
+    spamStatus2.Text = "⏹ متوقف"
+    spamStatus2.TextColor3 = Color3.fromRGB(150, 150, 150)
 end)
 
 ---------------------------------------
 -- منطق الحماية
 ---------------------------------------
--- منع الإشعارات
 player.PlayerGui.DescendantAdded:Connect(function(desc)
     if _G.AlertsActive then
         pcall(function()
@@ -544,8 +632,9 @@ player.PlayerGui.DescendantAdded:Connect(function(desc)
     end
 end)
 
--- منع الفلينج والجلوس
 RunService.Heartbeat:Connect(function()
+    if not isScriptActive then return end  -- إيقاف كل شيء عند الخروج
+    
     pcall(function()
         local char = player.Character
         if not char then return end
@@ -577,90 +666,126 @@ RunService.Heartbeat:Connect(function()
     end)
 end)
 
--- إعادة الاتصال
-reconnectBtn.MouseButton1Click:Connect(function()
-    pcall(function()
-        if game:GetService("TeleportService") then
-            game:GetService("TeleportService"):Teleport(game.PlaceId, player)
-        end
-    end)
-end)
-
--- زر الإعدادات (مؤقت)
-settingsBtn.MouseButton1Click:Connect(function()
-    -- يمكنك إضافة إعدادات إضافية هنا
-    print("📌 سيتم إضافة الإعدادات قريباً")
-end)
-
--- زر معلومات
-creditsBtn.MouseButton1Click:Connect(function()
-    print("💎 زوينز هاب - الإصدار 3.0")
-    print("📱 محسّن للهواتف")
-    print("👨‍💻 مطور: غير معروف")
-end)
-
 ---------------------------------------
--- التحكم بين القوائم
+-- التحكم في القوائم
 ---------------------------------------
--- إظهار/إخفاء القائمة الرئيسية
 local mainVisible = false
+
+-- زر الدخول/الخروج من السكربت
+toggleScriptBtn.MouseButton1Click:Connect(function()
+    isScriptActive = not isScriptActive
+    
+    if isScriptActive then
+        toggleScriptBtn.Text = "🔴 خروج من السكربت"
+        toggleScriptBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+        toggleScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        createStroke(toggleScriptBtn, Color3.fromRGB(255, 0, 0), 2)
+        
+        -- إعادة تفعيل كل شيء
+        mainButton.Visible = true
+        mainNeon.Visible = true
+        mg9Text.Visible = true
+        print("✅ تم تفعيل السكربت مجدداً")
+    else
+        toggleScriptBtn.Text = "🟢 دخول للسكربت"
+        toggleScriptBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+        toggleScriptBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+        createStroke(toggleScriptBtn, Color3.fromRGB(0, 255, 0), 2)
+        
+        -- إخفاء كل شيء
+        mainFrame.Visible = false
+        spamFrame.Visible = false
+        protectFrame2.Visible = false
+        bgBlur.Visible = false
+        mainNeonFrame.Visible = false
+        spamNeon.Visible = false
+        protectNeon.Visible = false
+        mainButton.Visible = false
+        mainNeon.Visible = false
+        mg9Text.Visible = false
+        
+        -- إيقاف السبام
+        spamActive = false
+        
+        print("✅ تم إيقاف السكربت")
+    end
+end)
+
+-- إظهار/إخفاء القائمة
 mainButton.MouseButton1Click:Connect(function()
+    if not isScriptActive then return end
+    
     mainVisible = not mainVisible
     mainFrame.Visible = mainVisible
+    mainNeonFrame.Visible = mainVisible
     bgBlur.Visible = mainVisible
     mainButton.Visible = not mainVisible
+    mainNeon.Visible = not mainVisible
+    mg9Text.Visible = not mainVisible
 end)
 
--- إغلاق القائمة
 closeBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
+    mainNeonFrame.Visible = false
     bgBlur.Visible = false
     mainButton.Visible = true
-end)
-
-hideMainBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    bgBlur.Visible = false
-    mainButton.Visible = true
+    mainNeon.Visible = true
+    mg9Text.Visible = true
 end)
 
 -- فتح سبام
 spamBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
+    mainNeonFrame.Visible = false
     bgBlur.Visible = true
     spamFrame.Visible = true
+    spamNeon.Visible = true
 end)
 
 -- فتح حماية
 protectBtn.MouseButton1Click:Connect(function()
     mainFrame.Visible = false
+    mainNeonFrame.Visible = false
     bgBlur.Visible = true
-    protectFrame.Visible = true
+    protectFrame2.Visible = true
+    protectNeon.Visible = true
 end)
 
 -- رجوع من سبام
-backFromSpam.MouseButton1Click:Connect(function()
+backFromSpam2.MouseButton1Click:Connect(function()
     spamFrame.Visible = false
+    spamNeon.Visible = false
     bgBlur.Visible = true
     mainFrame.Visible = true
+    mainNeonFrame.Visible = true
 end)
+
 spamClose.MouseButton1Click:Connect(function()
     spamFrame.Visible = false
+    spamNeon.Visible = false
     bgBlur.Visible = false
     mainButton.Visible = true
+    mainNeon.Visible = true
+    mg9Text.Visible = true
 end)
 
 -- رجوع من حماية
-backFromProtect.MouseButton1Click:Connect(function()
-    protectFrame.Visible = false
+backFromProtect2.MouseButton1Click:Connect(function()
+    protectFrame2.Visible = false
+    protectNeon.Visible = false
     bgBlur.Visible = true
     mainFrame.Visible = true
-end)
-protectClose.MouseButton1Click:Connect(function()
-    protectFrame.Visible = false
-    bgBlur.Visible = false
-    mainButton.Visible = true
+    mainNeonFrame.Visible = true
 end)
 
-print("✅ زوينز هاب - تم التحميل بنجاح!")
-print("📱 محسّن للهواتف بالكامل!")
+protectClose2.MouseButton1Click:Connect(function()
+    protectFrame2.Visible = false
+    protectNeon.Visible = false
+    bgBlur.Visible = false
+    mainButton.Visible = true
+    mainNeon.Visible = true
+    mg9Text.Visible = true
+end)
+
+print("✅ MG9 HUB - تم التحميل بنجاح!")
+print("💎 Premium Edition - نيترو متحرك")
