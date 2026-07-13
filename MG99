@@ -1,4 +1,4 @@
--- MG9 - Ultimate Hub V8 (AFK + No SPAM/PROTECTION Buttons)
+-- MG9 - Ultimate Hub V9 (All Buttons Work With One Click/Tap)
 local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
@@ -238,8 +238,8 @@ countLabel.Position = UDim2.new(0.61, 0, 0, 0)
 countLabel.Size = UDim2.new(0.15, -5, 1, 0)
 countBox.Position = UDim2.new(0.85, 0, 0, 0)
 
--- أحداث الأزرار اللانهائية
-infiniteTimeBtn.MouseButton1Click:Connect(function()
+-- أحداث الأزرار اللانهائية (ضغطة واحدة)
+local function toggleInfiniteTime()
     isInfiniteTime = not isInfiniteTime
     if isInfiniteTime then
         infiniteTimeBtn.BackgroundColor3 = colors.infinite
@@ -254,9 +254,17 @@ infiniteTimeBtn.MouseButton1Click:Connect(function()
         timerBox.Text = "10"
         timerBox.TextColor3 = colors.text
     end
+end
+
+infiniteTimeBtn.MouseButton1Click:Connect(toggleInfiniteTime)
+infiniteTimeBtn.TouchTap:Connect(toggleInfiniteTime)
+infiniteTimeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        toggleInfiniteTime()
+    end
 end)
 
-infiniteCopiesBtn.MouseButton1Click:Connect(function()
+local function toggleInfiniteCopies()
     isInfiniteCopies = not isInfiniteCopies
     if isInfiniteCopies then
         infiniteCopiesBtn.BackgroundColor3 = colors.infinite
@@ -270,6 +278,14 @@ infiniteCopiesBtn.MouseButton1Click:Connect(function()
         infiniteCopiesBtn.UIStroke.Color = colors.textDim
         countBox.Text = "3"
         countBox.TextColor3 = colors.text
+    end
+end
+
+infiniteCopiesBtn.MouseButton1Click:Connect(toggleInfiniteCopies)
+infiniteCopiesBtn.TouchTap:Connect(toggleInfiniteCopies)
+infiniteCopiesBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        toggleInfiniteCopies()
     end
 end)
 
@@ -352,7 +368,7 @@ timerDisplay.TextSize = 17
 timerDisplay.Font = Enum.Font.GothamBold
 
 ---------------------------------------
--- نافذة الإعدادات (مع أزرار كبيرة)
+-- نافذة الإعدادات
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
 settingsFrame.Size = UDim2.new(1, -30, 1, -105)
@@ -382,7 +398,7 @@ settingsClose.BackgroundTransparency = 1
 settingsClose.TextSize = 26
 settingsClose.Font = Enum.Font.GothamBold
 
--- حاوية الإعدادات (قابلة للتمرير)
+-- حاوية الإعدادات
 local settingsContainer = Instance.new("ScrollingFrame", settingsFrame)
 settingsContainer.Size = UDim2.new(1, -10, 1, -70)
 settingsContainer.Position = UDim2.new(0, 5, 0, 65)
@@ -391,7 +407,7 @@ settingsContainer.ScrollBarThickness = 8
 settingsContainer.ScrollBarImageColor3 = colors.accent
 settingsContainer.CanvasSize = UDim2.new(0, 0, 0, 680)
 
--- ===== دالة إنشاء زر تبديل (كبير) =====
+-- ===== دالة إنشاء زر تبديل (ضغطة واحدة) =====
 local function createBigToggle(name, pos, desc, callback)
     local frame = Instance.new("Frame", settingsContainer)
     frame.Size = UDim2.new(1, 0, 0, 75)
@@ -451,10 +467,22 @@ local function createBigToggle(name, pos, desc, callback)
         print("✅ " .. name .. ": " .. tostring(state))
     end
     
+    -- كل الأحداث تعمل بضغطة واحدة
     clickArea.MouseButton1Click:Connect(toggleState)
     clickArea.TouchTap:Connect(toggleState)
+    clickArea.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggleState()
+        end
+    end)
+    
     toggle.MouseButton1Click:Connect(toggleState)
     toggle.TouchTap:Connect(toggleState)
+    toggle.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            toggleState()
+        end
+    end)
     
     return toggle
 end
@@ -561,37 +589,33 @@ createBigToggle("🚫 مضاد الطرد (Anti-Kick)", 485, "يمنع طردك 
     end
 end)
 
--- 8. مضاد AFK (جديد بدلاً من مضاد التجميد)
+-- 8. مضاد AFK
 createBigToggle("💤 مضاد AFK", 565, "يمنع دخولك في وضع AFK", function(state)
     _G.AntiAFK = state
     if state then
         task.spawn(function()
             while _G.AntiAFK do
                 pcall(function()
-                    -- تحريك الشخصية قليلاً لمنع AFK
                     local char = player.Character
                     if char and char:FindFirstChild("HumanoidRootPart") then
                         local hrp = char.HumanoidRootPart
-                        local currentPos = hrp.Position
-                        -- حركة بسيطة جداً
                         hrp.CFrame = hrp.CFrame + Vector3.new(0, 0, 0.01)
                         task.wait(0.1)
                         hrp.CFrame = hrp.CFrame - Vector3.new(0, 0, 0.01)
                     end
-                    -- محاكاة حركة الماوس
-                    mouse = player:GetMouse()
+                    local mouse = player:GetMouse()
                     if mouse then
                         mouse.Move:Fire()
                     end
                 end)
-                task.wait(30) -- كل 30 ثانية
+                task.wait(30)
             end
         end)
     end
     print("💤 مضاد AFK: " .. tostring(state))
 end)
 
--- زر تفعيل الكل
+-- زر تفعيل الكل (ضغطة واحدة)
 local activateAllBtn = Instance.new("TextButton", settingsContainer)
 activateAllBtn.Size = UDim2.new(0.9, 0, 0, 65)
 activateAllBtn.Position = UDim2.new(0.05, 0, 0, 660)
@@ -603,7 +627,7 @@ activateAllBtn.TextSize = 20
 createCorner(activateAllBtn, 15)
 createStroke(activateAllBtn, colors.success, 2)
 
-activateAllBtn.MouseButton1Click:Connect(function()
+local function activateAll()
     for _, child in pairs(settingsContainer:GetChildren()) do
         if child:IsA("Frame") then
             local toggle = child:FindFirstChildWhichIsA("TextButton")
@@ -613,18 +637,14 @@ activateAllBtn.MouseButton1Click:Connect(function()
         end
     end
     print("✅ تم تفعيل جميع الحمايات!")
-end)
+end
 
-activateAllBtn.TouchTap:Connect(function()
-    for _, child in pairs(settingsContainer:GetChildren()) do
-        if child:IsA("Frame") then
-            local toggle = child:FindFirstChildWhichIsA("TextButton")
-            if toggle and toggle.Text == "OFF" then
-                toggle.MouseButton1Click:Fire()
-            end
-        end
+activateAllBtn.MouseButton1Click:Connect(activateAll)
+activateAllBtn.TouchTap:Connect(activateAll)
+activateAllBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        activateAll()
     end
-    print("✅ تم تفعيل جميع الحمايات!")
 end)
 
 ---------------------------------------
@@ -639,7 +659,7 @@ local function fireSpam(cmd)
     end)
 end
 
-startSpamBtn.MouseButton1Click:Connect(function()
+local function startSpam()
     local cmds = {}
     for c in string.gmatch(inputBox.Text, ";[^;\n]+") do
         table.insert(cmds, c)
@@ -709,9 +729,9 @@ startSpamBtn.MouseButton1Click:Connect(function()
             timerDisplay.Text = "⏱️ الوقت المتبقي: -- ثانية"
         end
     end)
-end)
+end
 
-stopSpamBtn.MouseButton1Click:Connect(function()
+local function stopSpam()
     spamActive = false
     statusText.Text = "⏸️ متوقف"
     statusText.TextColor3 = colors.textDim
@@ -720,70 +740,102 @@ stopSpamBtn.MouseButton1Click:Connect(function()
     if not isInfiniteTime then
         timerDisplay.Text = "⏱️ الوقت المتبقي: -- ثانية"
     end
+end
+
+-- أزرار السبام (ضغطة واحدة)
+startSpamBtn.MouseButton1Click:Connect(startSpam)
+startSpamBtn.TouchTap:Connect(startSpam)
+startSpamBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        startSpam()
+    end
+end)
+
+stopSpamBtn.MouseButton1Click:Connect(stopSpam)
+stopSpamBtn.TouchTap:Connect(stopSpam)
+stopSpamBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        stopSpam()
+    end
 end)
 
 ---------------------------------------
--- أحداث زر الإعدادات
+-- أحداث زر الإعدادات (ضغطة واحدة)
 ---------------------------------------
-settingsBtn.MouseButton1Click:Connect(function()
+local function toggleSettings()
     settingsFrame.Visible = not settingsFrame.Visible
     if settingsFrame.Visible then
         settingsBtn.Text = "✕"
         settingsBtn.TextColor3 = colors.danger
+        spamContainer.Visible = false
+        print("⚙️ تم فتح الإعدادات")
     else
         settingsBtn.Text = "⚙️"
         settingsBtn.TextColor3 = colors.settings
+        spamContainer.Visible = true
+        print("⚙️ تم إغلاق الإعدادات")
+    end
+end
+
+settingsBtn.MouseButton1Click:Connect(toggleSettings)
+settingsBtn.TouchTap:Connect(toggleSettings)
+settingsBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        toggleSettings()
     end
 end)
 
-settingsBtn.TouchTap:Connect(function()
-    settingsFrame.Visible = not settingsFrame.Visible
-    if settingsFrame.Visible then
-        settingsBtn.Text = "✕"
-        settingsBtn.TextColor3 = colors.danger
-    else
-        settingsBtn.Text = "⚙️"
-        settingsBtn.TextColor3 = colors.settings
+---------------------------------------
+-- أحداث زر إغلاق الإعدادات (ضغطة واحدة)
+---------------------------------------
+local function closeSettings()
+    settingsFrame.Visible = false
+    settingsBtn.Text = "⚙️"
+    settingsBtn.TextColor3 = colors.settings
+    spamContainer.Visible = true
+    print("⚙️ تم إغلاق الإعدادات")
+end
+
+settingsClose.MouseButton1Click:Connect(closeSettings)
+settingsClose.TouchTap:Connect(closeSettings)
+settingsClose.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        closeSettings()
     end
 end)
 
-settingsClose.MouseButton1Click:Connect(function()
-    settingsFrame.Visible = false
-    settingsBtn.Text = "⚙️"
-    settingsBtn.TextColor3 = colors.settings
-end)
+---------------------------------------
+-- أحداث زر الإغلاق الرئيسي (ضغطة واحدة)
+---------------------------------------
+local function closeMain()
+    mainFrame.Visible = false
+    floatBtn.Visible = true
+end
 
-settingsClose.TouchTap:Connect(function()
-    settingsFrame.Visible = false
-    settingsBtn.Text = "⚙️"
-    settingsBtn.TextColor3 = colors.settings
+closeBtn.MouseButton1Click:Connect(closeMain)
+closeBtn.TouchTap:Connect(closeMain)
+closeBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        closeMain()
+    end
 end)
 
 ---------------------------------------
--- أحداث زر الإغلاق
+-- أحداث الأيقونة العائمة (ضغطة واحدة)
 ---------------------------------------
-closeBtn.MouseButton1Click:Connect(function()
-    mainFrame.Visible = false
-    floatBtn.Visible = true
-end)
-
-closeBtn.TouchTap:Connect(function()
-    mainFrame.Visible = false
-    floatBtn.Visible = true
-end)
-
-floatBtn.MouseButton1Click:Connect(function()
+local function openMain()
     mainFrame.Visible = true
     floatBtn.Visible = false
     spamContainer.Visible = true
     settingsFrame.Visible = false
-end)
+end
 
-floatBtn.TouchTap:Connect(function()
-    mainFrame.Visible = true
-    floatBtn.Visible = false
-    spamContainer.Visible = true
-    settingsFrame.Visible = false
+floatBtn.MouseButton1Click:Connect(openMain)
+floatBtn.TouchTap:Connect(openMain)
+floatBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+        openMain()
+    end
 end)
 
 ---------------------------------------
@@ -863,6 +915,5 @@ end)
 
 -- إظهار الواجهة
 mainFrame.Visible = true
-print("✅ تم تشغيل MG9 HUB V8 بنجاح!")
-print("⚙️ اضغط على ⚙️ لفتح الإعدادات")
-print("💤 مضاد AFK بدلاً من مضاد التجميد")
+print("✅ تم تشغيل MG9 HUB V9 بنجاح!")
+print("⚙️ جميع الأزرار تعمل بضغطة واحدة!")
