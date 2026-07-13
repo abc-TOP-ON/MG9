@@ -1,1 +1,666 @@
+-- Zoins Hub - Mobile Optimized Mega Edition
+local TweenService = game:GetService("TweenService")
+local CoreGui = game:GetService("CoreGui")
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 
+local player = Players.LocalPlayer
+
+-- حذف النسخ السابقة
+if CoreGui:FindFirstChild("ZoinsHub_Mobile") then 
+    CoreGui.ZoinsHub_Mobile:Destroy() 
+end
+
+local gui = Instance.new("ScreenGui", CoreGui)
+gui.Name = "ZoinsHub_Mobile"
+gui.IgnoreGuiInset = true
+
+-- متغيرات التحكم
+_G.DefenseActive = false
+_G.AlertsActive = false
+_G.FlingActive = false
+_G.AntiKickActive = false
+local spamActive = false
+local lastSafePos = nil
+
+---------------------------------------
+-- دوال مساعدة
+---------------------------------------
+local function createCorner(parent, radius)
+    local corner = Instance.new("UICorner", parent)
+    corner.CornerRadius = UDim.new(0, radius or 12)
+end
+
+local function createStroke(parent, color, thickness)
+    local stroke = Instance.new("UIStroke", parent)
+    stroke.Color = color
+    stroke.Thickness = thickness or 2
+    stroke.ApplyStrokeMode = Enum.ApplyStrokeMode.Border
+    return stroke
+end
+
+---------------------------------------
+-- الزر العائم الرئيسي (دائري كبير)
+---------------------------------------
+local mainButton = Instance.new("ImageButton", gui)
+mainButton.Size = UDim2.new(0, 70, 0, 70)
+mainButton.Position = UDim2.new(0.5, -35, 0.85, 0)
+mainButton.BackgroundColor3 = Color3.fromRGB(30, 30, 50)
+mainButton.Image = "rbxassetid://3926305904"
+mainButton.ImageColor3 = Color3.fromRGB(0, 200, 255)
+mainButton.ScaleType = Enum.ScaleType.Fit
+mainButton.Visible = true
+createCorner(mainButton, 35)
+local mainStroke = createStroke(mainButton, Color3.fromRGB(0, 200, 255), 3)
+
+-- تأثير نبض للزر الرئيسي
+task.spawn(function()
+    while mainButton.Visible do
+        for i = 0, 1, 0.05 do
+            local scale = 1 + (i * 0.08)
+            mainButton.Size = UDim2.new(0, 70 * scale, 0, 70 * scale)
+            task.wait(0.02)
+        end
+        for i = 1, 0, -0.05 do
+            local scale = 1 + (i * 0.08)
+            mainButton.Size = UDim2.new(0, 70 * scale, 0, 70 * scale)
+            task.wait(0.02)
+        end
+    end
+end)
+
+---------------------------------------
+-- القائمة الرئيسية (كبيرة ومناسبة للشاشة)
+---------------------------------------
+local mainFrame = Instance.new("Frame", gui)
+mainFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
+mainFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+mainFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+mainFrame.BackgroundTransparency = 0.95
+mainFrame.Visible = false
+mainFrame.Active = true
+mainFrame.Draggable = true
+createCorner(mainFrame, 25)
+local frameStroke = createStroke(mainFrame, Color3.fromRGB(0, 200, 255), 2)
+
+-- خلفية شفافة خلف القائمة
+local bgBlur = Instance.new("Frame", gui)
+bgBlur.Size = UDim2.new(1, 0, 1, 0)
+bgBlur.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+bgBlur.BackgroundTransparency = 0.5
+bgBlur.Visible = false
+
+-- عنوان القائمة
+local titleBar = Instance.new("Frame", mainFrame)
+titleBar.Size = UDim2.new(1, 0, 0, 60)
+titleBar.BackgroundTransparency = 1
+
+local title = Instance.new("TextLabel", titleBar)
+title.Size = UDim2.new(0.8, 0, 1, 0)
+title.Position = UDim2.new(0.1, 0, 0, 0)
+title.Text = "⚡ زوينز هاب"
+title.TextColor3 = Color3.fromRGB(0, 200, 255)
+title.BackgroundTransparency = 1
+title.Font = Enum.Font.GothamBold
+title.TextSize = 26
+title.TextScaled = true
+
+local closeBtn = Instance.new("TextButton", titleBar)
+closeBtn.Size = UDim2.new(0, 45, 0, 45)
+closeBtn.Position = UDim2.new(1, -55, 0, 7)
+closeBtn.Text = "✕"
+closeBtn.TextColor3 = Color3.fromRGB(255, 50, 50)
+closeBtn.BackgroundTransparency = 1
+closeBtn.TextSize = 28
+closeBtn.Font = Enum.Font.GothamBold
+
+---------------------------------------
+-- أزرار القائمة الرئيسية (كبيرة)
+---------------------------------------
+local function createMainButton(name, icon, yPos, color, subText)
+    local btn = Instance.new("TextButton", mainFrame)
+    btn.Size = UDim2.new(0.9, 0, 0, 55)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+    btn.Text = ""
+    createCorner(btn, 15)
+    createStroke(btn, color or Color3.fromRGB(0, 150, 255), 2)
+    
+    -- نص الأيقونة
+    local iconLabel = Instance.new("TextLabel", btn)
+    iconLabel.Size = UDim2.new(0, 50, 1, 0)
+    iconLabel.Position = UDim2.new(0, 10, 0, 0)
+    iconLabel.Text = icon or "📌"
+    iconLabel.BackgroundTransparency = 1
+    iconLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    iconLabel.TextSize = 24
+    iconLabel.Font = Enum.Font.GothamBold
+    
+    -- نص الزر
+    local textLabel = Instance.new("TextLabel", btn)
+    textLabel.Size = UDim2.new(0.5, 0, 1, 0)
+    textLabel.Position = UDim2.new(0, 65, 0, 0)
+    textLabel.Text = name
+    textLabel.TextColor3 = Color3.fromRGB(255, 255, 255)
+    textLabel.BackgroundTransparency = 1
+    textLabel.TextSize = 18
+    textLabel.Font = Enum.Font.GothamBold
+    textLabel.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- النص الصغير (اختياري)
+    if subText then
+        local sub = Instance.new("TextLabel", btn)
+        sub.Size = UDim2.new(0.5, 0, 0, 20)
+        sub.Position = UDim2.new(0, 65, 0.6, 0)
+        sub.Text = subText
+        sub.TextColor3 = Color3.fromRGB(150, 150, 180)
+        sub.BackgroundTransparency = 1
+        sub.TextSize = 12
+        sub.Font = Enum.Font.Gotham
+        sub.TextXAlignment = Enum.TextXAlignment.Left
+    end
+    
+    return btn
+end
+
+-- الأزرار
+local spamBtn = createMainButton("📋 سبام الأوامر", "📋", 75, Color3.fromRGB(0, 200, 100), "إرسال أوامر تلقائية")
+local protectBtn = createMainButton("🛡 الحماية", "🛡", 145, Color3.fromRGB(0, 150, 255), "مضاد فلينج، جلوس، إشعارات")
+local settingsBtn = createMainButton("⚙️ الإعدادات", "⚙️", 215, Color3.fromRGB(255, 200, 0), "تعديل الإعدادات العامة")
+local reconnectBtn = createMainButton("🔄 إعادة الاتصال", "🔄", 285, Color3.fromRGB(255, 100, 50), "إعادة الدخول إلى السيرفر")
+local creditsBtn = createMainButton("💎 عن السكربت", "💎", 355, Color3.fromRGB(200, 100, 255), "الإصدار 3.0 - مطور")
+
+-- زر إغلاق القائمة
+local hideMainBtn = Instance.new("TextButton", mainFrame)
+hideMainBtn.Size = UDim2.new(0.85, 0, 0, 45)
+hideMainBtn.Position = UDim2.new(0.075, 0, 0.88, 0)
+hideMainBtn.Text = "🔽 إخفاء القائمة"
+hideMainBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+hideMainBtn.BackgroundColor3 = Color3.fromRGB(60, 30, 30)
+createCorner(hideMainBtn, 15)
+createStroke(hideMainBtn, Color3.fromRGB(255, 80, 80), 2)
+
+---------------------------------------
+-- واجهة السبام (كبيرة)
+---------------------------------------
+local spamFrame = Instance.new("Frame", gui)
+spamFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
+spamFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+spamFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+spamFrame.Visible = false
+spamFrame.Active = true
+spamFrame.Draggable = true
+createCorner(spamFrame, 25)
+local spamStroke = createStroke(spamFrame, Color3.fromRGB(0, 200, 100), 2)
+
+-- عنوان
+local spamTitle = Instance.new("Frame", spamFrame)
+spamTitle.Size = UDim2.new(1, 0, 0, 55)
+spamTitle.BackgroundTransparency = 1
+
+local stTitle = Instance.new("TextLabel", spamTitle)
+stTitle.Size = UDim2.new(0.7, 0, 1, 0)
+stTitle.Position = UDim2.new(0.15, 0, 0, 0)
+stTitle.Text = "📋 سبام الأوامر"
+stTitle.TextColor3 = Color3.fromRGB(0, 200, 100)
+stTitle.BackgroundTransparency = 1
+stTitle.Font = Enum.Font.GothamBold
+stTitle.TextSize = 24
+stTitle.TextScaled = true
+
+local spamClose = Instance.new("TextButton", spamTitle)
+spamClose.Size = UDim2.new(0, 45, 0, 45)
+spamClose.Position = UDim2.new(1, -55, 0, 5)
+spamClose.Text = "✕"
+spamClose.TextColor3 = Color3.fromRGB(255, 50, 50)
+spamClose.BackgroundTransparency = 1
+spamClose.TextSize = 28
+
+-- مربع النص (كبير للكتابة)
+local spamBox = Instance.new("TextBox", spamFrame)
+spamBox.Size = UDim2.new(0.9, 0, 0.25, 0)
+spamBox.Position = UDim2.new(0.05, 0, 0.12, 0)
+spamBox.Text = ""
+spamBox.PlaceholderText = "📝 اكتب الأوامر هنا...\nافصل بينها بـ ;\nمثال: ;fly ;speed 50"
+spamBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+spamBox.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+spamBox.MultiLine = true
+spamBox.ClearTextOnFocus = false
+spamBox.TextSize = 16
+spamBox.Font = Enum.Font.Gotham
+createCorner(spamBox, 12)
+
+-- خيار التأخير
+local delayFrame = Instance.new("Frame", spamFrame)
+delayFrame.Size = UDim2.new(0.9, 0, 0.08, 0)
+delayFrame.Position = UDim2.new(0.05, 0, 0.4, 0)
+delayFrame.BackgroundColor3 = Color3.fromRGB(20, 20, 35)
+createCorner(delayFrame, 10)
+
+local delayLabel = Instance.new("TextLabel", delayFrame)
+delayLabel.Size = UDim2.new(0.3, 0, 1, 0)
+delayLabel.Position = UDim2.new(0.05, 0, 0, 0)
+delayLabel.Text = "⏱ التأخير:"
+delayLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+delayLabel.BackgroundTransparency = 1
+delayLabel.TextSize = 16
+
+local delayBox = Instance.new("TextBox", delayFrame)
+delayBox.Size = UDim2.new(0.2, 0, 0.7, 0)
+delayBox.Position = UDim2.new(0.37, 0, 0.15, 0)
+delayBox.Text = "1"
+delayBox.TextColor3 = Color3.fromRGB(255, 255, 255)
+delayBox.BackgroundColor3 = Color3.fromRGB(40, 40, 60)
+delayBox.TextSize = 18
+delayBox.Font = Enum.Font.GothamBold
+createCorner(delayBox, 8)
+
+local secLabel = Instance.new("TextLabel", delayFrame)
+secLabel.Size = UDim2.new(0.15, 0, 1, 0)
+secLabel.Position = UDim2.new(0.6, 0, 0, 0)
+secLabel.Text = "ثانية"
+secLabel.TextColor3 = Color3.fromRGB(200, 200, 200)
+secLabel.BackgroundTransparency = 1
+secLabel.TextSize = 14
+
+-- حالة السبام
+local spamStatus = Instance.new("TextLabel", spamFrame)
+spamStatus.Size = UDim2.new(0.9, 0, 0.06, 0)
+spamStatus.Position = UDim2.new(0.05, 0, 0.5, 0)
+spamStatus.Text = "⏹ غير نشط"
+spamStatus.TextColor3 = Color3.fromRGB(150, 150, 150)
+spamStatus.BackgroundTransparency = 1
+spamStatus.TextSize = 18
+
+-- أزرار التحكم (كبيرة)
+local startSpamBtn = Instance.new("TextButton", spamFrame)
+startSpamBtn.Size = UDim2.new(0.42, 0, 0.12, 0)
+startSpamBtn.Position = UDim2.new(0.05, 0, 0.58, 0)
+startSpamBtn.Text = "▶ ابدأ"
+startSpamBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+startSpamBtn.BackgroundColor3 = Color3.fromRGB(0, 180, 80)
+startSpamBtn.TextSize = 20
+createCorner(startSpamBtn, 15)
+
+local stopSpamBtn = Instance.new("TextButton", spamFrame)
+stopSpamBtn.Size = UDim2.new(0.42, 0, 0.12, 0)
+stopSpamBtn.Position = UDim2.new(0.53, 0, 0.58, 0)
+stopSpamBtn.Text = "⏹ إيقاف"
+stopSpamBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
+stopSpamBtn.BackgroundColor3 = Color3.fromRGB(200, 50, 50)
+stopSpamBtn.TextSize = 20
+createCorner(stopSpamBtn, 15)
+
+-- زر العودة
+local backFromSpam = Instance.new("TextButton", spamFrame)
+backFromSpam.Size = UDim2.new(0.42, 0, 0.10, 0)
+backFromSpam.Position = UDim2.new(0.29, 0, 0.75, 0)
+backFromSpam.Text = "🔙 رجوع"
+backFromSpam.TextColor3 = Color3.fromRGB(255, 255, 255)
+backFromSpam.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+backFromSpam.TextSize = 18
+createCorner(backFromSpam, 12)
+
+---------------------------------------
+-- واجهة الحماية (كبيرة)
+---------------------------------------
+local protectFrame = Instance.new("Frame", gui)
+protectFrame.Size = UDim2.new(0.9, 0, 0.75, 0)
+protectFrame.Position = UDim2.new(0.05, 0, 0.1, 0)
+protectFrame.BackgroundColor3 = Color3.fromRGB(15, 15, 25)
+protectFrame.Visible = false
+protectFrame.Active = true
+protectFrame.Draggable = true
+createCorner(protectFrame, 25)
+local protectStroke = createStroke(protectFrame, Color3.fromRGB(0, 150, 255), 2)
+
+-- عنوان الحماية
+local pTitleFrame = Instance.new("Frame", protectFrame)
+pTitleFrame.Size = UDim2.new(1, 0, 0, 55)
+pTitleFrame.BackgroundTransparency = 1
+
+local pTitle = Instance.new("TextLabel", pTitleFrame)
+pTitle.Size = UDim2.new(0.7, 0, 1, 0)
+pTitle.Position = UDim2.new(0.15, 0, 0, 0)
+pTitle.Text = "🛡 الحماية"
+pTitle.TextColor3 = Color3.fromRGB(0, 150, 255)
+pTitle.BackgroundTransparency = 1
+pTitle.Font = Enum.Font.GothamBold
+pTitle.TextSize = 24
+pTitle.TextScaled = true
+
+local protectClose = Instance.new("TextButton", pTitleFrame)
+protectClose.Size = UDim2.new(0, 45, 0, 45)
+protectClose.Position = UDim2.new(1, -55, 0, 5)
+protectClose.Text = "✕"
+protectClose.TextColor3 = Color3.fromRGB(255, 50, 50)
+protectClose.BackgroundTransparency = 1
+protectClose.TextSize = 28
+
+-- دوال إنشاء أزرار التبديل (كبيرة)
+local function createSwitch(parent, name, icon, yPos, callback)
+    local btn = Instance.new("TextButton", parent)
+    btn.Size = UDim2.new(0.9, 0, 0.12, 0)
+    btn.Position = UDim2.new(0.05, 0, 0, yPos)
+    btn.BackgroundColor3 = Color3.fromRGB(25, 25, 45)
+    btn.Text = ""
+    createCorner(btn, 12)
+    local stroke = createStroke(btn, Color3.fromRGB(255, 50, 50), 2.5)
+    
+    -- الأيقونة
+    local iconL = Instance.new("TextLabel", btn)
+    iconL.Size = UDim2.new(0, 45, 1, 0)
+    iconL.Position = UDim2.new(0, 10, 0, 0)
+    iconL.Text = icon or "🔘"
+    iconL.BackgroundTransparency = 1
+    iconL.TextColor3 = Color3.fromRGB(255, 255, 255)
+    iconL.TextSize = 22
+    iconL.Font = Enum.Font.GothamBold
+    
+    -- النص
+    local txt = Instance.new("TextLabel", btn)
+    txt.Size = UDim2.new(0.5, 0, 1, 0)
+    txt.Position = UDim2.new(0, 60, 0, 0)
+    txt.Text = name
+    txt.TextColor3 = Color3.fromRGB(255, 255, 255)
+    txt.BackgroundTransparency = 1
+    txt.TextSize = 17
+    txt.Font = Enum.Font.GothamBold
+    txt.TextXAlignment = Enum.TextXAlignment.Left
+    
+    -- مؤشر الحالة
+    local indicator = Instance.new("Frame", btn)
+    indicator.Size = UDim2.new(0, 25, 0, 25)
+    indicator.Position = UDim2.new(1, -40, 0.5, -12.5)
+    indicator.BackgroundColor3 = Color3.fromRGB(255, 50, 50)
+    createCorner(indicator, 12)
+    
+    local active = false
+    btn.MouseButton1Click:Connect(function()
+        active = not active
+        indicator.BackgroundColor3 = active and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+        stroke.Color = active and Color3.fromRGB(0, 255, 100) or Color3.fromRGB(255, 50, 50)
+        callback(active)
+    end)
+    
+    return btn
+end
+
+-- أزرار الحماية
+createSwitch(protectFrame, "مضاد اللاق والسجلات", "🛡", 0.14, function(state)
+    _G.DefenseActive = state
+    if state then
+        pcall(function()
+            for _, v in pairs(ReplicatedStorage:GetDescendants()) do
+                if v:IsA("RemoteEvent") and v.Name == "ExecuteClientCommand" then
+                    if getconnections then
+                        for _, connection in pairs(getconnections(v.OnClientEvent)) do
+                            connection:Disable()
+                        end
+                    end
+                    v.OnClientEvent:Connect(function() return nil end)
+                end
+            end
+        end)
+        task.spawn(function()
+            while _G.DefenseActive do
+                pcall(function()
+                    setfpscap(999)
+                    collectgarbage("collect")
+                end)
+                task.wait(5)
+            end
+        end)
+        pcall(function()
+            local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+            if signals then signals = signals:FindFirstChild("Signals") end
+            if signals then
+                for _, remote in pairs(signals:GetDescendants()) do
+                    if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                        if string.find(remote.Name:lower(), "log") then
+                            remote:Destroy()
+                        end
+                    end
+                end
+            end
+        end)
+    end
+end)
+
+createSwitch(protectFrame, "مضاد الإشعارات", "🔇", 0.29, function(state)
+    _G.AlertsActive = state
+    pcall(function()
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name == "NotificationGui" then
+                g.Enabled = not state
+            end
+        end
+    end)
+end)
+
+createSwitch(protectFrame, "مضاد الفلينج", "🌀", 0.44, function(state)
+    _G.FlingActive = state
+    if state then lastSafePos = nil end
+end)
+
+createSwitch(protectFrame, "مضاد الجلوس", "🦵", 0.59, function(state)
+    _G.AntiKickActive = state
+end)
+
+-- زر العودة من الحماية
+local backFromProtect = Instance.new("TextButton", protectFrame)
+backFromProtect.Size = UDim2.new(0.42, 0, 0.10, 0)
+backFromProtect.Position = UDim2.new(0.29, 0, 0.78, 0)
+backFromProtect.Text = "🔙 رجوع"
+backFromProtect.TextColor3 = Color3.fromRGB(255, 255, 255)
+backFromProtect.BackgroundColor3 = Color3.fromRGB(60, 60, 80)
+backFromProtect.TextSize = 18
+createCorner(backFromProtect, 12)
+
+---------------------------------------
+-- منطق السبام
+---------------------------------------
+local function fireSpam(cmd)
+    pcall(function()
+        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+        if signals then
+            signals = signals:FindFirstChild("Signals")
+            if signals then
+                local createLog = signals:FindFirstChild("CreateLog")
+                if createLog and createLog:IsA("RemoteEvent") then
+                    createLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
+                end
+                local requestCmd = signals:FindFirstChild("RequestCommandModification")
+                if requestCmd and requestCmd:IsA("RemoteFunction") then
+                    requestCmd:InvokeServer(cmd)
+                end
+            end
+        end
+    end)
+end
+
+startSpamBtn.MouseButton1Click:Connect(function()
+    local cmds = {}
+    local text = spamBox.Text
+    for c in string.gmatch(text, "[^;\n]+") do
+        local cmd = c:match("^%s*(.-)%s*$")
+        if cmd ~= "" then table.insert(cmds, cmd) end
+    end
+    
+    if #cmds == 0 then
+        spamStatus.Text = "⚠ لا توجد أوامر!"
+        spamStatus.TextColor3 = Color3.fromRGB(255, 200, 0)
+        return
+    end
+    
+    local delay = tonumber(delayBox.Text) or 1
+    delay = math.max(0.1, math.min(10, delay))
+    
+    spamActive = true
+    spamStatus.Text = "▶ نشط (" .. #cmds .. " أمر)"
+    spamStatus.TextColor3 = Color3.fromRGB(0, 255, 100)
+    
+    task.spawn(function()
+        while spamActive do
+            for i = 1, 3 do
+                for _, c in pairs(cmds) do
+                    if not spamActive then break end
+                    task.spawn(function() fireSpam(c) end)
+                end
+                if not spamActive then break end
+            end
+            task.wait(delay)
+        end
+    end)
+end)
+
+stopSpamBtn.MouseButton1Click:Connect(function()
+    spamActive = false
+    spamStatus.Text = "⏹ متوقف"
+    spamStatus.TextColor3 = Color3.fromRGB(150, 150, 150)
+end)
+
+---------------------------------------
+-- منطق الحماية
+---------------------------------------
+-- منع الإشعارات
+player.PlayerGui.DescendantAdded:Connect(function(desc)
+    if _G.AlertsActive then
+        pcall(function()
+            local blocked = {"HDAdminGui", "MessageGui", "NotificationGui"}
+            for _, name in pairs(blocked) do
+                if desc.Name == name then desc.Enabled = false end
+            end
+            if desc:IsA("TextLabel") then
+                local text = desc.Text or ""
+                if text:find("System") or text:find("too fast") or text:find("kicked") then
+                    local container = desc.Parent
+                    if container and container:IsA("Frame") then container.Visible = false end
+                end
+            end
+        end)
+    end
+end)
+
+-- منع الفلينج والجلوس
+RunService.Heartbeat:Connect(function()
+    pcall(function()
+        local char = player.Character
+        if not char then return end
+        
+        if _G.FlingActive then
+            local hrp = char:FindFirstChild("HumanoidRootPart")
+            if hrp then
+                if hrp.Velocity.Magnitude > 150 then
+                    hrp.Velocity = Vector3.new(0, 0, 0)
+                    hrp.RotVelocity = Vector3.new(0, 0, 0)
+                    if lastSafePos then hrp.CFrame = lastSafePos end
+                else
+                    lastSafePos = hrp.CFrame
+                end
+            end
+        end
+        
+        if _G.AntiKickActive or _G.FlingActive then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.Sit = false
+                hum.PlatformStand = false
+            end
+            for _, p in pairs(char:GetChildren()) do
+                if p:IsA("BasePart") and p.Anchored then p.Anchored = false end
+                if p:IsA("BodyMover") or p:IsA("BodyVelocity") or p:IsA("BodyGyro") then p:Destroy() end
+            end
+        end
+    end)
+end)
+
+-- إعادة الاتصال
+reconnectBtn.MouseButton1Click:Connect(function()
+    pcall(function()
+        if game:GetService("TeleportService") then
+            game:GetService("TeleportService"):Teleport(game.PlaceId, player)
+        end
+    end)
+end)
+
+-- زر الإعدادات (مؤقت)
+settingsBtn.MouseButton1Click:Connect(function()
+    -- يمكنك إضافة إعدادات إضافية هنا
+    print("📌 سيتم إضافة الإعدادات قريباً")
+end)
+
+-- زر معلومات
+creditsBtn.MouseButton1Click:Connect(function()
+    print("💎 زوينز هاب - الإصدار 3.0")
+    print("📱 محسّن للهواتف")
+    print("👨‍💻 مطور: غير معروف")
+end)
+
+---------------------------------------
+-- التحكم بين القوائم
+---------------------------------------
+-- إظهار/إخفاء القائمة الرئيسية
+local mainVisible = false
+mainButton.MouseButton1Click:Connect(function()
+    mainVisible = not mainVisible
+    mainFrame.Visible = mainVisible
+    bgBlur.Visible = mainVisible
+    mainButton.Visible = not mainVisible
+end)
+
+-- إغلاق القائمة
+closeBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    bgBlur.Visible = false
+    mainButton.Visible = true
+end)
+
+hideMainBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    bgBlur.Visible = false
+    mainButton.Visible = true
+end)
+
+-- فتح سبام
+spamBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    bgBlur.Visible = true
+    spamFrame.Visible = true
+end)
+
+-- فتح حماية
+protectBtn.MouseButton1Click:Connect(function()
+    mainFrame.Visible = false
+    bgBlur.Visible = true
+    protectFrame.Visible = true
+end)
+
+-- رجوع من سبام
+backFromSpam.MouseButton1Click:Connect(function()
+    spamFrame.Visible = false
+    bgBlur.Visible = true
+    mainFrame.Visible = true
+end)
+spamClose.MouseButton1Click:Connect(function()
+    spamFrame.Visible = false
+    bgBlur.Visible = false
+    mainButton.Visible = true
+end)
+
+-- رجوع من حماية
+backFromProtect.MouseButton1Click:Connect(function()
+    protectFrame.Visible = false
+    bgBlur.Visible = true
+    mainFrame.Visible = true
+end)
+protectClose.MouseButton1Click:Connect(function()
+    protectFrame.Visible = false
+    bgBlur.Visible = false
+    mainButton.Visible = true
+end)
+
+print("✅ زوينز هاب - تم التحميل بنجاح!")
+print("📱 محسّن للهواتف بالكامل!")
