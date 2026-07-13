@@ -1,41 +1,39 @@
 -- ====================================================================
 -- 🌌 ULTIMATE 1,000,000x GOD-TIER UNLOCKED LOADING CORE
--- 🚀 Unbounded, Ultra-Advanced Universal UI Engine for Delta Executor
--- 👨‍💻 Developed by: tariq191188
+-- 🚀 MG9 ULTIMATE HUB LOADER
 -- ====================================================================
 
 local TweenService = game:GetService("TweenService")
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local Lighting = game:GetService("Lighting")
-local ContentProvider = game:GetService("ContentProvider")
 local SoundService = game:GetService("SoundService")
 
 local LocalPlayer = Players.LocalPlayer or Players.PlayerAdded:Wait()
 
--- 1. Initialize Absolute Top-Tier Protected Canvas Container
+-- 1. Initialize Canvas Container
 local ScreenGui = Instance.new("ScreenGui")
-ScreenGui.Name = "Delta_Omnipresent_Loader_X1M"
+ScreenGui.Name = "MG9_Loader"
 ScreenGui.ResetOnSpawn = false
 ScreenGui.IgnoreGuiInset = true
 
 local targetParent = LocalPlayer:FindFirstChildOfClass("PlayerGui") or LocalPlayer:WaitForChild("PlayerGui")
 ScreenGui.Parent = targetParent
 
--- 2. Audio Feedback Synthesizer Setup
+-- 2. Audio Feedback
 local TickSound = Instance.new("Sound")
-TickSound.SoundId = "rbxassetid://8595570779" -- Cybernetic interface micro-click sound asset
+TickSound.SoundId = "rbxassetid://8595570779"
 TickSound.Volume = 0.4
 TickSound.Parent = SoundService
 
--- 3. Camera Space Cinematic Layer
+-- 3. Camera Blur Effect
 local ScreenBlur = Instance.new("BlurEffect")
 ScreenBlur.Name = "OmniBlur"
 ScreenBlur.Size = 0
 ScreenBlur.Parent = workspace.CurrentCamera or Lighting
 TweenService:Create(ScreenBlur, TweenInfo.new(0.6, Enum.EasingStyle.Cubic), {Size = 28}):Play()
 
--- 4. Infinite Dark Vector Master Window
+-- 4. Master Window
 local MasterCanvas = Instance.new("Frame")
 MasterCanvas.Size = UDim2.new(1, 0, 1, 0)
 MasterCanvas.BackgroundColor3 = Color3.fromRGB(4, 4, 6)
@@ -43,9 +41,9 @@ MasterCanvas.BackgroundTransparency = 0.15
 MasterCanvas.BorderSizePixel = 0
 MasterCanvas.Parent = ScreenGui
 
--- 5. Universal Scale Container (Maintains Perfect Aspect Ratios Across Devices)
+-- 5. Content Hub
 local ScaleConstraint = Instance.new("UIAspectRatioConstraint")
-ScaleConstraint.AspectRatio = 1.778 -- Standard 16:9 cinematic mapping rule
+ScaleConstraint.AspectRatio = 1.778
 ScaleConstraint.DominantAxis = Enum.DominantAxis.Width
 
 local ContentHub = Instance.new("Frame")
@@ -56,7 +54,7 @@ ContentHub.BackgroundTransparency = 1
 ContentHub.Parent = MasterCanvas
 ScaleConstraint.Parent = ContentHub
 
--- 6. Kinetic Particle Orbit Physics Accelerator Engine
+-- 6. Particle Orbit System
 local VortexContainer = Instance.new("Frame")
 VortexContainer.Size = UDim2.new(1, 0, 1, 0)
 VortexContainer.BackgroundTransparency = 1
@@ -93,7 +91,6 @@ local function DeployOrbitalVortex()
             orb.angle = orb.angle + (orb.speed * deltaTime * 30)
             local rad = math.rad(orb.angle)
             
-            -- Polar vector calculations mapping UI elements into absolute circular motion
             local xOffset = math.cos(rad) * orb.radius
             local yOffset = math.sin(rad) * orb.radius
             
@@ -103,41 +100,41 @@ local function DeployOrbitalVortex()
 end
 task.spawn(DeployOrbitalVortex)
 
--- 7. High-End Typography & Telemetry Elements
+-- 7. ====== العناصر المرتبة ======
+
+-- ✅ العنوان الرئيسي (MG9)
 local BrandTitle = Instance.new("TextLabel")
-BrandTitle.Size = UDim2.new(1, 0, 0, 45)
+BrandTitle.Size = UDim2.new(1, 0, 0, 50)
 BrandTitle.Position = UDim2.new(0, 0, 0.30, 0)
 BrandTitle.BackgroundTransparency = 1
-BrandTitle.Text = "DELTA INFINITE"
-BrandTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
-BrandTitle.TextSize = 34
+BrandTitle.Text = "MG9"
+BrandTitle.TextColor3 = Color3.fromRGB(0, 200, 255)
+BrandTitle.TextSize = 48
 BrandTitle.Font = Enum.Font.GothamBold
 BrandTitle.Parent = ContentHub
 
--- ✅ إضافة اسم المطور
-local DevName = Instance.new("TextLabel")
-DevName.Size = UDim2.new(1, 0, 0, 20)
-DevName.Position = UDim2.new(0, 0, 0.42, 0)
-DevName.BackgroundTransparency = 1
-DevName.Text = "👨‍💻 Developed by: tariq191188"
-DevName.TextColor3 = Color3.fromRGB(0, 255, 150)
-DevName.TextSize = 12
-DevName.Font = Enum.Font.Gotham
-DevName.TextTransparency = 0.3
-DevName.Parent = ContentHub
+-- ✅ النص الفرعي (Ultimate Hub)
+local SubTitle = Instance.new("TextLabel")
+SubTitle.Size = UDim2.new(1, 0, 0, 25)
+SubTitle.Position = UDim2.new(0, 0, 0.42, 0)
+SubTitle.BackgroundTransparency = 1
+SubTitle.Text = "ULTIMATE HUB"
+SubTitle.TextColor3 = Color3.fromRGB(255, 255, 255)
+SubTitle.TextSize = 16
+SubTitle.Font = Enum.Font.GothamBold
+SubTitle.TextTransparency = 0.3
+SubTitle.Parent = ContentHub
 
--- ✅ إضافة شعار MG9
-local MG9Logo = Instance.new("TextLabel")
-MG9Logo.Size = UDim2.new(1, 0, 0, 25)
-MG9Logo.Position = UDim2.new(0, 0, 0.37, 0)
-MG9Logo.BackgroundTransparency = 1
-MG9Logo.Text = "⚡ MG9 ULTIMATE HUB ⚡"
-MG9Logo.TextColor3 = Color3.fromRGB(0, 200, 255)
-MG9Logo.TextSize = 16
-MG9Logo.Font = Enum.Font.GothamBold
-MG9Logo.TextTransparency = 0.5
-MG9Logo.Parent = ContentHub
+-- ✅ خط فاصل
+local Divider = Instance.new("Frame")
+Divider.Size = UDim2.new(0.3, 0, 0, 1.5)
+Divider.Position = UDim2.new(0.35, 0, 0.47, 0)
+Divider.BackgroundColor3 = Color3.fromRGB(0, 255, 150)
+Divider.BackgroundTransparency = 0.5
+Divider.BorderSizePixel = 0
+Divider.Parent = ContentHub
 
+-- ✅ نص الحالة المتحرك
 local ActiveLogText = Instance.new("TextLabel")
 ActiveLogText.Size = UDim2.new(1, 0, 0, 20)
 ActiveLogText.Position = UDim2.new(0, 0, 0.52, 0)
@@ -148,6 +145,7 @@ ActiveLogText.TextSize = 13
 ActiveLogText.Font = Enum.Font.Code
 ActiveLogText.Parent = ContentHub
 
+-- ✅ نسبة التحميل
 local PrecisionCounter = Instance.new("TextLabel")
 PrecisionCounter.Size = UDim2.new(1, 0, 0, 25)
 PrecisionCounter.Position = UDim2.new(0, 0, 0.58, 0)
@@ -158,10 +156,10 @@ PrecisionCounter.TextSize = 14
 PrecisionCounter.Font = Enum.Font.Code
 PrecisionCounter.Parent = ContentHub
 
--- 8. Advanced Structural Loading Tracks
+-- ✅ شريط التحميل
 local TrackBarBase = Instance.new("Frame")
 TrackBarBase.Size = UDim2.new(0.7, 0, 0, 3)
-TrackBarBase.Position = UDim2.new(0.15, 0, 0.68, 0)
+TrackBarBase.Position = UDim2.new(0.15, 0, 0.65, 0)
 TrackBarBase.BackgroundColor3 = Color3.fromRGB(22, 22, 28)
 TrackBarBase.BorderSizePixel = 0
 TrackBarBase.Parent = ContentHub
@@ -180,19 +178,20 @@ local FillCorner = Instance.new("UICorner")
 FillCorner.CornerRadius = UDim.new(0, 2)
 FillCorner.Parent = FilledMetricBar
 
--- ✅ إضافة نص حالة التحضير
+-- ✅ نص التحميل السفلي
 local StatusText = Instance.new("TextLabel")
 StatusText.Size = UDim2.new(1, 0, 0, 15)
-StatusText.Position = UDim2.new(0, 0, 0.72, 0)
+StatusText.Position = UDim2.new(0, 0, 0.70, 0)
 StatusText.BackgroundTransparency = 1
-StatusText.Text = "جاري التحميل..."
-StatusText.TextColor3 = Color3.fromRGB(100, 100, 120)
+StatusText.Text = "Loading..."
+StatusText.TextColor3 = Color3.fromRGB(80, 80, 100)
 StatusText.TextSize = 10
 StatusText.Font = Enum.Font.Gotham
 StatusText.TextTransparency = 0.5
 StatusText.Parent = ContentHub
 
--- 9. Hyper-Precision Micro-Float Pipeline Engine
+-- 8. ====== محرك التحميل ======
+
 local function StreamFloatingPercentages(endGoal, timeframe)
     local currentFloatVal = tonumber(string.match(PrecisionCounter.Text, "[%d%.]+")) or 0
     local elapsedDelta = 0
@@ -201,7 +200,6 @@ local function StreamFloatingPercentages(endGoal, timeframe)
         local stepTime = RunService.RenderStepped:Wait()
         elapsedDelta = math.min(elapsedDelta + stepTime, timeframe)
         
-        -- High end quintic fluid loading curves
         local completionRatio = elapsedDelta / timeframe
         local smoothQuintic = 1 - math.pow(1 - completionRatio, 5)
         
@@ -210,17 +208,17 @@ local function StreamFloatingPercentages(endGoal, timeframe)
     end
 end
 
-local function LaunchOneMillionXPipeline()
+local function LaunchLoader()
     local engineStages = {
-        {log = "🔓 Dismantling legacy framework keys & locks...", cap = 26.8412, span = 1.1},
-        {log = "💉 Injecting automated metatable environments...", cap = 58.1943, span = 1.4},
-        {log = "📦 Pre-loading application assets into workspace...", cap = 81.3304, span = 1.2},
-        {log = "⚡ Synchronizing parallel pipeline memory allocation...", cap = 100.0000, span = 0.7}
+        {log = "🔓 Initializing core systems...", cap = 25, span = 1.0},
+        {log = "⚡ Loading security protocols...", cap = 50, span = 1.2},
+        {log = "📦 Preparing MG9 Ultimate Hub...", cap = 75, span = 1.1},
+        {log = "✅ System ready! Loading UI...", cap = 100, span = 0.8}
     }
     
     for _, stage in ipairs(engineStages) do
         ActiveLogText.Text = stage.log
-        StatusText.Text = "جاري التحميل... " .. math.floor(stage.cap) .. "%"
+        StatusText.Text = "Loading... " .. math.floor(stage.cap) .. "%"
         TickSound:Play()
         
         local vectorTarget = UDim2.new(stage.cap / 100, 0, 1, 0)
@@ -231,19 +229,19 @@ local function LaunchOneMillionXPipeline()
         StreamFloatingPercentages(stage.cap, stage.span)
     end
     
-    ActiveLogText.Text = "✅ System Synced. Execution Active!"
-    StatusText.Text = "✅ تم التحميل بنجاح!"
+    ActiveLogText.Text = "✅ MG9 Ultimate Hub Loaded!"
+    StatusText.Text = "✅ Ready!"
     TickSound:Play()
     task.wait(0.6)
     
-    -- High-Fidelity Universal Fade Out Sequence
+    -- ====== تأثير الاختفاء ======
     local cleanupTime = TweenInfo.new(0.7, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
     
     TweenService:Create(MasterCanvas, cleanupTime, {BackgroundTransparency = 1}):Play()
     TweenService:Create(VortexContainer, cleanupTime, {BackgroundTransparency = 1}):Play()
     TweenService:Create(BrandTitle, cleanupTime, {TextTransparency = 1}):Play()
-    TweenService:Create(DevName, cleanupTime, {TextTransparency = 1}):Play()
-    TweenService:Create(MG9Logo, cleanupTime, {TextTransparency = 1}):Play()
+    TweenService:Create(SubTitle, cleanupTime, {TextTransparency = 1}):Play()
+    TweenService:Create(Divider, cleanupTime, {BackgroundTransparency = 1}):Play()
     TweenService:Create(ActiveLogText, cleanupTime, {TextTransparency = 1}):Play()
     TweenService:Create(PrecisionCounter, cleanupTime, {TextTransparency = 1}):Play()
     TweenService:Create(TrackBarBase, cleanupTime, {BackgroundTransparency = 1}):Play()
@@ -253,23 +251,21 @@ local function LaunchOneMillionXPipeline()
     
     task.wait(0.7)
     
-    -- Ultimate Garbage Disposal Core
+    -- ====== تنظيف ======
     ScreenBlur:Destroy()
     ScreenGui:Destroy()
     
-    -- ✅ هنا يتم تشغيل سكربت MG9 بعد انتهاء التحميل
+    -- ====== هنا يتم تشغيل سكربت MG9 ======
     print("🚀 Loading MG9 Ultimate Hub...")
     
-    -- ضع هنا كود سكربت MG9 كاملاً
+    -- ضع كود MG9 هنا أو استخدم loadstring
     -- loadstring(game:HttpGet("https://raw.githubusercontent.com/your-repo/mg9.lua"))()
     
-    -- أو ضع الكود مباشرة هنا
 end
 
-task.spawn(LaunchOneMillionXPipeline)
+task.spawn(LaunchLoader)
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🌌 DELTA INFINITE LOADER V1.0                        ║")
-print("║  👨‍💻 Developed by: tariq191188                        ║")
-print("║  ⚡ Status: Loading MG9 Ultimate Hub...               ║")
+print("║  🔥 MG9 ULTIMATE HUB LOADER                           ║")
+print("║  ⚡ Loading MG9 Ultimate Hub...                       ║")
 print("╚══════════════════════════════════════════════════════════╝")
