@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V21 - SIDE BUTTON + FIXED DRAG 🔥
+-- 🔥 MG9 ULTIMATE HUB V22 - ANTI LOGS ADDED 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -317,7 +317,7 @@ toggleText.Font = Enum.Font.GothamBold
 toggleText.TextSize = 16
 toggleText.ZIndex = 2
 
--- إضافة إمكانية السحب للأيقونة مع إصلاح مشكلة الاختفاء
+-- إضافة إمكانية السحب للأيقونة
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -341,7 +341,6 @@ local function setupDragging(button)
                 startPos.Y.Scale + delta.Y / (button.Parent.AbsoluteSize.Y or 1),
                 startPos.Y.Offset + delta.Y
             )
-            -- منع الزر من الخروج عن الشاشة
             newPos = UDim2.new(
                 math.clamp(newPos.X.Scale, 0, 1 - (button.Size.X.Scale)),
                 newPos.X.Offset,
@@ -914,7 +913,7 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات
+-- نافذة الإعدادات (مع مضاد Logs)
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
 settingsFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -1056,14 +1055,164 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
-createToggle("مضاد الفلينج", 255, "🌀", function(s) Settings.AntiFling = s end)
-createToggle("مضاد اللاق", 297, "📋", function(s) Settings.AntiLogs = s end)
-createToggle("مضاد NV", 339, "👁️", function(s) Settings.AntiNV = s end)
-createToggle("مضاد Clogs", 381, "🚫", function(s) Settings.AntiClogs = s end)
-createToggle("مضاد CmdBar", 423, "⌨️", function(s) Settings.AntiCmdBar = s end)
-createToggle("مضاد الإشعارات", 465, "🔕", function(s) Settings.AntiAlerts = s end)
-createToggle("مضاد الطرد", 507, "🛡️", function(s) Settings.AntiKick = s end)
-createToggle("مضاد AFK", 549, "💤", function(s) Settings.AntiAFK = s end)
+-- ===== جميع خيارات الحماية (مع مضاد Logs) =====
+
+-- 1. مضاد الفلينج
+createToggle("🌀 مضاد الفلينج", 255, "🌀", function(s) 
+    Settings.AntiFling = s 
+end)
+
+-- 2. مضاد اللاق (Logs) - تم إضافته بشكل واضح
+createToggle("📋 مضاد اللاق (Logs)", 297, "📋", function(s) 
+    Settings.AntiLogs = s
+    if s then
+        -- منع تنفيذ أوامر اللاق
+        local function secureRemote(remote)
+            if remote:IsA("RemoteEvent") and remote.Name == "ExecuteClientCommand" then
+                if getconnections then
+                    for _, conn in pairs(getconnections(remote.OnClientEvent)) do
+                        conn:Disable()
+                    end
+                end
+                remote.OnClientEvent:Connect(function() return nil end)
+            end
+        end
+        
+        -- تأمين جميع الريمات
+        for _, v in pairs(ReplicatedStorage:GetDescendants()) do 
+            secureRemote(v) 
+        end
+        
+        -- مراقبة الريمات الجديدة
+        ReplicatedStorage.DescendantAdded:Connect(function(d)
+            if Settings.AntiLogs then 
+                secureRemote(d) 
+            end
+        end)
+        
+        -- حذف الريمات الخاصة باللاق
+        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+        if signals then 
+            signals = signals:FindFirstChild("Signals") 
+        end
+        if signals then
+            for _, remote in pairs(signals:GetDescendants()) do
+                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if string.find(remote.Name:lower(), "log") then
+                        remote:Destroy()
+                    end
+                end
+            end
+        end
+        
+        statusLabel.Text = "🛡️ تم تفعيل مضاد اللاق"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    else
+        statusLabel.Text = "❌ تم تعطيل مضاد اللاق"
+        statusLabel.TextColor3 = colors.danger
+        task.wait(1)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    end
+end)
+
+-- 3. مضاد NV
+createToggle("👁️ مضاد NV", 339, "👁️", function(s) 
+    Settings.AntiNV = s
+    if s then
+        task.spawn(function()
+            while Settings.AntiNV do
+                pcall(function()
+                    local cam = workspace.CurrentCamera
+                    if cam then
+                        cam.CameraType = Enum.CameraType.Custom
+                        cam.FieldOfView = 70
+                    end
+                end)
+                task.wait(0.5)
+            end
+        end)
+    end
+end)
+
+-- 4. مضاد Clogs
+createToggle("🚫 مضاد Clogs", 381, "🚫", function(s) 
+    Settings.AntiClogs = s
+    if s then
+        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
+        if signals then signals = signals:FindFirstChild("Signals") end
+        if signals then
+            for _, remote in pairs(signals:GetDescendants()) do
+                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
+                    if string.find(remote.Name:lower(), "log") or string.find(remote.Name:lower(), "clear") then
+                        remote:Destroy()
+                    end
+                end
+            end
+        end
+    end
+end)
+
+-- 5. مضاد CmdBar
+createToggle("⌨️ مضاد CmdBar", 423, "⌨️", function(s) 
+    Settings.AntiCmdBar = s
+    for _, g in pairs(player.PlayerGui:GetChildren()) do
+        if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
+            g.Enabled = not s
+        end
+    end
+end)
+
+-- 6. مضاد الإشعارات
+createToggle("🔕 مضاد الإشعارات", 465, "🔕", function(s) 
+    Settings.AntiAlerts = s
+    for _, g in pairs(player.PlayerGui:GetChildren()) do
+        if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
+            g.Enabled = not s
+        end
+    end
+end)
+
+-- 7. مضاد الطرد
+createToggle("🛡️ مضاد الطرد", 507, "🛡️", function(s) 
+    Settings.AntiKick = s
+    if s then
+        task.spawn(function()
+            while Settings.AntiKick do
+                pcall(function()
+                    if player:FindFirstChild("Kick") then
+                        player.Kick = function() end
+                    end
+                end)
+                task.wait(1)
+            end
+        end)
+    end
+end)
+
+-- 8. مضاد AFK
+createToggle("💤 مضاد AFK", 549, "💤", function(s) 
+    Settings.AntiAFK = s
+    if s then
+        task.spawn(function()
+            while Settings.AntiAFK do
+                pcall(function()
+                    local char = player.Character
+                    if char and char:FindFirstChild("HumanoidRootPart") then
+                        local hrp = char.HumanoidRootPart
+                        hrp.CFrame = hrp.CFrame + Vector3.new(0, 0, 0.01)
+                        task.wait(0.1)
+                        hrp.CFrame = hrp.CFrame - Vector3.new(0, 0, 0.01)
+                    end
+                end)
+                task.wait(30)
+            end
+        end)
+    end
+end)
 
 ---------------------------------------
 -- نافذة المعلومات
@@ -1137,7 +1286,7 @@ createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
 createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
 pos = pos + 22
-createInfoText("📌 الإصدار: V21 (Side Button)", pos)
+createInfoText("📌 الإصدار: V22 (Anti Logs Added)", pos)
 pos = pos + 22
 createInfoText("📅 التاريخ: 13/07/2026", pos)
 pos = pos + 22
@@ -1215,7 +1364,7 @@ createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
 pos = pos + 22
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 22
-createInfoText("🔹 آخر تحديث: V21", pos)
+createInfoText("🔹 آخر تحديث: V22", pos)
 pos = pos + 35
 
 createInfoSection("مميزات السكربت", "🔥", pos)
@@ -1223,11 +1372,11 @@ pos = pos + 33
 local features = {
     "✅ 10 ثيمات احترافية",
     "✅ 8 خيارات حماية متكاملة",
+    "✅ مضاد Logs مدمج",
     "✅ 8 أوامر مخصصة قابلة للحفظ",
     "✅ سرعة تكرار قابلة للتعديل",
     "✅ واجهة سهلة الاستخدام",
     "✅ يعمل بضغطة واحدة",
-    "✅ نظام إحصائيات لحظي",
     "✅ زر جانبي قابل للتحريك",
 }
 for _, feature in ipairs(features) do
@@ -1584,10 +1733,10 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V21 - SIDE BUTTON 🔥              ║")
+print("║  🔥 MG9 ULTIMATE HUB V22 - ANTI LOGS ADDED 🔥         ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ زر جانبي قابل للتحريك                              ║")
-print("║  ✅ لا تختفي العناصر عند التحريك                      ║")
-print("║  ✅ اسحب الأيقونة لأي مكان                            ║")
+print("║  ✅ مضاد Logs مدمج                                    ║")
+print("║  ✅ 8 خيارات حماية متكاملة                           ║")
+print("║  ✅ زر جانبي قابل للتحريك                            ║")
 print("║  ✅ السكربت في منتصف الشاشة                           ║")
 print("╚══════════════════════════════════════════════════════════╝")
