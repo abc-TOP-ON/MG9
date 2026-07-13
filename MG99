@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V15 - FIXED CLICK ISSUE 🔥
+-- 🔥 MG9 ULTIMATE HUB V16 - DEVELOPER INFO 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -42,18 +42,12 @@ local customCommands = {}
 local lastSafePos = nil
 
 ---------------------------------------
--- ⚡ دالة الضغطة الواحدة (فقط الزر يستجيب)
+-- ⚡ دالة الضغطة الواحدة
 ---------------------------------------
 local function setupOneClick(button, callback)
     if not button then return end
-    
-    -- للماوس
     button.MouseButton1Click:Connect(callback)
-    
-    -- للمس (التلفون)
     button.TouchTap:Connect(callback)
-    
-    -- طريقة بديلة (تضمن عدم التكرار)
     button.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
             callback()
@@ -95,6 +89,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 60, 60),
             warning = Color3.fromRGB(255, 200, 0),
             gold = Color3.fromRGB(255, 215, 0),
+            info = Color3.fromRGB(100, 200, 255),
         },
         dark = {
             primary = Color3.fromRGB(100, 100, 255),
@@ -108,6 +103,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 80, 80),
             warning = Color3.fromRGB(255, 200, 50),
             gold = Color3.fromRGB(200, 180, 100),
+            info = Color3.fromRGB(100, 200, 255),
         },
         light = {
             primary = Color3.fromRGB(50, 120, 255),
@@ -121,6 +117,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(220, 50, 50),
             warning = Color3.fromRGB(220, 180, 0),
             gold = Color3.fromRGB(200, 170, 50),
+            info = Color3.fromRGB(50, 150, 255),
         },
         red = {
             primary = Color3.fromRGB(255, 50, 50),
@@ -134,6 +131,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 0, 0),
             warning = Color3.fromRGB(255, 200, 0),
             gold = Color3.fromRGB(255, 200, 100),
+            info = Color3.fromRGB(255, 150, 150),
         },
         green = {
             primary = Color3.fromRGB(0, 255, 100),
@@ -147,6 +145,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 60, 60),
             warning = Color3.fromRGB(255, 200, 0),
             gold = Color3.fromRGB(200, 255, 100),
+            info = Color3.fromRGB(150, 255, 200),
         },
         purple = {
             primary = Color3.fromRGB(150, 50, 255),
@@ -160,6 +159,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 60, 60),
             warning = Color3.fromRGB(255, 200, 0),
             gold = Color3.fromRGB(255, 200, 200),
+            info = Color3.fromRGB(200, 150, 255),
         },
         ocean = {
             primary = Color3.fromRGB(0, 200, 255),
@@ -173,6 +173,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 80, 80),
             warning = Color3.fromRGB(255, 220, 50),
             gold = Color3.fromRGB(200, 230, 255),
+            info = Color3.fromRGB(150, 220, 255),
         },
         sunset = {
             primary = Color3.fromRGB(255, 100, 50),
@@ -186,6 +187,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 50, 50),
             warning = Color3.fromRGB(255, 200, 50),
             gold = Color3.fromRGB(255, 200, 150),
+            info = Color3.fromRGB(255, 180, 150),
         },
         cyber = {
             primary = Color3.fromRGB(0, 255, 200),
@@ -199,6 +201,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 0, 100),
             warning = Color3.fromRGB(255, 200, 0),
             gold = Color3.fromRGB(255, 215, 0),
+            info = Color3.fromRGB(0, 255, 220),
         },
         royal = {
             primary = Color3.fromRGB(255, 215, 0),
@@ -212,6 +215,7 @@ local function getThemeColors(themeName)
             danger = Color3.fromRGB(255, 50, 50),
             warning = Color3.fromRGB(255, 200, 50),
             gold = Color3.fromRGB(255, 215, 0),
+            info = Color3.fromRGB(255, 220, 180),
         },
     }
     return themes[themeName] or themes.neon
@@ -232,6 +236,7 @@ local function applyTheme(themeName)
     settingsBtn.TextColor3 = colors.gold
     closeBtn.TextColor3 = colors.danger
     themeBtn.TextColor3 = colors.primary
+    infoBtn.TextColor3 = colors.info
     
     inputBox.BackgroundColor3 = colors.bg2
     inputBox.TextColor3 = colors.text
@@ -316,9 +321,21 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 22
 title.TextXAlignment = Enum.TextXAlignment.Left
 
+-- زر المعلومات (جديد)
+local infoBtn = Instance.new("TextButton", header)
+infoBtn.Size = UDim2.new(0, 35, 0, 35)
+infoBtn.Position = UDim2.new(1, -185, 0.5, -17)
+infoBtn.Text = "ℹ️"
+infoBtn.TextColor3 = colors.info
+infoBtn.BackgroundTransparency = 1
+infoBtn.TextSize = 20
+infoBtn.Font = Enum.Font.GothamBold
+infoBtn.ZIndex = 10
+
+-- زر الثيم
 local themeBtn = Instance.new("TextButton", header)
 themeBtn.Size = UDim2.new(0, 35, 0, 35)
-themeBtn.Position = UDim2.new(1, -140, 0.5, -17)
+themeBtn.Position = UDim2.new(1, -145, 0.5, -17)
 themeBtn.Text = "🎨"
 themeBtn.TextColor3 = colors.primary
 themeBtn.BackgroundTransparency = 1
@@ -326,9 +343,10 @@ themeBtn.TextSize = 20
 themeBtn.Font = Enum.Font.GothamBold
 themeBtn.ZIndex = 10
 
+-- زر الإعدادات
 local settingsBtn = Instance.new("TextButton", header)
 settingsBtn.Size = UDim2.new(0, 35, 0, 35)
-settingsBtn.Position = UDim2.new(1, -100, 0.5, -17)
+settingsBtn.Position = UDim2.new(1, -105, 0.5, -17)
 settingsBtn.Text = "⚙️"
 settingsBtn.TextColor3 = colors.gold
 settingsBtn.BackgroundTransparency = 1
@@ -336,15 +354,70 @@ settingsBtn.TextSize = 20
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
+-- زر الإغلاق
 local closeBtn = Instance.new("TextButton", header)
 closeBtn.Size = UDim2.new(0, 35, 0, 35)
-closeBtn.Position = UDim2.new(1, -55, 0.5, -17)
+closeBtn.Position = UDim2.new(1, -60, 0.5, -17)
 closeBtn.Text = "✕"
 closeBtn.TextColor3 = colors.danger
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 20
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
+
+---------------------------------------
+-- نافذة المعلومات (منبثقة)
+---------------------------------------
+local infoFrame = Instance.new("Frame", mainFrame)
+infoFrame.Size = UDim2.new(0.8, 0, 0, 120)
+infoFrame.Position = UDim2.new(0.1, 0, 0.35, 0)
+infoFrame.BackgroundColor3 = colors.bg2
+infoFrame.BackgroundTransparency = 0.1
+infoFrame.Visible = false
+createCorner(infoFrame, 12)
+createStroke(infoFrame, colors.info, 2)
+infoFrame.ZIndex = 20
+
+-- ظل للنافذة
+local infoShadow = Instance.new("ImageLabel", infoFrame)
+infoShadow.Size = UDim2.new(1, 30, 1, 30)
+infoShadow.Position = UDim2.new(0, -15, 0, -15)
+infoShadow.BackgroundTransparency = 1
+infoShadow.Image = "rbxassetid://131604529"
+infoShadow.ImageTransparency = 0.7
+infoShadow.ZIndex = 0
+
+-- أيقونة المعلومات
+local infoIcon = Instance.new("TextLabel", infoFrame)
+infoIcon.Size = UDim2.new(0, 50, 1, 0)
+infoIcon.Text = "ℹ️"
+infoIcon.TextColor3 = colors.info
+infoIcon.BackgroundTransparency = 1
+infoIcon.TextSize = 30
+infoIcon.Font = Enum.Font.GothamBold
+
+-- نص المعلومات
+local infoText = Instance.new("TextLabel", infoFrame)
+infoText.Size = UDim2.new(1, -60, 1, 0)
+infoText.Position = UDim2.new(0, 55, 0, 0)
+infoText.Text = "👨‍💻 المطور: tariq191188\n📌 الإصدار: V16\n⚡ جميع الحقوق محفوظة"
+infoText.TextColor3 = colors.text
+infoText.BackgroundTransparency = 1
+infoText.Font = Enum.Font.GothamBold
+infoText.TextSize = 13
+infoText.TextXAlignment = Enum.TextXAlignment.Left
+infoText.TextYAlignment = Enum.TextYAlignment.Center
+infoText.LineHeight = 1.3
+
+-- زر إغلاق المعلومات
+local infoClose = Instance.new("TextButton", infoFrame)
+infoClose.Size = UDim2.new(0, 30, 0, 30)
+infoClose.Position = UDim2.new(1, -35, 0, 5)
+infoClose.Text = "✕"
+infoClose.TextColor3 = colors.danger
+infoClose.BackgroundTransparency = 1
+infoClose.TextSize = 16
+infoClose.Font = Enum.Font.GothamBold
 
 ---------------------------------------
 -- شريط الحالة
@@ -419,18 +492,21 @@ local spamTab = createTab("📢 SPAM", 0, function()
     spamContainer.Visible = true
     commandsContainer.Visible = false
     settingsFrame.Visible = false
+    infoFrame.Visible = false
 end)
 
 local cmdsTab = createTab("📝 أوامر", 0.35, function()
     spamContainer.Visible = false
     commandsContainer.Visible = true
     settingsFrame.Visible = false
+    infoFrame.Visible = false
 end)
 
 local settingsTab = createTab("⚙️ إعدادات", 0.70, function()
     spamContainer.Visible = false
     commandsContainer.Visible = false
     settingsFrame.Visible = true
+    infoFrame.Visible = false
 end)
 
 spamTab.BackgroundColor3 = colors.primary
@@ -896,7 +972,7 @@ protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
 protectTitle.TextSize = 13
 
--- ⚡ دالة إنشاء زر تبديل (فقط الزر يستجيب)
+-- دالة إنشاء زر تبديل
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
     frame.Size = UDim2.new(1, 0, 0, 38)
@@ -904,7 +980,7 @@ local function createToggle(name, pos, icon, callback)
     frame.BackgroundColor3 = colors.bg2
     createCorner(frame, 6)
     createStroke(frame, colors.textDim, 0.3)
-    frame.Selectable = false  -- منع النقر على الإطار
+    frame.Selectable = false
     
     local iconLabel = Instance.new("TextLabel", frame)
     iconLabel.Size = UDim2.new(0, 28, 1, 0)
@@ -951,7 +1027,6 @@ local function createToggle(name, pos, icon, callback)
         statusLabel.TextColor3 = colors.textDim
     end
     
-    -- فقط الزر يستجيب، الإطار لا يستجيب
     setupOneClick(toggle, toggleState)
     
     return toggle
@@ -1206,8 +1281,30 @@ setupOneClick(stopBtn, function()
 end)
 
 ---------------------------------------
--- أحداث التنقل (ضغطة واحدة)
+-- أحداث الأزرار (ضغطة واحدة)
 ---------------------------------------
+setupOneClick(infoBtn, function()
+    infoFrame.Visible = not infoFrame.Visible
+    if infoFrame.Visible then
+        statusLabel.Text = "ℹ️ معلومات المطور"
+        statusLabel.TextColor3 = colors.info
+        -- تأثير حركي
+        infoFrame.Position = UDim2.new(0.1, 0, 0.5, 0)
+        TweenService:Create(infoFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
+            Position = UDim2.new(0.1, 0, 0.35, 0)
+        }):Play()
+    else
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    end
+end)
+
+setupOneClick(infoClose, function()
+    infoFrame.Visible = false
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
 setupOneClick(themeBtn, function()
     local currentIndex = table.find(allThemes, currentTheme) or 1
     local nextIndex = currentIndex % #allThemes + 1
@@ -1222,6 +1319,7 @@ setupOneClick(settingsBtn, function()
         settingsBtn.TextColor3 = colors.danger
         spamContainer.Visible = false
         commandsContainer.Visible = false
+        infoFrame.Visible = false
         statusLabel.Text = "⚙️ الإعدادات"
         statusLabel.TextColor3 = colors.gold
     else
@@ -1244,6 +1342,7 @@ setupOneClick(floatBtn, function()
     spamContainer.Visible = true
     commandsContainer.Visible = false
     settingsFrame.Visible = false
+    infoFrame.Visible = false
     settingsBtn.Text = "⚙️"
     settingsBtn.TextColor3 = colors.gold
 end)
@@ -1326,9 +1425,10 @@ end)
 
 -- إظهار الواجهة
 mainFrame.Visible = true
-print("╔══════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V15 - FIXED 🔥        ║")
-print("║  ✅ فقط الأزرار تستجيب للضغط               ║")
-print("║  ⚡ جميع الأزرار تعمل بضغطة واحدة          ║")
-print("║  📱 متوافق مع الكمبيوتر والموبايل          ║")
-print("╚══════════════════════════════════════════════╝")
+print("╔══════════════════════════════════════════════════════╗")
+print("║  🔥 MG9 ULTIMATE HUB V16 - DEVELOPER INFO 🔥       ║")
+print("║  👨‍💻 المطور: tariq191188                            ║")
+print("║  ✅ فقط الأزرار تستجيب للضغط                       ║")
+print("║  ⚡ جميع الأزرار تعمل بضغطة واحدة                  ║")
+print("║  📱 متوافق مع الكمبيوتر والموبايل                  ║")
+print("╚══════════════════════════════════════════════════════╝")
