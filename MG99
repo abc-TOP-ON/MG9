@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥
+-- 🔥 MG9 ULTIMATE HUB V20 - CENTERED + MOVABLE 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -7,6 +7,7 @@ local CoreGui = game:GetService("CoreGui")
 local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
+local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
@@ -41,6 +42,9 @@ local Spam = {
 local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
+local isDragging = false
+local dragStart = nil
+local dragStartPos = nil
 
 ---------------------------------------
 -- ⚡ دالة الضغطة الواحدة
@@ -248,6 +252,7 @@ local function applyTheme(themeName)
     closeBtn.TextColor3 = colors.danger
     themeBtn.TextColor3 = colors.primary
     infoBtn.TextColor3 = colors.info
+    toggleBtn.TextColor3 = colors.text
     
     inputBox.BackgroundColor3 = colors.bg2
     inputBox.TextColor3 = colors.text
@@ -289,31 +294,69 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- الأيقونة العائمة
+-- أيقونة الدخول/الخروج (قابلة للتحريك)
 ---------------------------------------
-local floatBtn = Instance.new("ImageButton", gui)
-floatBtn.Size = UDim2.new(0, 60, 0, 60)
-floatBtn.Position = UDim2.new(1, -75, 0.5, -30)
-floatBtn.BackgroundColor3 = colors.bg2
-floatBtn.Image = "rbxassetid://131604529"
-floatBtn.ImageColor3 = colors.primary
-floatBtn.ImageTransparency = 0.3
-floatBtn.Visible = false
-floatBtn.Draggable = true
-createCorner(floatBtn, 30)
-createStroke(floatBtn, colors.primary, 2)
+local toggleBtn = Instance.new("ImageButton", gui)
+toggleBtn.Size = UDim2.new(0, 55, 0, 55)
+toggleBtn.Position = UDim2.new(0.5, -27, 0.5, -27)
+toggleBtn.BackgroundColor3 = colors.bg2
+toggleBtn.Image = "rbxassetid://131604529"
+toggleBtn.ImageColor3 = colors.primary
+toggleBtn.ImageTransparency = 0.2
+toggleBtn.Visible = true
+toggleBtn.Draggable = true
+createCorner(toggleBtn, 27)
+createStroke(toggleBtn, colors.primary, 2)
 
-local floatText = Instance.new("TextLabel", floatBtn)
-floatText.Size = UDim2.new(1, 0, 1, 0)
-floatText.Text = "MG9"
-floatText.TextColor3 = colors.text
-floatText.BackgroundTransparency = 1
-floatText.Font = Enum.Font.GothamBold
-floatText.TextSize = 16
-floatText.ZIndex = 2
+local toggleText = Instance.new("TextLabel", toggleBtn)
+toggleText.Size = UDim2.new(1, 0, 1, 0)
+toggleText.Text = "MG9"
+toggleText.TextColor3 = colors.text
+toggleText.BackgroundTransparency = 1
+toggleText.Font = Enum.Font.GothamBold
+toggleText.TextSize = 16
+toggleText.ZIndex = 2
+
+-- إضافة إمكانية السحب للأيقونة
+local function setupDragging(button)
+    local dragging = false
+    local dragStart = nil
+    local startPos = nil
+    
+    button.InputBegan:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = true
+            dragStart = input.Position
+            startPos = button.Position
+            button.ZIndex = 100
+        end
+    end)
+    
+    button.InputChanged:Connect(function(input)
+        if dragging and (input.UserInputType == Enum.UserInputType.MouseMovement or input.UserInputType == Enum.UserInputType.Touch) then
+            local delta = input.Position - dragStart
+            local newPos = UDim2.new(
+                startPos.X.Scale + delta.X / (button.Parent.AbsoluteSize.X or 1),
+                startPos.X.Offset + delta.X,
+                startPos.Y.Scale + delta.Y / (button.Parent.AbsoluteSize.Y or 1),
+                startPos.Y.Offset + delta.Y
+            )
+            button.Position = newPos
+        end
+    end)
+    
+    button.InputEnded:Connect(function(input)
+        if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
+            dragging = false
+            button.ZIndex = 1
+        end
+    end)
+end
+
+setupDragging(toggleBtn)
 
 ---------------------------------------
--- الواجهة الرئيسية
+-- الواجهة الرئيسية (في المنتصف)
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.Size = UDim2.new(0, 380, 0, 520)
@@ -321,11 +364,15 @@ mainFrame.Position = UDim2.new(0.5, -190, 0.5, -260)
 mainFrame.BackgroundColor3 = colors.bg
 mainFrame.Active = true
 mainFrame.Draggable = true
+mainFrame.Visible = false
 createCorner(mainFrame, 16)
 createStroke(mainFrame, colors.primary, 1.5)
 
+-- جعل الواجهة قابلة للسحب أيضاً
+setupDragging(mainFrame)
+
 ---------------------------------------
--- الهيدر
+-- الهيدر (الأزرار في الأعلى)
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
 header.Size = UDim2.new(1, 0, 0, 55)
@@ -346,7 +393,7 @@ title.TextXAlignment = Enum.TextXAlignment.Left
 -- زر المعلومات
 local infoBtn = Instance.new("TextButton", header)
 infoBtn.Size = UDim2.new(0, 28, 0, 28)
-infoBtn.Position = UDim2.new(1, -155, 0.5, -14)
+infoBtn.Position = UDim2.new(1, -185, 0.5, -14)
 infoBtn.Text = "ℹ️"
 infoBtn.TextColor3 = colors.info
 infoBtn.BackgroundTransparency = 1
@@ -357,7 +404,7 @@ infoBtn.ZIndex = 10
 -- زر الثيم
 local themeBtn = Instance.new("TextButton", header)
 themeBtn.Size = UDim2.new(0, 28, 0, 28)
-themeBtn.Position = UDim2.new(1, -122, 0.5, -14)
+themeBtn.Position = UDim2.new(1, -152, 0.5, -14)
 themeBtn.Text = "🎨"
 themeBtn.TextColor3 = colors.primary
 themeBtn.BackgroundTransparency = 1
@@ -368,7 +415,7 @@ themeBtn.ZIndex = 10
 -- زر الإعدادات
 local settingsBtn = Instance.new("TextButton", header)
 settingsBtn.Size = UDim2.new(0, 28, 0, 28)
-settingsBtn.Position = UDim2.new(1, -89, 0.5, -14)
+settingsBtn.Position = UDim2.new(1, -119, 0.5, -14)
 settingsBtn.Text = "⚙️"
 settingsBtn.TextColor3 = colors.gold
 settingsBtn.BackgroundTransparency = 1
@@ -376,16 +423,27 @@ settingsBtn.TextSize = 16
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
--- زر الإغلاق
+-- زر الخروج من السكربت (إخفاء الواجهة)
 local closeBtn = Instance.new("TextButton", header)
 closeBtn.Size = UDim2.new(0, 28, 0, 28)
-closeBtn.Position = UDim2.new(1, -50, 0.5, -14)
-closeBtn.Text = "✕"
+closeBtn.Position = UDim2.new(1, -86, 0.5, -14)
+closeBtn.Text = "🚪"
 closeBtn.TextColor3 = colors.danger
 closeBtn.BackgroundTransparency = 1
 closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
+
+-- زر إغلاق الواجهة (تصغير)
+local minimizeBtn = Instance.new("TextButton", header)
+minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
+minimizeBtn.Position = UDim2.new(1, -50, 0.5, -14)
+minimizeBtn.Text = "✕"
+minimizeBtn.TextColor3 = colors.textDim
+minimizeBtn.BackgroundTransparency = 1
+minimizeBtn.TextSize = 16
+minimizeBtn.Font = Enum.Font.GothamBold
+minimizeBtn.ZIndex = 10
 
 ---------------------------------------
 -- شريط الحالة
@@ -1004,7 +1062,7 @@ createToggle("مضاد الطرد", 507, "🛡️", function(s) Settings.AntiKic
 createToggle("مضاد AFK", 549, "💤", function(s) Settings.AntiAFK = s end)
 
 ---------------------------------------
--- نافذة المعلومات (مثل الإعدادات)
+-- نافذة المعلومات
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
 infoFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -1029,7 +1087,6 @@ infoTitle.Font = Enum.Font.GothamBold
 infoTitle.TextSize = 14
 infoTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- حاوية المعلومات (قابلة للتمرير)
 local infoScroll = Instance.new("ScrollingFrame", infoFrame)
 infoScroll.Size = UDim2.new(1, -10, 1, -40)
 infoScroll.Position = UDim2.new(0, 5, 0, 35)
@@ -1037,8 +1094,6 @@ infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 3
 infoScroll.ScrollBarImageColor3 = colors.info
 infoScroll.CanvasSize = UDim2.new(0, 0, 0, 700)
-
--- ===== دوال لإنشاء أقسام المعلومات =====
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
@@ -1074,19 +1129,17 @@ end
 
 local pos = 5
 
--- 1. معلومات أساسية
 createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
 createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
 pos = pos + 22
-createInfoText("📌 الإصدار: V19 (Info like Settings)", pos)
+createInfoText("📌 الإصدار: V20 (Centered + Movable)", pos)
 pos = pos + 22
 createInfoText("📅 التاريخ: 13/07/2026", pos)
 pos = pos + 22
 createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
 pos = pos + 35
 
--- 2. إحصائيات المستخدم
 createInfoSection("إحصائيات المستخدم", "📊", pos)
 pos = pos + 33
 
@@ -1134,10 +1187,8 @@ cmdCountStats.TextSize = 11
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
 pos = pos + 35
 
--- 3. رسالة ترحيبية
 createInfoSection("رسالة ترحيبية", "🎯", pos)
 pos = pos + 33
-
 local welcomeText = Instance.new("TextLabel", infoScroll)
 welcomeText.Size = UDim2.new(1, -10, 0, 50)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
@@ -1150,7 +1201,6 @@ welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.LineHeight = 1.4
 pos = pos + 55
 
--- 4. معلومات تقنية
 createInfoSection("معلومات تقنية", "⚙️", pos)
 pos = pos + 33
 createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
@@ -1161,13 +1211,11 @@ createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
 pos = pos + 22
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 22
-createInfoText("🔹 آخر تحديث: V19", pos)
+createInfoText("🔹 آخر تحديث: V20", pos)
 pos = pos + 35
 
--- 5. مميزات السكربت
 createInfoSection("مميزات السكربت", "🔥", pos)
 pos = pos + 33
-
 local features = {
     "✅ 10 ثيمات احترافية",
     "✅ 8 خيارات حماية متكاملة",
@@ -1176,7 +1224,7 @@ local features = {
     "✅ واجهة سهلة الاستخدام",
     "✅ يعمل بضغطة واحدة",
     "✅ نظام إحصائيات لحظي",
-    "✅ نافذة معلومات متطورة",
+    "✅ زر دخول وخروج قابل للتحريك",
 }
 for _, feature in ipairs(features) do
     createInfoText(feature, pos, colors.text, 11)
@@ -1184,17 +1232,15 @@ for _, feature in ipairs(features) do
 end
 pos = pos + 15
 
--- 6. نصائح واستخدامات
 createInfoSection("نصائح واستخدامات", "💡", pos)
 pos = pos + 33
-
 local tips = {
     "• استخدم ; للفصل بين الأوامر المتعددة",
     "• فعّل الحماية قبل بدء التكرار",
     "• اضغط 🎨 لتغيير الثيم بسرعة",
     "• الأوامر المخصصة تُحفظ تلقائياً",
-    "• سرعة التكرار 0.5 = مثالية",
-    "• اضغط ℹ️ لعرض هذه المعلومات",
+    "• اسحب الأيقونة MG9 لأي مكان",
+    "• اضغط 🚪 للخروج من السكربت",
 }
 for _, tip in ipairs(tips) do
     createInfoText(tip, pos, colors.textDim, 11)
@@ -1202,10 +1248,8 @@ for _, tip in ipairs(tips) do
 end
 pos = pos + 15
 
--- 7. تحديثات قادمة
 createInfoSection("تحديثات قادمة", "🚀", pos)
 pos = pos + 33
-
 local updates = {
     "🔹 وضع التكرار الذكي (Smart Spam)",
     "🔹 حفظ الإعدادات تلقائياً",
@@ -1381,6 +1425,20 @@ end)
 ---------------------------------------
 -- أحداث الأزرار
 ---------------------------------------
+setupOneClick(toggleBtn, function()
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        toggleBtn.Visible = false
+        statusLabel.Text = "تم فتح السكربت"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1.5)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    else
+        toggleBtn.Visible = true
+    end
+end)
+
 setupOneClick(infoBtn, function()
     infoFrame.Visible = not infoFrame.Visible
     if infoFrame.Visible then
@@ -1428,20 +1486,17 @@ end)
 
 setupOneClick(closeBtn, function()
     mainFrame.Visible = false
-    floatBtn.Visible = true
+    toggleBtn.Visible = true
+    statusLabel.Text = "🚪 خروج من السكربت"
+    statusLabel.TextColor3 = colors.danger
+    task.wait(1)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
 end)
 
-setupOneClick(floatBtn, function()
-    mainFrame.Visible = true
-    floatBtn.Visible = false
-    spamContainer.Visible = true
-    commandsContainer.Visible = false
-    settingsFrame.Visible = false
-    infoFrame.Visible = false
-    settingsBtn.Text = "⚙️"
-    settingsBtn.TextColor3 = colors.gold
-    infoBtn.Text = "ℹ️"
-    infoBtn.TextColor3 = colors.info
+setupOneClick(minimizeBtn, function()
+    mainFrame.Visible = false
+    toggleBtn.Visible = true
 end)
 
 ---------------------------------------
@@ -1507,30 +1562,28 @@ task.spawn(function()
         if stroke then
             TweenService:Create(stroke, info, {Color = colors.primary}):Play()
         end
-        TweenService:Create(floatBtn.UIStroke, info, {Color = colors.primary}):Play()
+        TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.primary}):Play()
         
         task.wait(4)
         
         if stroke then
             TweenService:Create(stroke, info, {Color = colors.secondary}):Play()
         end
-        TweenService:Create(floatBtn.UIStroke, info, {Color = colors.secondary}):Play()
+        TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.secondary}):Play()
         
         task.wait(4)
     end
 end)
 
--- إظهار الواجهة
-mainFrame.Visible = true
+-- إظهار الأيقونة فقط في البداية
+mainFrame.Visible = false
+toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥       ║")
+print("║  🔥 MG9 ULTIMATE HUB V20 - CENTERED + MOVABLE 🔥       ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ نافذة المعلومات مثل الإعدادات                     ║")
-print("║  📊 إحصائيات لحظية                                   ║")
-print("║  🎯 رسالة ترحيبية                                    ║")
-print("║  ⚙️ معلومات تقنية                                    ║")
-print("║  🔥 مميزات السكربت                                   ║")
-print("║  💡 نصائح واستخدامات                                 ║")
-print("║  🚀 تحديثات قادمة                                    ║")
+print("║  ✅ السكربت في منتصف الشاشة                           ║")
+print("║  ✅ زر دخول وخروج قابل للتحريك                        ║")
+print("║  ✅ جميع الأزرار في الأعلى                            ║")
+print("║  ✅ اسحب الأيقونة لأي مكان                            ║")
 print("╚══════════════════════════════════════════════════════════╝")
