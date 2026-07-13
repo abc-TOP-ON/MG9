@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V18 - ADVANCED INFO PANEL 🔥
+-- 🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -260,9 +260,20 @@ local function applyTheme(themeName)
         settingsFrame.UIStroke.Color = colors.gold
     end
     
+    infoFrame.BackgroundColor3 = colors.bg2
+    if infoFrame:FindFirstChild("UIStroke") then
+        infoFrame.UIStroke.Color = colors.info
+    end
+    
     statusBar.BackgroundColor3 = colors.bg2
     
     for _, child in pairs(scrollContainer:GetChildren()) do
+        if child:IsA("Frame") then
+            child.BackgroundColor3 = colors.bg2
+        end
+    end
+    
+    for _, child in pairs(infoScroll:GetChildren()) do
         if child:IsA("Frame") then
             child.BackgroundColor3 = colors.bg2
         end
@@ -377,279 +388,6 @@ closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
 
 ---------------------------------------
--- نافذة المعلومات المتطورة
----------------------------------------
-local infoFrame = Instance.new("Frame", mainFrame)
-infoFrame.Size = UDim2.new(0.85, 0, 0.75, 0)
-infoFrame.Position = UDim2.new(0.075, 0, 0.12, 0)
-infoFrame.BackgroundColor3 = colors.bg2
-infoFrame.BackgroundTransparency = 0.05
-infoFrame.Visible = false
-createCorner(infoFrame, 14)
-createStroke(infoFrame, colors.info, 2)
-infoFrame.ZIndex = 20
-
--- ظل النافذة
-local infoShadow = Instance.new("ImageLabel", infoFrame)
-infoShadow.Size = UDim2.new(1, 30, 1, 30)
-infoShadow.Position = UDim2.new(0, -15, 0, -15)
-infoShadow.BackgroundTransparency = 1
-infoShadow.Image = "rbxassetid://131604529"
-infoShadow.ImageTransparency = 0.7
-infoShadow.ZIndex = 0
-
--- عنوان المعلومات
-local infoTitle = Instance.new("TextLabel", infoFrame)
-infoTitle.Size = UDim2.new(1, -50, 0, 30)
-infoTitle.Position = UDim2.new(0, 10, 0, 8)
-infoTitle.Text = "ℹ️ معلومات MG9 HUB"
-infoTitle.TextColor3 = colors.info
-infoTitle.BackgroundTransparency = 1
-infoTitle.Font = Enum.Font.GothamBold
-infoTitle.TextSize = 16
-infoTitle.TextXAlignment = Enum.TextXAlignment.Left
-
--- زر إغلاق المعلومات
-local infoClose = Instance.new("TextButton", infoFrame)
-infoClose.Size = UDim2.new(0, 28, 0, 28)
-infoClose.Position = UDim2.new(1, -33, 0, 5)
-infoClose.Text = "✕"
-infoClose.TextColor3 = colors.danger
-infoClose.BackgroundTransparency = 1
-infoClose.TextSize = 14
-infoClose.Font = Enum.Font.GothamBold
-
--- حاوية المعلومات (قابلة للتمرير)
-local infoScroll = Instance.new("ScrollingFrame", infoFrame)
-infoScroll.Size = UDim2.new(1, -10, 1, -45)
-infoScroll.Position = UDim2.new(0, 5, 0, 42)
-infoScroll.BackgroundTransparency = 1
-infoScroll.ScrollBarThickness = 3
-infoScroll.ScrollBarImageColor3 = colors.info
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, 600)
-
--- ===== دوال لإنشاء أقسام المعلومات =====
-
--- دالة إنشاء قسم
-local function createInfoSection(title, icon, pos)
-    local frame = Instance.new("Frame", infoScroll)
-    frame.Size = UDim2.new(1, 0, 0, 30)
-    frame.Position = UDim2.new(0, 0, 0, pos)
-    frame.BackgroundTransparency = 1
-    
-    local label = Instance.new("TextLabel", frame)
-    label.Size = UDim2.new(1, 0, 1, 0)
-    label.Text = icon .. " " .. title
-    label.TextColor3 = colors.info
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.GothamBold
-    label.TextSize = 13
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    label.TextYAlignment = Enum.TextYAlignment.Bottom
-    
-    return frame
-end
-
--- دالة إنشاء نص معلومات
-local function createInfoText(text, pos, color, size)
-    local label = Instance.new("TextLabel", infoScroll)
-    label.Size = UDim2.new(1, -10, 0, 18)
-    label.Position = UDim2.new(0, 10, 0, pos)
-    label.Text = text
-    label.TextColor3 = color or colors.textDim
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.Gotham
-    label.TextSize = size or 11
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    return label
-end
-
--- ===== 1. معلومات أساسية =====
-local pos = 5
-
-createInfoSection("المعلومات الأساسية", "📋", pos)
-pos = pos + 35
-
-createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
-pos = pos + 22
-createInfoText("📌 الإصدار: V18", pos)
-pos = pos + 22
-createInfoText("📅 التاريخ: 13/07/2026", pos)
-pos = pos + 22
-createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
-pos = pos + 35
-
--- ===== 2. إحصائيات المستخدم =====
-createInfoSection("إحصائيات المستخدم", "📊", pos)
-pos = pos + 35
-
--- متغيرات الإحصائيات (تتحدث تلقائياً)
-local statsText = Instance.new("TextLabel", infoScroll)
-statsText.Size = UDim2.new(1, -10, 0, 18)
-statsText.Position = UDim2.new(0, 10, 0, pos)
-statsText.Text = "📝 الأوامر المرسلة: 0"
-statsText.TextColor3 = colors.textDim
-statsText.BackgroundTransparency = 1
-statsText.Font = Enum.Font.Gotham
-statsText.TextSize = 11
-statsText.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
-
-local protectStats = Instance.new("TextLabel", infoScroll)
-protectStats.Size = UDim2.new(1, -10, 0, 18)
-protectStats.Position = UDim2.new(0, 10, 0, pos)
-protectStats.Text = "🛡️ الحمايات المفعلة: 0"
-protectStats.TextColor3 = colors.textDim
-protectStats.BackgroundTransparency = 1
-protectStats.Font = Enum.Font.Gotham
-protectStats.TextSize = 11
-protectStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
-
-local timeStats = Instance.new("TextLabel", infoScroll)
-timeStats.Size = UDim2.new(1, -10, 0, 18)
-timeStats.Position = UDim2.new(0, 10, 0, pos)
-timeStats.Text = "⏱️ وقت التشغيل: 00:00"
-timeStats.TextColor3 = colors.textDim
-timeStats.BackgroundTransparency = 1
-timeStats.Font = Enum.Font.Gotham
-timeStats.TextSize = 11
-timeStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
-
-local cmdCountStats = Instance.new("TextLabel", infoScroll)
-cmdCountStats.Size = UDim2.new(1, -10, 0, 18)
-cmdCountStats.Position = UDim2.new(0, 10, 0, pos)
-cmdCountStats.Text = "📂 الأوامر المخصصة: 0"
-cmdCountStats.TextColor3 = colors.textDim
-cmdCountStats.BackgroundTransparency = 1
-cmdCountStats.Font = Enum.Font.Gotham
-cmdCountStats.TextSize = 11
-cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 35
-
--- ===== 3. رسالة ترحيبية =====
-createInfoSection("رسالة ترحيبية", "🎯", pos)
-pos = pos + 35
-
-local welcomeText = Instance.new("TextLabel", infoScroll)
-welcomeText.Size = UDim2.new(1, -10, 0, 50)
-welcomeText.Position = UDim2.new(0, 10, 0, pos)
-welcomeText.Text = "مرحباً بك في MG9 HUB!\nتم تطوير هذا السكربت لتجربة أفضل\nمع حماية متكاملة وسبام احترافي"
-welcomeText.TextColor3 = colors.text
-welcomeText.BackgroundTransparency = 1
-welcomeText.Font = Enum.Font.GothamBold
-welcomeText.TextSize = 12
-welcomeText.TextXAlignment = Enum.TextXAlignment.Left
-welcomeText.LineHeight = 1.4
-pos = pos + 55
-
--- ===== 4. معلومات تقنية =====
-createInfoSection("معلومات تقنية", "⚙️", pos)
-pos = pos + 35
-
-createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
-pos = pos + 22
-createInfoText("🔹 عدد الملفات: 1 (سكربت واحد)", pos)
-pos = pos + 22
-createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
-pos = pos + 22
-createInfoText("🔹 متوافق مع: PC + Mobile", pos)
-pos = pos + 22
-createInfoText("🔹 آخر تحديث: V18", pos)
-pos = pos + 35
-
--- ===== 5. مميزات السكربت =====
-createInfoSection("مميزات السكربت", "🔥", pos)
-pos = pos + 35
-
-local features = {
-    "✅ 10 ثيمات احترافية",
-    "✅ 8 خيارات حماية متكاملة",
-    "✅ 8 أوامر مخصصة قابلة للحفظ",
-    "✅ سرعة تكرار قابلة للتعديل",
-    "✅ واجهة سهلة الاستخدام",
-    "✅ يعمل بضغطة واحدة",
-    "✅ نظام إحصائيات لحظي",
-    "✅ نافذة معلومات متطورة",
-}
-
-for _, feature in ipairs(features) do
-    createInfoText(feature, pos, colors.text, 11)
-    pos = pos + 20
-end
-pos = pos + 15
-
--- ===== 6. نصائح واستخدامات =====
-createInfoSection("نصائح واستخدامات", "💡", pos)
-pos = pos + 35
-
-local tips = {
-    "• استخدم ; للفصل بين الأوامر المتعددة",
-    "• فعّل الحماية قبل بدء التكرار",
-    "• اضغط 🎨 لتغيير الثيم بسرعة",
-    "• الأوامر المخصصة تُحفظ تلقائياً",
-    "• سرعة التكرار 0.5 = مثالية",
-    "• اضغط ℹ️ لعرض هذه المعلومات",
-}
-
-for _, tip in ipairs(tips) do
-    createInfoText(tip, pos, colors.textDim, 11)
-    pos = pos + 20
-end
-pos = pos + 15
-
--- ===== 7. تحديثات قادمة =====
-createInfoSection("تحديثات قادمة", "🚀", pos)
-pos = pos + 35
-
-local updates = {
-    "🔹 وضع التكرار الذكي (Smart Spam)",
-    "🔹 حفظ الإعدادات تلقائياً",
-    "🔹 أوامر صوتية",
-    "🔹 ثيمات جديدة",
-    "🔹 تحسين الأداء والسرعة",
-    "🔹 نظام إشعارات متقدم",
-}
-
-for _, update in ipairs(updates) do
-    createInfoText(update, pos, colors.warning, 11)
-    pos = pos + 20
-end
-
--- تحديث حجم Canvas
-pos = pos + 20
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, pos + 20)
-
----------------------------------------
--- تحديث الإحصائيات (ذكي)
----------------------------------------
-task.spawn(function()
-    while true do
-        -- تحديث عدد الأوامر المرسلة
-        statsText.Text = "📝 الأوامر المرسلة: " .. Spam.TotalSent
-        
-        -- تحديث عدد الحمايات المفعلة
-        local activeProtections = 0
-        for _, value in pairs(Settings) do
-            if value then activeProtections = activeProtections + 1 end
-        end
-        protectStats.Text = "🛡️ الحمايات المفعلة: " .. activeProtections .. "/8"
-        
-        -- تحديث وقت التشغيل
-        local elapsed = os.time() - Spam.StartTime
-        local minutes = math.floor(elapsed / 60)
-        local seconds = elapsed % 60
-        timeStats.Text = "⏱️ وقت التشغيل: " .. string.format("%02d:%02d", minutes, seconds)
-        
-        -- تحديث عدد الأوامر المخصصة
-        cmdCountStats.Text = "📂 الأوامر المخصصة: " .. #customCommands
-        
-        task.wait(1)
-    end
-end)
-
----------------------------------------
 -- شريط الحالة
 ---------------------------------------
 local statusBar = Instance.new("Frame", mainFrame)
@@ -745,7 +483,7 @@ spamTab.TextColor3 = colors.text
 spamTab.UIStroke.Color = colors.primary
 
 ---------------------------------------
--- حاوية SPAM (مختصرة)
+-- حاوية SPAM
 ---------------------------------------
 local spamContainer = Instance.new("Frame", mainFrame)
 spamContainer.Size = UDim2.new(1, -30, 1, -145)
@@ -767,7 +505,6 @@ inputBox.Font = Enum.Font.Gotham
 createCorner(inputBox, 8)
 createStroke(inputBox, colors.textDim, 0.5)
 
--- إعدادات (مختصرة)
 local settingsRow = Instance.new("Frame", spamContainer)
 settingsRow.Size = UDim2.new(1, 0, 0, 28)
 settingsRow.Position = UDim2.new(0, 0, 0, 73)
@@ -854,7 +591,6 @@ speedBox.Font = Enum.Font.GothamBold
 createCorner(speedBox, 5)
 createStroke(speedBox, colors.textDim, 0.3)
 
--- إحصائيات
 local statsRow = Instance.new("Frame", spamContainer)
 statsRow.Size = UDim2.new(1, 0, 0, 20)
 statsRow.Position = UDim2.new(0, 0, 0, 108)
@@ -888,7 +624,6 @@ spamStatus.TextSize = 10
 spamStatus.Font = Enum.Font.Gotham
 spamStatus.TextXAlignment = Enum.TextXAlignment.Right
 
--- أزرار التحكم
 local controlRow = Instance.new("Frame", spamContainer)
 controlRow.Size = UDim2.new(1, 0, 0, 40)
 controlRow.Position = UDim2.new(0, 0, 0, 135)
@@ -1259,115 +994,251 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- جميع خيارات الحماية
 createToggle("مضاد الفلينج", 255, "🌀", function(s) Settings.AntiFling = s end)
+createToggle("مضاد اللاق", 297, "📋", function(s) Settings.AntiLogs = s end)
+createToggle("مضاد NV", 339, "👁️", function(s) Settings.AntiNV = s end)
+createToggle("مضاد Clogs", 381, "🚫", function(s) Settings.AntiClogs = s end)
+createToggle("مضاد CmdBar", 423, "⌨️", function(s) Settings.AntiCmdBar = s end)
+createToggle("مضاد الإشعارات", 465, "🔕", function(s) Settings.AntiAlerts = s end)
+createToggle("مضاد الطرد", 507, "🛡️", function(s) Settings.AntiKick = s end)
+createToggle("مضاد AFK", 549, "💤", function(s) Settings.AntiAFK = s end)
 
-createToggle("مضاد اللاق", 297, "📋", function(s) 
-    Settings.AntiLogs = s
-    if s then
-        local function secureRemote(remote)
-            if remote:IsA("RemoteEvent") and remote.Name == "ExecuteClientCommand" then
-                if getconnections then
-                    for _, conn in pairs(getconnections(remote.OnClientEvent)) do
-                        conn:Disable()
-                    end
-                end
-                remote.OnClientEvent:Connect(function() return nil end)
-            end
+---------------------------------------
+-- نافذة المعلومات (مثل الإعدادات)
+---------------------------------------
+local infoFrame = Instance.new("Frame", mainFrame)
+infoFrame.Size = UDim2.new(1, -30, 1, -145)
+infoFrame.Position = UDim2.new(0, 15, 0, 135)
+infoFrame.BackgroundColor3 = colors.bg2
+infoFrame.BackgroundTransparency = 0.5
+infoFrame.Visible = false
+createCorner(infoFrame, 12)
+createStroke(infoFrame, colors.info, 1.5)
+
+local infoHeader = Instance.new("Frame", infoFrame)
+infoHeader.Size = UDim2.new(1, 0, 0, 30)
+infoHeader.BackgroundTransparency = 1
+
+local infoTitle = Instance.new("TextLabel", infoHeader)
+infoTitle.Size = UDim2.new(1, -40, 1, 0)
+infoTitle.Position = UDim2.new(0, 10, 0, 0)
+infoTitle.Text = "ℹ️ المعلومات"
+infoTitle.TextColor3 = colors.info
+infoTitle.BackgroundTransparency = 1
+infoTitle.Font = Enum.Font.GothamBold
+infoTitle.TextSize = 14
+infoTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+-- حاوية المعلومات (قابلة للتمرير)
+local infoScroll = Instance.new("ScrollingFrame", infoFrame)
+infoScroll.Size = UDim2.new(1, -10, 1, -40)
+infoScroll.Position = UDim2.new(0, 5, 0, 35)
+infoScroll.BackgroundTransparency = 1
+infoScroll.ScrollBarThickness = 3
+infoScroll.ScrollBarImageColor3 = colors.info
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, 700)
+
+-- ===== دوال لإنشاء أقسام المعلومات =====
+
+local function createInfoSection(title, icon, pos)
+    local frame = Instance.new("Frame", infoScroll)
+    frame.Size = UDim2.new(1, 0, 0, 28)
+    frame.Position = UDim2.new(0, 0, 0, pos)
+    frame.BackgroundTransparency = 1
+    
+    local label = Instance.new("TextLabel", frame)
+    label.Size = UDim2.new(1, 0, 1, 0)
+    label.Text = icon .. " " .. title
+    label.TextColor3 = colors.info
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.GothamBold
+    label.TextSize = 13
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    label.TextYAlignment = Enum.TextYAlignment.Bottom
+    
+    return frame
+end
+
+local function createInfoText(text, pos, color, size)
+    local label = Instance.new("TextLabel", infoScroll)
+    label.Size = UDim2.new(1, -10, 0, 18)
+    label.Position = UDim2.new(0, 10, 0, pos)
+    label.Text = text
+    label.TextColor3 = color or colors.textDim
+    label.BackgroundTransparency = 1
+    label.Font = Enum.Font.Gotham
+    label.TextSize = size or 11
+    label.TextXAlignment = Enum.TextXAlignment.Left
+    return label
+end
+
+local pos = 5
+
+-- 1. معلومات أساسية
+createInfoSection("المعلومات الأساسية", "📋", pos)
+pos = pos + 33
+createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
+pos = pos + 22
+createInfoText("📌 الإصدار: V19 (Info like Settings)", pos)
+pos = pos + 22
+createInfoText("📅 التاريخ: 13/07/2026", pos)
+pos = pos + 22
+createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
+pos = pos + 35
+
+-- 2. إحصائيات المستخدم
+createInfoSection("إحصائيات المستخدم", "📊", pos)
+pos = pos + 33
+
+local statsText = Instance.new("TextLabel", infoScroll)
+statsText.Size = UDim2.new(1, -10, 0, 18)
+statsText.Position = UDim2.new(0, 10, 0, pos)
+statsText.Text = "📝 الأوامر المرسلة: 0"
+statsText.TextColor3 = colors.textDim
+statsText.BackgroundTransparency = 1
+statsText.Font = Enum.Font.Gotham
+statsText.TextSize = 11
+statsText.TextXAlignment = Enum.TextXAlignment.Left
+pos = pos + 22
+
+local protectStats = Instance.new("TextLabel", infoScroll)
+protectStats.Size = UDim2.new(1, -10, 0, 18)
+protectStats.Position = UDim2.new(0, 10, 0, pos)
+protectStats.Text = "🛡️ الحمايات المفعلة: 0/8"
+protectStats.TextColor3 = colors.textDim
+protectStats.BackgroundTransparency = 1
+protectStats.Font = Enum.Font.Gotham
+protectStats.TextSize = 11
+protectStats.TextXAlignment = Enum.TextXAlignment.Left
+pos = pos + 22
+
+local timeStats = Instance.new("TextLabel", infoScroll)
+timeStats.Size = UDim2.new(1, -10, 0, 18)
+timeStats.Position = UDim2.new(0, 10, 0, pos)
+timeStats.Text = "⏱️ وقت التشغيل: 00:00"
+timeStats.TextColor3 = colors.textDim
+timeStats.BackgroundTransparency = 1
+timeStats.Font = Enum.Font.Gotham
+timeStats.TextSize = 11
+timeStats.TextXAlignment = Enum.TextXAlignment.Left
+pos = pos + 22
+
+local cmdCountStats = Instance.new("TextLabel", infoScroll)
+cmdCountStats.Size = UDim2.new(1, -10, 0, 18)
+cmdCountStats.Position = UDim2.new(0, 10, 0, pos)
+cmdCountStats.Text = "📂 الأوامر المخصصة: 0"
+cmdCountStats.TextColor3 = colors.textDim
+cmdCountStats.BackgroundTransparency = 1
+cmdCountStats.Font = Enum.Font.Gotham
+cmdCountStats.TextSize = 11
+cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
+pos = pos + 35
+
+-- 3. رسالة ترحيبية
+createInfoSection("رسالة ترحيبية", "🎯", pos)
+pos = pos + 33
+
+local welcomeText = Instance.new("TextLabel", infoScroll)
+welcomeText.Size = UDim2.new(1, -10, 0, 50)
+welcomeText.Position = UDim2.new(0, 10, 0, pos)
+welcomeText.Text = "مرحباً بك في MG9 HUB!\nتم تطوير هذا السكربت لتجربة أفضل\nمع حماية متكاملة وسبام احترافي"
+welcomeText.TextColor3 = colors.text
+welcomeText.BackgroundTransparency = 1
+welcomeText.Font = Enum.Font.GothamBold
+welcomeText.TextSize = 12
+welcomeText.TextXAlignment = Enum.TextXAlignment.Left
+welcomeText.LineHeight = 1.4
+pos = pos + 55
+
+-- 4. معلومات تقنية
+createInfoSection("معلومات تقنية", "⚙️", pos)
+pos = pos + 33
+createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
+pos = pos + 22
+createInfoText("🔹 عدد الملفات: 1 (سكربت واحد)", pos)
+pos = pos + 22
+createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
+pos = pos + 22
+createInfoText("🔹 متوافق مع: PC + Mobile", pos)
+pos = pos + 22
+createInfoText("🔹 آخر تحديث: V19", pos)
+pos = pos + 35
+
+-- 5. مميزات السكربت
+createInfoSection("مميزات السكربت", "🔥", pos)
+pos = pos + 33
+
+local features = {
+    "✅ 10 ثيمات احترافية",
+    "✅ 8 خيارات حماية متكاملة",
+    "✅ 8 أوامر مخصصة قابلة للحفظ",
+    "✅ سرعة تكرار قابلة للتعديل",
+    "✅ واجهة سهلة الاستخدام",
+    "✅ يعمل بضغطة واحدة",
+    "✅ نظام إحصائيات لحظي",
+    "✅ نافذة معلومات متطورة",
+}
+for _, feature in ipairs(features) do
+    createInfoText(feature, pos, colors.text, 11)
+    pos = pos + 20
+end
+pos = pos + 15
+
+-- 6. نصائح واستخدامات
+createInfoSection("نصائح واستخدامات", "💡", pos)
+pos = pos + 33
+
+local tips = {
+    "• استخدم ; للفصل بين الأوامر المتعددة",
+    "• فعّل الحماية قبل بدء التكرار",
+    "• اضغط 🎨 لتغيير الثيم بسرعة",
+    "• الأوامر المخصصة تُحفظ تلقائياً",
+    "• سرعة التكرار 0.5 = مثالية",
+    "• اضغط ℹ️ لعرض هذه المعلومات",
+}
+for _, tip in ipairs(tips) do
+    createInfoText(tip, pos, colors.textDim, 11)
+    pos = pos + 20
+end
+pos = pos + 15
+
+-- 7. تحديثات قادمة
+createInfoSection("تحديثات قادمة", "🚀", pos)
+pos = pos + 33
+
+local updates = {
+    "🔹 وضع التكرار الذكي (Smart Spam)",
+    "🔹 حفظ الإعدادات تلقائياً",
+    "🔹 أوامر صوتية",
+    "🔹 ثيمات جديدة",
+    "🔹 تحسين الأداء والسرعة",
+    "🔹 نظام إشعارات متقدم",
+}
+for _, update in ipairs(updates) do
+    createInfoText(update, pos, colors.warning, 11)
+    pos = pos + 20
+end
+
+pos = pos + 20
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, pos + 20)
+
+---------------------------------------
+-- تحديث الإحصائيات
+---------------------------------------
+task.spawn(function()
+    while true do
+        statsText.Text = "📝 الأوامر المرسلة: " .. Spam.TotalSent
+        local activeProtections = 0
+        for _, value in pairs(Settings) do
+            if value then activeProtections = activeProtections + 1 end
         end
-        for _, v in pairs(ReplicatedStorage:GetDescendants()) do secureRemote(v) end
-        ReplicatedStorage.DescendantAdded:Connect(function(d)
-            if Settings.AntiLogs then secureRemote(d) end
-        end)
-    end
-end)
-
-createToggle("مضاد NV", 339, "👁️", function(s) 
-    Settings.AntiNV = s
-    if s then
-        task.spawn(function()
-            while Settings.AntiNV do
-                pcall(function()
-                    local cam = workspace.CurrentCamera
-                    if cam then
-                        cam.CameraType = Enum.CameraType.Custom
-                        cam.FieldOfView = 70
-                    end
-                end)
-                task.wait(0.5)
-            end
-        end)
-    end
-end)
-
-createToggle("مضاد Clogs", 381, "🚫", function(s) 
-    Settings.AntiClogs = s
-    if s then
-        local signals = ReplicatedStorage:FindFirstChild("HDAdminHDClient")
-        if signals then signals = signals:FindFirstChild("Signals") end
-        if signals then
-            for _, remote in pairs(signals:GetDescendants()) do
-                if remote:IsA("RemoteEvent") or remote:IsA("RemoteFunction") then
-                    if string.find(remote.Name:lower(), "log") or string.find(remote.Name:lower(), "clear") then
-                        remote:Destroy()
-                    end
-                end
-            end
-        end
-    end
-end)
-
-createToggle("مضاد CmdBar", 423, "⌨️", function(s) 
-    Settings.AntiCmdBar = s
-    for _, g in pairs(player.PlayerGui:GetChildren()) do
-        if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
-            g.Enabled = not s
-        end
-    end
-end)
-
-createToggle("مضاد الإشعارات", 465, "🔕", function(s) 
-    Settings.AntiAlerts = s
-    for _, g in pairs(player.PlayerGui:GetChildren()) do
-        if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
-            g.Enabled = not s
-        end
-    end
-end)
-
-createToggle("مضاد الطرد", 507, "🛡️", function(s) 
-    Settings.AntiKick = s
-    if s then
-        task.spawn(function()
-            while Settings.AntiKick do
-                pcall(function()
-                    if player:FindFirstChild("Kick") then
-                        player.Kick = function() end
-                    end
-                end)
-                task.wait(1)
-            end
-        end)
-    end
-end)
-
-createToggle("مضاد AFK", 549, "💤", function(s) 
-    Settings.AntiAFK = s
-    if s then
-        task.spawn(function()
-            while Settings.AntiAFK do
-                pcall(function()
-                    local char = player.Character
-                    if char and char:FindFirstChild("HumanoidRootPart") then
-                        local hrp = char.HumanoidRootPart
-                        hrp.CFrame = hrp.CFrame + Vector3.new(0, 0, 0.01)
-                        task.wait(0.1)
-                        hrp.CFrame = hrp.CFrame - Vector3.new(0, 0, 0.01)
-                    end
-                end)
-                task.wait(30)
-            end
-        end)
+        protectStats.Text = "🛡️ الحمايات المفعلة: " .. activeProtections .. "/8"
+        local elapsed = os.time() - Spam.StartTime
+        local minutes = math.floor(elapsed / 60)
+        local seconds = elapsed % 60
+        timeStats.Text = "⏱️ وقت التشغيل: " .. string.format("%02d:%02d", minutes, seconds)
+        cmdCountStats.Text = "📂 الأوامر المخصصة: " .. #customCommands
+        task.wait(1)
     end
 end)
 
@@ -1513,22 +1384,20 @@ end)
 setupOneClick(infoBtn, function()
     infoFrame.Visible = not infoFrame.Visible
     if infoFrame.Visible then
-        statusLabel.Text = "ℹ️ معلومات MG9 HUB"
+        infoBtn.Text = "✕"
+        infoBtn.TextColor3 = colors.danger
+        spamContainer.Visible = false
+        commandsContainer.Visible = false
+        settingsFrame.Visible = false
+        statusLabel.Text = "ℹ️ المعلومات"
         statusLabel.TextColor3 = colors.info
-        infoFrame.Position = UDim2.new(0.075, 0, 0.5, 0)
-        TweenService:Create(infoFrame, TweenInfo.new(0.3, Enum.EasingStyle.Quad), {
-            Position = UDim2.new(0.075, 0, 0.12, 0)
-        }):Play()
     else
+        infoBtn.Text = "ℹ️"
+        infoBtn.TextColor3 = colors.info
+        spamContainer.Visible = true
         statusLabel.Text = "جاهز للتشغيل"
         statusLabel.TextColor3 = colors.textDim
     end
-end)
-
-setupOneClick(infoClose, function()
-    infoFrame.Visible = false
-    statusLabel.Text = "جاهز للتشغيل"
-    statusLabel.TextColor3 = colors.textDim
 end)
 
 setupOneClick(themeBtn, function()
@@ -1571,6 +1440,8 @@ setupOneClick(floatBtn, function()
     infoFrame.Visible = false
     settingsBtn.Text = "⚙️"
     settingsBtn.TextColor3 = colors.gold
+    infoBtn.Text = "ℹ️"
+    infoBtn.TextColor3 = colors.info
 end)
 
 ---------------------------------------
@@ -1653,9 +1524,9 @@ end)
 mainFrame.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V18 - ADVANCED INFO 🔥            ║")
+print("║  🔥 MG9 ULTIMATE HUB V19 - INFO LIKE SETTINGS 🔥       ║")
 print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ نافذة معلومات متطورة                              ║")
+print("║  ✅ نافذة المعلومات مثل الإعدادات                     ║")
 print("║  📊 إحصائيات لحظية                                   ║")
 print("║  🎯 رسالة ترحيبية                                    ║")
 print("║  ⚙️ معلومات تقنية                                    ║")
