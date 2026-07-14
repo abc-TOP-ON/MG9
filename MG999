@@ -1,5 +1,6 @@
 -- ═══════════════════════════════════════════════════════════════
 -- 🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥
+-- 👨‍💻 المطور: mo7sma0550
 -- ═══════════════════════════════════════════════════════════════
 
 local TweenService = game:GetService("TweenService")
@@ -305,19 +306,29 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- أيقونة الدخول/الخروج (على الجانب الأيمن)
+-- ✅ أيقونة الدخول/الخروج (مربعة احترافية مع ظل)
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0, 55, 0, 55)
-toggleBtn.Position = UDim2.new(1, -70, 0.5, -27)
+toggleBtn.Size = UDim2.new(0, 60, 0, 60)
+toggleBtn.Position = UDim2.new(1, -75, 0.5, -30)
 toggleBtn.BackgroundColor3 = colors.bg2
 toggleBtn.Image = "rbxassetid://131604529"
 toggleBtn.ImageColor3 = colors.primary
-toggleBtn.ImageTransparency = 0.2
+toggleBtn.ImageTransparency = 0.15
 toggleBtn.Visible = true
 toggleBtn.Draggable = true
-createCorner(toggleBtn, 27)
-createStroke(toggleBtn, colors.primary, 2)
+createCorner(toggleBtn, 12)
+createStroke(toggleBtn, colors.primary, 2.5)
+
+-- ظل احترافي
+local shadow = Instance.new("ImageLabel", toggleBtn)
+shadow.Size = UDim2.new(1, 8, 1, 8)
+shadow.Position = UDim2.new(0, -4, 0, -4)
+shadow.Image = "rbxassetid://131604529"
+shadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
+shadow.ImageTransparency = 0.6
+shadow.ZIndex = 0
+shadow.BackgroundTransparency = 1
 
 local toggleText = Instance.new("TextLabel", toggleBtn)
 toggleText.Size = UDim2.new(1, 0, 1, 0)
@@ -328,7 +339,7 @@ toggleText.Font = Enum.Font.GothamBold
 toggleText.TextSize = 16
 toggleText.ZIndex = 2
 
--- إضافة إمكانية السحب للأيقونة
+-- سحب الأيقونة
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -373,7 +384,7 @@ end
 setupDragging(toggleBtn)
 
 ---------------------------------------
--- الواجهة الرئيسية (في المنتصف)
+-- الواجهة الرئيسية
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.Size = UDim2.new(0, 380, 0, 520)
@@ -386,7 +397,7 @@ createCorner(mainFrame, 16)
 createStroke(mainFrame, colors.primary, 1.5)
 
 ---------------------------------------
--- الهيدر (الأزرار في الأعلى)
+-- الهيدر
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
 header.Size = UDim2.new(1, 0, 0, 55)
@@ -404,7 +415,7 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر المعلومات
+-- أزرار الهيدر
 local infoBtn = Instance.new("TextButton", header)
 infoBtn.Size = UDim2.new(0, 28, 0, 28)
 infoBtn.Position = UDim2.new(1, -185, 0.5, -14)
@@ -415,7 +426,6 @@ infoBtn.TextSize = 16
 infoBtn.Font = Enum.Font.GothamBold
 infoBtn.ZIndex = 10
 
--- زر الثيم
 local themeBtn = Instance.new("TextButton", header)
 themeBtn.Size = UDim2.new(0, 28, 0, 28)
 themeBtn.Position = UDim2.new(1, -152, 0.5, -14)
@@ -426,7 +436,6 @@ themeBtn.TextSize = 16
 themeBtn.Font = Enum.Font.GothamBold
 themeBtn.ZIndex = 10
 
--- زر الإعدادات
 local settingsBtn = Instance.new("TextButton", header)
 settingsBtn.Size = UDim2.new(0, 28, 0, 28)
 settingsBtn.Position = UDim2.new(1, -119, 0.5, -14)
@@ -437,7 +446,6 @@ settingsBtn.TextSize = 16
 settingsBtn.Font = Enum.Font.GothamBold
 settingsBtn.ZIndex = 10
 
--- زر الخروج من السكربت
 local closeBtn = Instance.new("TextButton", header)
 closeBtn.Size = UDim2.new(0, 28, 0, 28)
 closeBtn.Position = UDim2.new(1, -86, 0.5, -14)
@@ -448,7 +456,6 @@ closeBtn.TextSize = 16
 closeBtn.Font = Enum.Font.GothamBold
 closeBtn.ZIndex = 10
 
--- زر تصغير الواجهة
 local minimizeBtn = Instance.new("TextButton", header)
 minimizeBtn.Size = UDim2.new(0, 28, 0, 28)
 minimizeBtn.Position = UDim2.new(1, -50, 0.5, -14)
@@ -655,7 +662,7 @@ speedLabel.TextXAlignment = Enum.TextXAlignment.Right
 local speedBox = Instance.new("TextBox", settingsRow)
 speedBox.Size = UDim2.new(0.1, 0, 1, 0)
 speedBox.Position = UDim2.new(0.88, 0, 0, 0)
-speedBox.Text = "0.5"
+speedBox.Text = "0.01"
 speedBox.TextColor3 = colors.text
 speedBox.BackgroundColor3 = colors.bg2
 speedBox.TextSize = 11
@@ -924,7 +931,7 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات
+-- نافذة الإعدادات (كاملة مع جميع الحمايات)
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
 settingsFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -955,7 +962,7 @@ scrollContainer.Position = UDim2.new(0, 5, 0, 35)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 3
 scrollContainer.ScrollBarImageColor3 = colors.primary
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 600)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 650)
 
 -- قسم الثيمات
 local themeTitle = Instance.new("TextLabel", scrollContainer)
@@ -1061,14 +1068,13 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- ===== ⚠️ جميع خيارات الحماية (تعمل وتنطفئ فوراً) =====
+-- ===== جميع خيارات الحماية (كاملة) =====
 
--- 1. مضاد الفلينج ✅
+-- 1. مضاد الفلينج
 createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s) 
     Settings.AntiFling = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiFling = RunService.Heartbeat:Connect(function()
             if not Settings.AntiFling then return end
             
@@ -1107,7 +1113,6 @@ createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s)
         statusLabel.Text = "✅ مضاد الفلينج مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiFling then
             ProtectionThreads.AntiFling:Disconnect()
             ProtectionThreads.AntiFling = nil
@@ -1120,12 +1125,11 @@ createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 2. مضاد اللاق (Logs) ✅
+-- 2. مضاد اللاق (Logs)
 createToggle("📋 مضاد اللاق (Logs)", 317, "📋", function(s) 
     Settings.AntiLogs = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiLogs = task.spawn(function()
             while Settings.AntiLogs do
                 pcall(function()
@@ -1162,7 +1166,6 @@ createToggle("📋 مضاد اللاق (Logs)", 317, "📋", function(s)
         statusLabel.Text = "✅ مضاد Logs مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiLogs then
             task.cancel(ProtectionThreads.AntiLogs)
             ProtectionThreads.AntiLogs = nil
@@ -1175,12 +1178,11 @@ createToggle("📋 مضاد اللاق (Logs)", 317, "📋", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 3. مضاد NV ✅
+-- 3. مضاد NV
 createToggle("👁️ مضاد NV", 359, "👁️", function(s) 
     Settings.AntiNV = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiNV = task.spawn(function()
             while Settings.AntiNV do
                 pcall(function()
@@ -1196,7 +1198,6 @@ createToggle("👁️ مضاد NV", 359, "👁️", function(s)
         statusLabel.Text = "✅ مضاد NV مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiNV then
             task.cancel(ProtectionThreads.AntiNV)
             ProtectionThreads.AntiNV = nil
@@ -1209,12 +1210,11 @@ createToggle("👁️ مضاد NV", 359, "👁️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 4. مضاد Clogs ✅
+-- 4. مضاد Clogs
 createToggle("🚫 مضاد Clogs", 401, "🚫", function(s) 
     Settings.AntiClogs = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiClogs = task.spawn(function()
             while Settings.AntiClogs do
                 pcall(function()
@@ -1236,7 +1236,6 @@ createToggle("🚫 مضاد Clogs", 401, "🚫", function(s)
         statusLabel.Text = "✅ مضاد Clogs مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiClogs then
             task.cancel(ProtectionThreads.AntiClogs)
             ProtectionThreads.AntiClogs = nil
@@ -1249,12 +1248,11 @@ createToggle("🚫 مضاد Clogs", 401, "🚫", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 5. مضاد CmdBar ✅
+-- 5. مضاد CmdBar
 createToggle("⌨️ مضاد CmdBar", 443, "⌨️", function(s) 
     Settings.AntiCmdBar = s
     
     if s then
-        -- ✅ تشغيل الحماية
         for _, g in pairs(player.PlayerGui:GetChildren()) do
             if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
                 g.Enabled = false
@@ -1276,12 +1274,10 @@ createToggle("⌨️ مضاد CmdBar", 443, "⌨️", function(s)
         statusLabel.Text = "✅ مضاد CmdBar مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiCmdBar then
             task.cancel(ProtectionThreads.AntiCmdBar)
             ProtectionThreads.AntiCmdBar = nil
         end
-        -- إعادة تفعيل الواجهات
         for _, g in pairs(player.PlayerGui:GetChildren()) do
             if g:IsA("ScreenGui") and (g.Name:find("Cmd") or g.Name:find("Command") or g.Name:find("Bar")) then
                 g.Enabled = true
@@ -1295,53 +1291,88 @@ createToggle("⌨️ مضاد CmdBar", 443, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 6. مضاد الإشعارات ✅
+-- 6. 🔥 مضاد الإشعارات القوي (يخفي نهائياً)
 createToggle("🔕 مضاد الإشعارات", 485, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
-        -- ✅ تشغيل الحماية
-        for _, g in pairs(player.PlayerGui:GetChildren()) do
-            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
-                g.Enabled = false
-            end
-        end
-        
-        ProtectionThreads.AntiAlerts = task.spawn(function()
-            while Settings.AntiAlerts do
-                pcall(function()
-                    for _, g in pairs(player.PlayerGui:GetChildren()) do
-                        if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
-                            g.Enabled = false
+        -- ✅ دالة إخفاء جميع الإشعارات
+        local function hideAllAlerts()
+            pcall(function()
+                -- 1. إخفاء جميع الـ ScreenGuis المشبوهة
+                for _, g in pairs(player.PlayerGui:GetChildren()) do
+                    if g:IsA("ScreenGui") then
+                        local alertNames = {"HDAdminGui", "MessageGui", "Alert", "Notification", "Notify", "System", "Warning", "Error", "Ban", "Kick", "Spam", "TooFast"}
+                        for _, name in pairs(alertNames) do
+                            if string.find(g.Name, name) then
+                                g.Enabled = false
+                                g:Destroy()
+                            end
                         end
-                        if g:IsA("ScreenGui") then
-                            for _, child in pairs(g:GetDescendants()) do
-                                if child:IsA("TextLabel") and (child.Text:find("System") or child.Text:find("too fast")) then
-                                    local container = child.Parent
-                                    if container and container:IsA("Frame") then 
-                                        container.Visible = false 
+                    end
+                end
+                
+                -- 2. البحث عن الإشعارات داخل الواجهات
+                for _, g in pairs(player.PlayerGui:GetChildren()) do
+                    if g:IsA("ScreenGui") then
+                        for _, child in pairs(g:GetDescendants()) do
+                            if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                local alertWords = {"system", "too fast", "spam", "warning", "error", "alert", "notify", "kick", "ban", "speed", "limit"}
+                                for _, word in pairs(alertWords) do
+                                    if child.Text and string.find(child.Text:lower(), word) then
+                                        local container = child.Parent
+                                        while container and container:IsA("Frame") do
+                                            container.Visible = false
+                                            container:Destroy()
+                                            container = container.Parent
+                                        end
                                     end
                                 end
                             end
                         end
                     end
-                end)
-                task.wait(0.5)
+                end
+            end)
+        end
+        
+        -- 🔥 تشغيل الحماية بشكل مستمر (كل 0.05 ثانية - سريع جداً)
+        ProtectionThreads.AntiAlerts = task.spawn(function()
+            while Settings.AntiAlerts do
+                hideAllAlerts()
+                task.wait(0.05) -- مسح سريع جداً
             end
         end)
-        statusLabel.Text = "✅ مضاد الإشعارات مفعل"
+        
+        -- مراقبة الإشعارات الجديدة
+        local function blockNewAlerts(obj)
+            if obj:IsA("ScreenGui") then
+                local alertNames = {"HDAdminGui", "MessageGui", "Alert", "Notification", "Notify", "System", "Warning", "Error", "Ban", "Kick"}
+                for _, name in pairs(alertNames) do
+                    if string.find(obj.Name, name) then
+                        obj.Enabled = false
+                        obj:Destroy()
+                    end
+                end
+            end
+            for _, child in pairs(obj:GetChildren()) do
+                blockNewAlerts(child)
+            end
+        end
+        
+        player.PlayerGui.ChildAdded:Connect(function(child)
+            if Settings.AntiAlerts then
+                task.wait(0.01)
+                blockNewAlerts(child)
+            end
+        end)
+        
+        statusLabel.Text = "✅ مضاد الإشعارات مفعل نهائياً"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
+        -- ❌ إيقاف الحماية
         if ProtectionThreads.AntiAlerts then
             task.cancel(ProtectionThreads.AntiAlerts)
             ProtectionThreads.AntiAlerts = nil
-        end
-        -- إعادة تفعيل الواجهات
-        for _, g in pairs(player.PlayerGui:GetChildren()) do
-            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") then
-                g.Enabled = true
-            end
         end
         statusLabel.Text = "❌ مضاد الإشعارات معطل"
         statusLabel.TextColor3 = colors.danger
@@ -1351,12 +1382,11 @@ createToggle("🔕 مضاد الإشعارات", 485, "🔕", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 7. مضاد الطرد ✅
+-- 7. مضاد الطرد
 createToggle("🛡️ مضاد الطرد", 527, "🛡️", function(s) 
     Settings.AntiKick = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiKick = task.spawn(function()
             while Settings.AntiKick do
                 pcall(function()
@@ -1370,7 +1400,6 @@ createToggle("🛡️ مضاد الطرد", 527, "🛡️", function(s)
         statusLabel.Text = "✅ مضاد الطرد مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiKick then
             task.cancel(ProtectionThreads.AntiKick)
             ProtectionThreads.AntiKick = nil
@@ -1383,12 +1412,11 @@ createToggle("🛡️ مضاد الطرد", 527, "🛡️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 8. مضاد AFK ✅
+-- 8. مضاد AFK
 createToggle("💤 مضاد AFK", 569, "💤", function(s) 
     Settings.AntiAFK = s
     
     if s then
-        -- ✅ تشغيل الحماية
         ProtectionThreads.AntiAFK = task.spawn(function()
             while Settings.AntiAFK do
                 pcall(function()
@@ -1406,7 +1434,6 @@ createToggle("💤 مضاد AFK", 569, "💤", function(s)
         statusLabel.Text = "✅ مضاد AFK مفعل"
         statusLabel.TextColor3 = colors.success
     else
-        -- ❌ إيقاف الحماية فوراً
         if ProtectionThreads.AntiAFK then
             task.cancel(ProtectionThreads.AntiAFK)
             ProtectionThreads.AntiAFK = nil
@@ -1420,7 +1447,7 @@ createToggle("💤 مضاد AFK", 569, "💤", function(s)
 end)
 
 ---------------------------------------
--- نافذة المعلومات
+-- نافذة المعلومات (كاملة)
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
 infoFrame.Size = UDim2.new(1, -30, 1, -145)
@@ -1489,11 +1516,11 @@ local pos = 5
 
 createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 33
-createInfoText("👨‍💻 المطور: tariq191188", pos, colors.info, 12)
+createInfoText("👨‍💻 المطور: mo7sma0550", pos, colors.info, 12)
 pos = pos + 22
 createInfoText("📌 الإصدار: V24 (Fully Fixed)", pos)
 pos = pos + 22
-createInfoText("📅 التاريخ: 13/07/2026", pos)
+createInfoText("📅 التاريخ: 14/07/2026", pos)
 pos = pos + 22
 createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
 pos = pos + 35
@@ -1580,7 +1607,7 @@ local features = {
     "✅ مضاد Logs مدمج",
     "✅ إيقاف الحماية فوراً",
     "✅ 8 أوامر مخصصة قابلة للحفظ",
-    "✅ سرعة تكرار قابلة للتعديل",
+    "✅ سرعة تكرار فائقة",
     "✅ واجهة سهلة الاستخدام",
     "✅ زر جانبي قابل للتحريك",
 }
@@ -1645,7 +1672,7 @@ task.spawn(function()
 end)
 
 ---------------------------------------
--- منطق السبام
+-- منطق السبام (مع سرعة فائقة)
 ---------------------------------------
 local function fireSpam(cmd)
     pcall(function()
@@ -1710,7 +1737,7 @@ setupOneClick(startBtn, function()
     
     local duration = Spam.InfiniteTime and math.huge or (tonumber(timeBox.Text) or 10)
     local copies = Spam.InfiniteCopies and math.huge or (tonumber(copyBox.Text) or 3)
-    local speed = tonumber(speedBox.Text) or 0.5
+    local speed = tonumber(speedBox.Text) or 0.01
     
     Spam.Active = true
     Spam.TotalSent = 0
@@ -1718,7 +1745,7 @@ setupOneClick(startBtn, function()
     spamStatus.TextColor3 = colors.success
     startBtn.BackgroundColor3 = colors.warning
     startBtn.Text = "⏳"
-    statusLabel.Text = "🔄 جاري التكرار..."
+    statusLabel.Text = "🔄 جاري التكرار بسرعة فائقة..."
     statusLabel.TextColor3 = colors.primary
     
     task.spawn(function()
@@ -1737,6 +1764,7 @@ setupOneClick(startBtn, function()
                     task.spawn(function() fireSpam(c) end)
                     Spam.TotalSent = Spam.TotalSent + 1
                     sentCount.Text = "📤 " .. Spam.TotalSent
+                    task.wait(0.001)
                 end
                 copyCount = copyCount + 1
                 if copies == math.huge then
@@ -1895,9 +1923,8 @@ toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
 print("║  🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥             ║")
-print("║  👨‍💻 المطور: tariq191188                                ║")
-print("║  ✅ الحماية تعمل وتنطفئ فوراً                        ║")
-print("║  ✅ جميع الحمايات 8 خيارات                           ║")
-print("║  ✅ زر جانبي قابل للتحريك                            ║")
-print("║  ✅ السكربت في منتصف الشاشة                           ║")
+print("║  👨‍💻 المطور: mo7sma0550                                ║")
+print("║  ✅ مضاد الإشعارات يخفي نهائياً (قوي)               ║")
+print("║  ✅ سرعة إرسال فائقة (0.001 ثانية)                  ║")
+print("║  ✅ جميع الميزات موجودة وكاملة                      ║")
 print("╚══════════════════════════════════════════════════════════╝")
