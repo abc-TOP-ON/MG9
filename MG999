@@ -48,6 +48,7 @@ local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
 local isMainOpen = false
+local BackgroundEffect = "stars" -- options: stars, waves, particles, gradient
 
 ---------------------------------------
 -- متغيرات التحكم في الحلقات
@@ -62,6 +63,11 @@ local ProtectionThreads = {
     AntiKick = nil,
     AntiAFK = nil,
 }
+
+-- متغيرات المؤثرات
+local ParticleEffects = {}
+local BackgroundThread = nil
+local IconAnimations = {}
 
 ---------------------------------------
 -- 💾 نظام حفظ الإعدادات
@@ -81,6 +87,7 @@ local function saveSettings()
         antiKick = Settings.AntiKick,
         antiAFK = Settings.AntiAFK,
         customCommands = customCommands,
+        backgroundEffect = BackgroundEffect or "stars",
         lastInput = inputBox and inputBox.Text or "",
         spamTime = timeBox and timeBox.Text or "10",
         spamCopies = copyBox and copyBox.Text or "3",
@@ -115,6 +122,10 @@ local function loadSettings()
     if data then
         if data.theme and getThemeColors(data.theme) then
             currentTheme = data.theme
+        end
+        
+        if data.backgroundEffect then
+            BackgroundEffect = data.backgroundEffect
         end
         
         Settings.AntiFling = data.antiFling or false
@@ -223,6 +234,212 @@ local function createBlur(parent, size)
     local blur = Instance.new("BlurEffect", parent)
     blur.Size = size or 12
     return blur
+end
+
+---------------------------------------
+-- 🌟 تأثيرات الخلفية المتحركة
+---------------------------------------
+
+-- 1. تأثير النجوم
+local function createStarsEffect(parent)
+    local stars = {}
+    for i = 1, 50 do
+        local star = Instance.new("Frame", parent)
+        star.Size = UDim2.new(0, math.random(1, 3), 0, math.random(1, 3))
+        star.Position = UDim2.new(math.random() / 2, 0, math.random() / 2, 0)
+        star.BackgroundColor3 = Color3.fromRGB(255, 255, 255)
+        star.BackgroundTransparency = math.random(30, 80) / 100
+        star.ZIndex = 0
+        createCorner(star, 5)
+        
+        table.insert(stars, {
+            frame = star,
+            speed = 0.5 + math.random() * 2,
+            direction = math.random(0, 360),
+            twinkleSpeed = 0.5 + math.random() * 2
+        })
+    end
+    
+    -- حركة النجوم
+    task.spawn(function()
+        while true do
+            for _, star in pairs(stars) do
+                if star.frame and star.frame.Parent then
+                    local pos = star.frame.Position
+                    local newX = pos.X.Scale + 0.001 * star.speed
+                    local newY = pos.Y.Scale + 0.0005 * star.speed
+                    if newX > 1 then newX = 0 end
+                    if newY > 1 then newY = 0 end
+                    star.frame.Position = UDim2.new(newX, 0, newY, 0)
+                    
+                    -- وميض
+                    local trans = star.frame.BackgroundTransparency
+                    trans = trans + math.sin(tick() * star.twinkleSpeed) * 0.01
+                    star.frame.BackgroundTransparency = math.clamp(trans, 0.1, 0.9)
+                end
+            end
+            task.wait(0.05)
+        end
+    end)
+    
+    return stars
+end
+
+-- 2. تأثير الأمواج
+local function createWavesEffect(parent)
+    local waves = {}
+    for i = 1, 3 do
+        local wave = Instance.new("Frame", parent)
+        wave.Size = UDim2.new(2, 0, 0, math.random(2, 5))
+        wave.Position = UDim2.new(-0.5, 0, 0.2 + (i-1) * 0.3, 0)
+        wave.BackgroundColor3 = getThemeColors(currentTheme).primary
+        wave.BackgroundTransparency = 0.7
+        wave.ZIndex = 0
+        createCorner(wave, 20)
+        
+        table.insert(waves, {
+            frame = wave,
+            speed = 0.5 + i * 0.3,
+            amplitude = 0.05 + i * 0.02,
+            offset = i * 2
+        })
+    end
+    
+    task.spawn(function()
+        while true do
+            for _, wave in pairs(waves) do
+                if wave.frame and wave.frame.Parent then
+                    local time = tick() * wave.speed + wave.offset
+                    local y = 0.2 + math.sin(time) * 0.1 + 0.3 * ((wave.offset / 2) % 1)
+                    wave.frame.Position = UDim2.new(-0.5 + math.sin(time * 0.5) * 0.5, 0, y, 0)
+                    
+                    local colors = getThemeColors(currentTheme)
+                    wave.frame.BackgroundColor3 = colors.primary
+                    wave.frame.BackgroundTransparency = 0.5 + math.sin(time * 1.5) * 0.2
+                end
+            end
+            task.wait(0.03)
+        end
+    end)
+    
+    return waves
+end
+
+-- 3. تأثير الجسيمات
+local function createParticlesEffect(parent)
+    local particles = {}
+    for i = 1, 30 do
+        local particle = Instance.new("Frame", parent)
+        local size = math.random(2, 6)
+        particle.Size = UDim2.new(0, size, 0, size)
+        particle.Position = UDim2.new(math.random() / 2, 0, math.random() / 2, 0)
+        particle.BackgroundColor3 = getThemeColors(currentTheme).primary
+        particle.BackgroundTransparency = 0.3
+        particle.ZIndex = 0
+        createCorner(particle, size)
+        
+        table.insert(particles, {
+            frame = particle,
+            vx = (math.random() - 0.5) * 0.005,
+            vy = (math.random() - 0.5) * 0.005,
+            size = size,
+            life = 1,
+            maxLife = 3 + math.random() * 5,
+            age = 0,
+        })
+    end
+    
+    task.spawn(function()
+        while true do
+            for _, p in pairs(particles) do
+                if p.frame and p.frame.Parent then
+                    p.age = p.age + 0.02
+                    p.life = 1 - (p.age / p.maxLife)
+                    
+                    if p.life <= 0 then
+                        p.frame.Position = UDim2.new(math.random() / 2, 0, math.random() / 2, 0)
+                        p.age = 0
+                        p.life = 1
+                        p.vx = (math.random() - 0.5) * 0.005
+                        p.vy = (math.random() - 0.5) * 0.005
+                        p.maxLife = 3 + math.random() * 5
+                    end
+                    
+                    local pos = p.frame.Position
+                    p.frame.Position = UDim2.new(
+                        pos.X.Scale + p.vx + math.sin(tick() * 2 + p.size) * 0.0005,
+                        0,
+                        pos.Y.Scale + p.vy + math.cos(tick() * 2 + p.size) * 0.0005,
+                        0
+                    )
+                    
+                    p.frame.BackgroundTransparency = 0.3 + (1 - p.life) * 0.5
+                    
+                    local colors = getThemeColors(currentTheme)
+                    p.frame.BackgroundColor3 = colors.primary
+                    p.frame.Size = UDim2.new(0, p.size * p.life, 0, p.size * p.life)
+                end
+            end
+            task.wait(0.03)
+        end
+    end)
+    
+    return particles
+end
+
+-- 4. تأثير التدرج المتحرك
+local function createGradientEffect(parent)
+    local gradientFrame = Instance.new("Frame", parent)
+    gradientFrame.Size = UDim2.new(1, 0, 1, 0)
+    gradientFrame.BackgroundTransparency = 1
+    gradientFrame.ZIndex = 0
+    
+    local gradient = Instance.new("UIGradient", gradientFrame)
+    local colors = getThemeColors(currentTheme)
+    gradient.Color = ColorSequence.new({
+        ColorSequenceKeypoint.new(0, colors.primary),
+        ColorSequenceKeypoint.new(0.3, colors.secondary),
+        ColorSequenceKeypoint.new(0.6, colors.accent),
+        ColorSequenceKeypoint.new(1, colors.primary)
+    })
+    gradient.Rotation = 0
+    
+    task.spawn(function()
+        while true do
+            gradient.Rotation = (gradient.Rotation + 0.5) % 360
+            task.wait(0.05)
+        end
+    end)
+    
+    return {frame = gradientFrame, gradient = gradient}
+end
+
+-- دالة لتشغيل تأثير الخلفية
+local function startBackgroundEffect(effectName, parent)
+    -- إيقاف التأثير السابق
+    if BackgroundThread then
+        BackgroundThread = nil
+    end
+    
+    -- تنظيف التأثيرات القديمة
+    for _, child in pairs(parent:GetChildren()) do
+        if child:IsA("Frame") and child.ZIndex == 0 and child.Name ~= "bgGradient" then
+            child:Destroy()
+        end
+    end
+    
+    local effect = nil
+    if effectName == "stars" then
+        effect = createStarsEffect(parent)
+    elseif effectName == "waves" then
+        effect = createWavesEffect(parent)
+    elseif effectName == "particles" then
+        effect = createParticlesEffect(parent)
+    elseif effectName == "gradient" then
+        effect = createGradientEffect(parent)
+    end
+    
+    return effect
 end
 
 ---------------------------------------
@@ -597,6 +814,152 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
+-- 🎬 رسوم متحركة عند الإرسال
+---------------------------------------
+
+-- تأثير انفجار نجمي
+local function createStarExplosion(parent, position, color)
+    local explosion = Instance.new("Frame", parent)
+    explosion.Size = UDim2.new(0, 5, 0, 5)
+    explosion.Position = UDim2.new(position.X.Scale, 0, position.Y.Scale, 0)
+    explosion.BackgroundColor3 = color or colors.primary
+    explosion.BackgroundTransparency = 0
+    explosion.ZIndex = 100
+    createCorner(explosion, 3)
+    
+    -- تكبير واختفاء
+    local info = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(explosion, info, {
+        Size = UDim2.new(0, 40, 0, 40),
+        BackgroundTransparency = 1
+    }):Play()
+    
+    -- حذف بعد الانتهاء
+    task.wait(0.5)
+    explosion:Destroy()
+end
+
+-- تأثير وميض
+local function createFlashEffect(parent, color)
+    local flash = Instance.new("Frame", parent)
+    flash.Size = UDim2.new(1, 0, 1, 0)
+    flash.BackgroundColor3 = color or colors.primary
+    flash.BackgroundTransparency = 0.7
+    flash.ZIndex = 99
+    
+    local info = TweenInfo.new(0.3, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+    TweenService:Create(flash, info, {BackgroundTransparency = 1}):Play()
+    
+    task.wait(0.3)
+    flash:Destroy()
+end
+
+-- تأثير دوائر متوسعة
+local function createExpandingCircles(parent, position, color)
+    for i = 1, 3 do
+        local circle = Instance.new("Frame", parent)
+        circle.Size = UDim2.new(0, 5, 0, 5)
+        circle.Position = UDim2.new(
+            position.X.Scale - 0.5 * (5 / parent.AbsoluteSize.X or 1),
+            position.X.Offset - 2.5,
+            position.Y.Scale - 0.5 * (5 / parent.AbsoluteSize.Y or 1),
+            position.Y.Offset - 2.5
+        )
+        circle.BackgroundColor3 = color or colors.primary
+        circle.BackgroundTransparency = 0.3
+        circle.ZIndex = 101
+        createCorner(circle, 100)
+        
+        local size = 20 + i * 20
+        local delay = i * 0.1
+        local info = TweenInfo.new(0.6 + i * 0.1, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        
+        task.wait(delay)
+        TweenService:Create(circle, info, {
+            Size = UDim2.new(0, size, 0, size),
+            Position = UDim2.new(
+                position.X.Scale - 0.5 * (size / parent.AbsoluteSize.X or 1),
+                position.X.Offset - size/2,
+                position.Y.Scale - 0.5 * (size / parent.AbsoluteSize.Y or 1),
+                position.Y.Offset - size/2
+            ),
+            BackgroundTransparency = 1
+        }):Play()
+        
+        task.wait(0.6 + i * 0.1)
+        circle:Destroy()
+    end
+end
+
+-- تأثير الجسيمات المتطايرة
+local function createParticleBurst(parent, position, color)
+    local particles = {}
+    for i = 1, 12 do
+        local particle = Instance.new("Frame", parent)
+        local size = math.random(3, 6)
+        particle.Size = UDim2.new(0, size, 0, size)
+        particle.Position = UDim2.new(
+            position.X.Scale,
+            position.X.Offset,
+            position.Y.Scale,
+            position.Y.Offset
+        )
+        particle.BackgroundColor3 = color or colors.primary
+        particle.BackgroundTransparency = 0.2
+        particle.ZIndex = 100
+        createCorner(particle, size)
+        
+        local angle = math.rad(i * 30 + math.random(-10, 10))
+        local distance = math.random(30, 80)
+        local targetX = position.X.Offset + math.cos(angle) * distance
+        local targetY = position.Y.Offset + math.sin(angle) * distance
+        
+        local info = TweenInfo.new(0.4 + math.random() * 0.2, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
+        TweenService:Create(particle, info, {
+            Position = UDim2.new(
+                position.X.Scale + (targetX / parent.AbsoluteSize.X or 1),
+                targetX,
+                position.Y.Scale + (targetY / parent.AbsoluteSize.Y or 1),
+                targetY
+            ),
+            BackgroundTransparency = 1,
+            Size = UDim2.new(0, size * 0.5, 0, size * 0.5)
+        }):Play()
+        
+        table.insert(particles, particle)
+    end
+    
+    task.wait(0.6)
+    for _, p in pairs(particles) do
+        p:Destroy()
+    end
+end
+
+-- دالة لتشغيل تأثير عشوائي عند الإرسال
+local function playSendAnimation(button)
+    if not button then return end
+    
+    local colors = getThemeColors(currentTheme)
+    local parent = mainFrame
+    local position = button.Position
+    local center = {
+        X = button.Position.X.Scale + button.Size.X.Scale / 2,
+        Y = button.Position.Y.Scale + button.Size.Y.Scale / 2
+    }
+    
+    -- اختيار تأثير عشوائي
+    local effects = {
+        function() createStarExplosion(parent, center, colors.primary) end,
+        function() createFlashEffect(parent, colors.primary) end,
+        function() createExpandingCircles(parent, center, colors.primary) end,
+        function() createParticleBurst(parent, center, colors.primary) end,
+    }
+    
+    local chosenEffect = effects[math.random(1, #effects)]
+    chosenEffect()
+end
+
+---------------------------------------
 -- دالة تطبيق الثيم
 ---------------------------------------
 local function applyTheme(themeName)
@@ -671,6 +1034,11 @@ local function applyTheme(themeName)
                 end
             end
         end
+    end
+    
+    -- تحديث تأثير الخلفية
+    if mainFrame then
+        startBackgroundEffect(BackgroundEffect, mainFrame)
     end
     
     statusLabel.Text = "🎨 تم تغيير الثيم إلى " .. themeName
@@ -788,6 +1156,7 @@ mainFrame.BackgroundColor3 = colors.bg
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = false
+mainFrame.ClipsDescendants = true
 createCorner(mainFrame, 24)
 createStroke(mainFrame, colors.primary, 2)
 
@@ -798,6 +1167,9 @@ local blur = createBlur(mainFrame, 10)
 blur.Enabled = false
 
 local mainShadow = createShadow(mainFrame, 20, 0.3)
+
+-- بدء تأثير الخلفية
+startBackgroundEffect(BackgroundEffect, mainFrame)
 
 ---------------------------------------
 -- الهيدر 100ZX
@@ -836,8 +1208,8 @@ subtitle.Font = Enum.Font.Gotham
 subtitle.TextSize = 10
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- أزرار الهيدر
-local function createHeaderButton(parent, text, color, posX)
+-- 🌟 أيقونات متحركة في الهيدر
+local function createAnimatedHeaderButton(parent, text, color, posX, animationType)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, 35, 0, 35)
     btn.Position = UDim2.new(1, posX, 0.5, -17.5)
@@ -849,21 +1221,57 @@ local function createHeaderButton(parent, text, color, posX)
     btn.ZIndex = 10
     btn.AutoButtonColor = true
     
+    -- تأثيرات حركية
+    local animating = false
+    
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 24}):Play()
+        if animating then return end
+        animating = true
+        
+        -- تكبير
+        TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextSize = 26}):Play()
+        
+        -- دوران أو اهتزاز حسب النوع
+        if animationType == "spin" then
+            TweenService:Create(btn, TweenInfo.new(1, Enum.EasingStyle.Quad), {Rotation = 360}):Play()
+        elseif animationType == "bounce" then
+            local bounce = TweenInfo.new(0.3, Enum.EasingStyle.Bounce)
+            TweenService:Create(btn, bounce, {Position = UDim2.new(1, posX, 0.5, -22)}):Play()
+            task.wait(0.3)
+            TweenService:Create(btn, bounce, {Position = UDim2.new(1, posX, 0.5, -17.5)}):Play()
+        elseif animationType == "pulse" then
+            for i = 1, 3 do
+                TweenService:Create(btn, TweenInfo.new(0.15), {TextTransparency = 0.5}):Play()
+                task.wait(0.15)
+                TweenService:Create(btn, TweenInfo.new(0.15), {TextTransparency = 0}):Play()
+                task.wait(0.15)
+            end
+        elseif animationType == "glow" then
+            local glowColor = btn.TextColor3
+            for i = 1, 3 do
+                btn.TextColor3 = colors.primary
+                task.wait(0.1)
+                btn.TextColor3 = glowColor
+                task.wait(0.1)
+            end
+        end
+        
+        animating = false
     end)
+    
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 20}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 20, Rotation = 0}):Play()
+        btn.Position = UDim2.new(1, posX, 0.5, -17.5)
     end)
     
     return btn
 end
 
-local infoBtn = createHeaderButton(header, "ℹ️", colors.info, -215)
-local themeBtn = createHeaderButton(header, "🎨", colors.primary, -175)
-local settingsBtn = createHeaderButton(header, "⚙️", colors.gold, -135)
-local closeBtn = createHeaderButton(header, "🚪", colors.danger, -95)
-local minimizeBtn = createHeaderButton(header, "✕", colors.textDim, -55)
+local infoBtn = createAnimatedHeaderButton(header, "ℹ️", colors.info, -215, "bounce")
+local themeBtn = createAnimatedHeaderButton(header, "🎨", colors.primary, -175, "spin")
+local settingsBtn = createAnimatedHeaderButton(header, "⚙️", colors.gold, -135, "pulse")
+local closeBtn = createAnimatedHeaderButton(header, "🚪", colors.danger, -95, "glow")
+local minimizeBtn = createAnimatedHeaderButton(header, "✕", colors.textDim, -55, "pulse")
 
 ---------------------------------------
 -- شريط الحالة 100ZX
@@ -1190,6 +1598,8 @@ setupOneClick(smartBtn, function()
         smartBtn.UIStroke.Color = colors.success
         statusLabel.Text = "🧠 تم تفعيل التكرار الذكي"
         statusLabel.TextColor3 = colors.success
+        -- تشغيل تأثير عند التفعيل
+        playSendAnimation(smartBtn)
     else
         smartBtn.BackgroundColor3 = colors.bg3
         smartBtn.Text = "🧠 OFF"
@@ -1347,6 +1757,8 @@ local function refreshCommandsList()
                     ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd.command)
                 end)
             end)
+            -- تشغيل تأثير عند الإرسال
+            playSendAnimation(useBtn)
             statusLabel.Text = "✅ تم إرسال: " .. cmd.name
             statusLabel.TextColor3 = colors.success
             task.wait(1.5)
@@ -1382,6 +1794,7 @@ setupOneClick(addCmdBtn, function()
             nameBox.Text = ""
             cmdBox.Text = ""
             refreshCommandsList()
+            playSendAnimation(addCmdBtn)
             statusLabel.Text = "✅ تم إضافة الأمر"
             statusLabel.TextColor3 = colors.success
             task.wait(1.5)
@@ -1439,6 +1852,7 @@ saveBtn.AutoButtonColor = true
 
 setupOneClick(saveBtn, function()
     saveSettings()
+    playSendAnimation(saveBtn)
 end)
 
 -- زر حذف الإعدادات
@@ -1471,7 +1885,7 @@ scrollContainer.Position = UDim2.new(0, 5, 0, 40)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 3
 scrollContainer.ScrollBarImageColor3 = colors.primary
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 680)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 820)
 
 -- قسم الثيمات
 local themeTitle = Instance.new("TextLabel", scrollContainer)
@@ -1530,13 +1944,62 @@ for i, theme in ipairs(allThemes) do
     
     setupOneClick(btn, function()
         applyTheme(theme)
+        playSendAnimation(btn)
+    end)
+end
+
+-- قسم تأثيرات الخلفية
+local bgTitle = Instance.new("TextLabel", scrollContainer)
+bgTitle.Size = UDim2.new(1, 0, 0, 30)
+bgTitle.Position = UDim2.new(0, 0, 0, 395)
+bgTitle.Text = "🌟 تأثيرات الخلفية"
+bgTitle.TextColor3 = colors.primary
+bgTitle.BackgroundTransparency = 1
+bgTitle.Font = Enum.Font.GothamBold
+bgTitle.TextSize = 15
+
+local bgEffects = {
+    {name = "⭐ نجوم", id = "stars"},
+    {name = "🌊 أمواج", id = "waves"},
+    {name = "✨ جسيمات", id = "particles"},
+    {name = "🌈 تدرج", id = "gradient"},
+}
+
+local bgGrid = Instance.new("Frame", scrollContainer)
+bgGrid.Size = UDim2.new(1, 0, 0, 50)
+bgGrid.Position = UDim2.new(0, 0, 0, 430)
+bgGrid.BackgroundTransparency = 1
+
+for i, effect in ipairs(bgEffects) do
+    local btn = Instance.new("TextButton", bgGrid)
+    btn.Size = UDim2.new(0.23, -3, 0, 35)
+    btn.Position = UDim2.new(0.01 + (i-1) * 0.25, 0, 0, 0)
+    btn.Text = effect.name
+    btn.BackgroundColor3 = colors.bg2
+    btn.TextColor3 = colors.text
+    btn.Font = Enum.Font.GothamBold
+    btn.TextSize = 10
+    createCorner(btn, 10)
+    createStroke(btn, colors.primary, 0.5)
+    btn.AutoButtonColor = true
+    
+    setupOneClick(btn, function()
+        BackgroundEffect = effect.id
+        startBackgroundEffect(BackgroundEffect, mainFrame)
+        saveSettings()
+        playSendAnimation(btn)
+        statusLabel.Text = "🌟 تم تغيير تأثير الخلفية"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1.5)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
     end)
 end
 
 -- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
 protectTitle.Size = UDim2.new(1, 0, 0, 30)
-protectTitle.Position = UDim2.new(0, 0, 0, 395)
+protectTitle.Position = UDim2.new(0, 0, 0, 490)
 protectTitle.Text = "🛡️ الحماية"
 protectTitle.TextColor3 = colors.primary
 protectTitle.BackgroundTransparency = 1
@@ -1592,6 +2055,7 @@ local function createToggle(name, pos, icon, callback)
         toggle.UIStroke.Color = state and colors.success or colors.danger
         callback(state)
         saveSettings()
+        playSendAnimation(toggle)
     end
     
     setupOneClick(toggle, toggleState)
@@ -1670,7 +2134,7 @@ local function fireSpam(cmd)
 end
 
 -- خيارات الحماية
-createToggle("🌀 مضاد الفلينج", 420, "🌀", function(s) 
+createToggle("🌀 مضاد الفلينج", 515, "🌀", function(s) 
     Settings.AntiFling = s
     
     if s then
@@ -1718,7 +2182,7 @@ createToggle("🌀 مضاد الفلينج", 420, "🌀", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("📋 مضاد اللاق (Logs)", 469, "📋", function(s) 
+createToggle("📋 مضاد اللاق (Logs)", 564, "📋", function(s) 
     Settings.AntiLogs = s
     if s then
         ProtectionThreads.AntiLogs = task.spawn(function()
@@ -1765,7 +2229,7 @@ createToggle("📋 مضاد اللاق (Logs)", 469, "📋", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("👁️ مضاد NV", 518, "👁️", function(s) 
+createToggle("👁️ مضاد NV", 613, "👁️", function(s) 
     Settings.AntiNV = s
     if s then
         ProtectionThreads.AntiNV = task.spawn(function()
@@ -1795,7 +2259,7 @@ createToggle("👁️ مضاد NV", 518, "👁️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🚫 مضاد Clogs", 567, "🚫", function(s) 
+createToggle("🚫 مضاد Clogs", 662, "🚫", function(s) 
     Settings.AntiClogs = s
     if s then
         ProtectionThreads.AntiClogs = task.spawn(function()
@@ -1831,7 +2295,7 @@ createToggle("🚫 مضاد Clogs", 567, "🚫", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("⌨️ مضاد CmdBar", 616, "⌨️", function(s) 
+createToggle("⌨️ مضاد CmdBar", 711, "⌨️", function(s) 
     Settings.AntiCmdBar = s
     if s then
         for _, g in pairs(player.PlayerGui:GetChildren()) do
@@ -1871,7 +2335,7 @@ createToggle("⌨️ مضاد CmdBar", 616, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🔕 مضاد الإشعارات", 665, "🔕", function(s) 
+createToggle("🔕 مضاد الإشعارات", 760, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
@@ -1954,7 +2418,7 @@ createToggle("🔕 مضاد الإشعارات", 665, "🔕", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🛡️ مضاد الطرد", 714, "🛡️", function(s) 
+createToggle("🛡️ مضاد الطرد", 809, "🛡️", function(s) 
     Settings.AntiKick = s
     if s then
         ProtectionThreads.AntiKick = task.spawn(function()
@@ -1982,7 +2446,7 @@ createToggle("🛡️ مضاد الطرد", 714, "🛡️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("💤 مضاد AFK", 763, "💤", function(s) 
+createToggle("💤 مضاد AFK", 858, "💤", function(s) 
     Settings.AntiAFK = s
     if s then
         ProtectionThreads.AntiAFK = task.spawn(function()
@@ -2014,7 +2478,7 @@ createToggle("💤 مضاد AFK", 763, "💤", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 820)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 920)
 
 ---------------------------------------
 -- نافذة المعلومات 100ZX
@@ -2048,7 +2512,7 @@ infoScroll.Position = UDim2.new(0, 5, 0, 40)
 infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 3
 infoScroll.ScrollBarImageColor3 = colors.info
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, 780)
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, 880)
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
@@ -2098,11 +2562,12 @@ pos = pos + 40
 createInfoSection("المميزات الجديدة", "🔥", pos)
 pos = pos + 37
 local newFeatures = {
+    "🎬 رسوم متحركة عند الإرسال",
+    "🌟 4 تأثيرات خلفية متحركة",
+    "✨ أيقونات متحركة في الهيدر",
     "💾 حفظ الإعدادات تلقائياً",
     "🧠 التكرار الذكي مع كشف السبام",
-    "🎨 7 ثيومات جديدة (إجمالي 21 ثيماً)",
-    "⚡ ضبط السرعة التلقائي",
-    "🔒 حماية متطورة",
+    "🎨 21 ثيماً احترافية",
 }
 for _, feature in ipairs(newFeatures) do
     createInfoText("✅ " .. feature, pos, colors.success, 12)
@@ -2157,12 +2622,26 @@ cmdCountStats.TextSize = 12
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
 pos = pos + 40
 
+createInfoSection("🎬 تأثيرات الخلفية", "🌟", pos)
+pos = pos + 37
+local bgInfo = {
+    "⭐ النجوم: حركة نجوم متلألئة",
+    "🌊 الأمواج: أمواج ملونة متحركة",
+    "✨ الجسيمات: جسيمات ضوئية طائرة",
+    "🌈 التدرج: تدرج لوني دائري",
+}
+for _, info in ipairs(bgInfo) do
+    createInfoText("• " .. info, pos, colors.textDim, 11)
+    pos = pos + 22
+end
+pos = pos + 40
+
 createInfoSection("رسالة ترحيبية", "🎯", pos)
 pos = pos + 37
 local welcomeText = Instance.new("TextLabel", infoScroll)
 welcomeText.Size = UDim2.new(1, -10, 0, 60)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
-welcomeText.Text = "مرحباً بك في ABC HUB 100ZX!\nأقوى سكرببت على الإطلاق\nمع حماية متكاملة وسبام احترافي"
+welcomeText.Text = "مرحباً بك في ABC HUB 100ZX!\nأقوى سكرببت على الإطلاق\nمع تأثيرات رائعة وحماية متكاملة"
 welcomeText.TextColor3 = colors.text
 welcomeText.BackgroundTransparency = 1
 welcomeText.Font = Enum.Font.GothamBold
@@ -2170,19 +2649,6 @@ welcomeText.TextSize = 14
 welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.LineHeight = 1.5
 pos = pos + 65
-
-createInfoSection("معلومات تقنية", "⚙️", pos)
-pos = pos + 37
-createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
-pos = pos + 26
-createInfoText("🔹 عدد الثيمات: 21 ثيماً", pos)
-pos = pos + 26
-createInfoText("🔹 عدد الحمايات: 8 حمايات", pos)
-pos = pos + 26
-createInfoText("🔹 متوافق مع: PC + Mobile", pos)
-pos = pos + 26
-createInfoText("🔹 آخر تحديث: V26 100ZX", pos)
-pos = pos + 40
 
 infoScroll.CanvasSize = UDim2.new(0, 0, 0, pos + 20)
 
@@ -2216,6 +2682,7 @@ setupOneClick(infTimeBtn, function()
         infTimeBtn.UIStroke.Color = colors.warning
         timeBox.Text = "∞"
         timeBox.TextColor3 = colors.warning
+        playSendAnimation(infTimeBtn)
     else
         infTimeBtn.BackgroundColor3 = colors.bg3
         infTimeBtn.UIStroke.Color = colors.textDim
@@ -2231,6 +2698,7 @@ setupOneClick(infCopyBtn, function()
         infCopyBtn.UIStroke.Color = colors.warning
         copyBox.Text = "∞"
         copyBox.TextColor3 = colors.warning
+        playSendAnimation(infCopyBtn)
     else
         infCopyBtn.BackgroundColor3 = colors.bg3
         infCopyBtn.UIStroke.Color = colors.textDim
@@ -2270,7 +2738,9 @@ setupOneClick(startBtn, function()
     statusLabel.Text = "🔄 جاري التكرار..."
     statusLabel.TextColor3 = colors.primary
     
-    -- تحديث سرعة التكرار الذكي
+    -- تشغيل تأثير عند البدء
+    playSendAnimation(startBtn)
+    
     if SmartSpam.Active then
         SmartSpam.CurrentSpeed = speed
         SmartSpam.MinSpeed = speed
@@ -2294,7 +2764,6 @@ setupOneClick(startBtn, function()
                     Spam.TotalSent = Spam.TotalSent + 1
                     sentCount.Text = "📤 " .. Spam.TotalSent
                     
-                    -- استخدام سرعة التكرار الذكي إذا كان مفعلاً
                     local currentSpeed = SmartSpam.Active and SmartSpam.CurrentSpeed or speed
                     task.wait(currentSpeed)
                 end
@@ -2365,6 +2834,7 @@ setupOneClick(infoBtn, function()
         settingsFrame.Visible = false
         statusLabel.Text = "ℹ️ المعلومات"
         statusLabel.TextColor3 = colors.info
+        playSendAnimation(infoBtn)
     else
         infoBtn.Text = "ℹ️"
         infoBtn.TextColor3 = colors.info
@@ -2386,6 +2856,7 @@ setupOneClick(themeBtn, function()
     local nextIndex = currentIndex % #allThemes + 1
     local nextTheme = allThemes[nextIndex]
     applyTheme(nextTheme)
+    playSendAnimation(themeBtn)
 end)
 
 setupOneClick(settingsBtn, function()
@@ -2398,6 +2869,7 @@ setupOneClick(settingsBtn, function()
         infoFrame.Visible = false
         statusLabel.Text = "⚙️ الإعدادات"
         statusLabel.TextColor3 = colors.gold
+        playSendAnimation(settingsBtn)
     else
         settingsBtn.Text = "⚙️"
         settingsBtn.TextColor3 = colors.gold
@@ -2463,9 +2935,10 @@ toggleBtn.Visible = true
 print("╔════════════════════════════════════════════════════════════╗")
 print("║  🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥              ║")
 print("║  👨‍💻 المطور: Hamza000599                                  ║")
-print("║  ✅ 21 ثيماً احترافية (7 ثيومات جديدة)                 ║")
-print("║  ✅ نظام حفظ الإعدادات التلقائي                       ║")
-print("║  ✅ التكرار الذكي مع كشف السبام                       ║")
-print("║  ✅ واجهة مخصصة للموبايل                              ║")
-print("║  ✅ سرعة فائقة + تصميم 100ZX                         ║")
+print("║  ✨ أيقونات متحركة في الهيدر                           ║")
+print("║  🎬 رسوم متحركة عند الإرسال                           ║")
+print("║  🌟 4 تأثيرات خلفية متحركة (نجوم/أمواج/جسيمات/تدرج)   ║")
+print("║  🎨 21 ثيماً احترافية                                 ║")
+print("║  💾 حفظ الإعدادات التلقائي                            ║")
+print("║  🧠 التكرار الذكي مع كشف السبام                       ║")
 print("╚════════════════════════════════════════════════════════════╝")
