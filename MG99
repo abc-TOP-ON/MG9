@@ -317,7 +317,7 @@ toggleBtn.ImageColor3 = colors.primary
 toggleBtn.ImageTransparency = 0.15
 toggleBtn.Visible = true
 toggleBtn.Draggable = true
-createCorner(toggleBtn, 12) -- زوايا ناعمة
+createCorner(toggleBtn, 12)
 createStroke(toggleBtn, colors.primary, 2.5)
 
 -- ظل احترافي
@@ -662,7 +662,7 @@ speedLabel.TextXAlignment = Enum.TextXAlignment.Right
 local speedBox = Instance.new("TextBox", settingsRow)
 speedBox.Size = UDim2.new(0.1, 0, 1, 0)
 speedBox.Position = UDim2.new(0.88, 0, 0, 0)
-speedBox.Text = "0.01" -- ✅ سرعة فائقة
+speedBox.Text = "0.01"
 speedBox.TextColor3 = colors.text
 speedBox.BackgroundColor3 = colors.bg2
 speedBox.TextSize = 11
@@ -1068,7 +1068,7 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- ===== جميع خيارات الحماية (كاملة مثل السكربت الأصلي) =====
+-- ===== جميع خيارات الحماية (كاملة) =====
 
 -- 1. مضاد الفلينج
 createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s) 
@@ -1291,39 +1291,85 @@ createToggle("⌨️ مضاد CmdBar", 443, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- 6. مضاد الإشعارات ✅ (معدل للإخفاء النهائي)
+-- 6. 🔥 مضاد الإشعارات القوي (يخفي نهائياً)
 createToggle("🔕 مضاد الإشعارات", 485, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
-        -- إخفاء جميع الإشعارات فوراً
-        for _, g in pairs(player.PlayerGui:GetChildren()) do
-            if g:IsA("ScreenGui") then
-                if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") or g.Name:find("Notification") then
-                    g.Enabled = false
-                    g:Destroy()
-                end
-            end
-        end
-        
-        ProtectionThreads.AntiAlerts = task.spawn(function()
-            while Settings.AntiAlerts do
-                pcall(function()
-                    for _, g in pairs(player.PlayerGui:GetChildren()) do
-                        if g:IsA("ScreenGui") then
-                            if g.Name == "HDAdminGui" or g.Name == "MessageGui" or g.Name:find("Alert") or g.Name:find("Notification") then
+        -- ✅ دالة إخفاء جميع الإشعارات
+        local function hideAllAlerts()
+            pcall(function()
+                -- 1. إخفاء جميع الـ ScreenGuis المشبوهة
+                for _, g in pairs(player.PlayerGui:GetChildren()) do
+                    if g:IsA("ScreenGui") then
+                        local alertNames = {"HDAdminGui", "MessageGui", "Alert", "Notification", "Notify", "System", "Warning", "Error", "Ban", "Kick", "Spam", "TooFast"}
+                        for _, name in pairs(alertNames) do
+                            if string.find(g.Name, name) then
                                 g.Enabled = false
                                 g:Destroy()
                             end
                         end
                     end
-                end)
-                task.wait(0.1)
+                end
+                
+                -- 2. البحث عن الإشعارات داخل الواجهات
+                for _, g in pairs(player.PlayerGui:GetChildren()) do
+                    if g:IsA("ScreenGui") then
+                        for _, child in pairs(g:GetDescendants()) do
+                            if child:IsA("TextLabel") or child:IsA("TextButton") then
+                                local alertWords = {"system", "too fast", "spam", "warning", "error", "alert", "notify", "kick", "ban", "speed", "limit"}
+                                for _, word in pairs(alertWords) do
+                                    if child.Text and string.find(child.Text:lower(), word) then
+                                        local container = child.Parent
+                                        while container and container:IsA("Frame") do
+                                            container.Visible = false
+                                            container:Destroy()
+                                            container = container.Parent
+                                        end
+                                    end
+                                end
+                            end
+                        end
+                    end
+                end
+            end)
+        end
+        
+        -- 🔥 تشغيل الحماية بشكل مستمر (كل 0.05 ثانية - سريع جداً)
+        ProtectionThreads.AntiAlerts = task.spawn(function()
+            while Settings.AntiAlerts do
+                hideAllAlerts()
+                task.wait(0.05) -- مسح سريع جداً
             end
         end)
-        statusLabel.Text = "✅ مضاد الإشعارات مفعل"
+        
+        -- مراقبة الإشعارات الجديدة
+        local function blockNewAlerts(obj)
+            if obj:IsA("ScreenGui") then
+                local alertNames = {"HDAdminGui", "MessageGui", "Alert", "Notification", "Notify", "System", "Warning", "Error", "Ban", "Kick"}
+                for _, name in pairs(alertNames) do
+                    if string.find(obj.Name, name) then
+                        obj.Enabled = false
+                        obj:Destroy()
+                    end
+                end
+            end
+            for _, child in pairs(obj:GetChildren()) do
+                blockNewAlerts(child)
+            end
+        end
+        
+        player.PlayerGui.ChildAdded:Connect(function(child)
+            if Settings.AntiAlerts then
+                task.wait(0.01)
+                blockNewAlerts(child)
+            end
+        end)
+        
+        statusLabel.Text = "✅ مضاد الإشعارات مفعل نهائياً"
         statusLabel.TextColor3 = colors.success
     else
+        -- ❌ إيقاف الحماية
         if ProtectionThreads.AntiAlerts then
             task.cancel(ProtectionThreads.AntiAlerts)
             ProtectionThreads.AntiAlerts = nil
@@ -1718,7 +1764,7 @@ setupOneClick(startBtn, function()
                     task.spawn(function() fireSpam(c) end)
                     Spam.TotalSent = Spam.TotalSent + 1
                     sentCount.Text = "📤 " .. Spam.TotalSent
-                    task.wait(0.001) -- ✅ سرعة فائقة
+                    task.wait(0.001)
                 end
                 copyCount = copyCount + 1
                 if copies == math.huge then
@@ -1878,9 +1924,7 @@ toggleBtn.Visible = true
 print("╔══════════════════════════════════════════════════════════╗")
 print("║  🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥             ║")
 print("║  👨‍💻 المطور: mo7sma0550                                ║")
-print("║  ✅ جميع الميزات موجودة وكاملة                      ║")
-print("║  ✅ زر جانبي مربع احترافي مع ظل                     ║")
-print("║  ✅ مضاد الإشعارات يخفي نهائياً                     ║")
+print("║  ✅ مضاد الإشعارات يخفي نهائياً (قوي)               ║")
 print("║  ✅ سرعة إرسال فائقة (0.001 ثانية)                  ║")
-print("║  ✅ جميع الحمايات 8 خيارات كاملة                   ║")
+print("║  ✅ جميع الميزات موجودة وكاملة                      ║")
 print("╚══════════════════════════════════════════════════════════╝")
