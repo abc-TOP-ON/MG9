@@ -31,6 +31,7 @@ local Settings = {
     AntiAlerts = false,
     AntiKick = false,
     AntiAFK = false,
+    HideInterfaces = true,
 }
 
 local Spam = {
@@ -46,7 +47,7 @@ local customCommands = {}
 local lastSafePos = nil
 
 ---------------------------------------
--- ✅ متغيرات التحكم في الحلقات (لإيقاف الحمايات فوراً)
+-- متغيرات التحكم في الحلقات
 ---------------------------------------
 local ProtectionThreads = {
     AntiFling = nil,
@@ -59,12 +60,10 @@ local ProtectionThreads = {
     AntiAFK = nil,
 }
 
--- متغيرات الإشعارات
 local NotificationQueue = {}
-local NotificationsActive = true
 
 ---------------------------------------
--- ⚡ دالة الضغطة الواحدة
+-- دالة الضغطة الواحدة
 ---------------------------------------
 local function setupOneClick(button, callback)
     if not button then return end
@@ -95,12 +94,90 @@ local function createStroke(parent, color, thickness)
 end
 
 ---------------------------------------
--- 🔔 نظام الإشعارات الداخلية (المطور: mo7sma0550)
+-- 🔥 إخفاء واجهات اللعبة الإضافية
+---------------------------------------
+local function hideGameInterfaces()
+    if not Settings.HideInterfaces then return end
+    
+    pcall(function()
+        local guisToHide = {
+            "HDAdminGui", "MessageGui", "NotificationGui", "AlertGui",
+            "SystemGui", "CmdGui", "CommandGui", "BarGui",
+            "VoiceChatGui", "VoiceChat", "VoiceIndicator",
+            "Microphone", "MicIndicator", "Voice",
+            "ChatGui", "GameChat", "HUD", "PlayerList",
+            "TopBar", "BottomBar", "SideBar",
+            "Notification", "Alert", "Popup", "Dialog",
+            "Menu", "Toolbar", "StatusBar", "InfoBar",
+        }
+        
+        for _, g in pairs(player.PlayerGui:GetChildren()) do
+            if g:IsA("ScreenGui") then
+                for _, name in pairs(guisToHide) do
+                    if string.find(g.Name, name) then
+                        g.Enabled = false
+                        g.Visible = false
+                        g:Destroy()
+                    end
+                end
+            end
+        end
+        
+        for _, obj in pairs(game:GetDescendants()) do
+            if obj:IsA("Frame") or obj:IsA("ImageLabel") or obj:IsA("ImageButton") then
+                local name = obj.Name:lower()
+                if name:find("microphone") or name:find("voice") or name:find("mic") or name:find("audio") or name:find("sound") or name:find("speaker") then
+                    obj.Visible = false
+                end
+            end
+        end
+        
+        for _, obj in pairs(game:GetDescendants()) do
+            if obj:IsA("TextLabel") or obj:IsA("TextButton") then
+                local text = obj.Text or ""
+                local wordsToHide = {"microphone", "voice", "mic", "audio", "speaker", "system", "too fast", "spam"}
+                for _, word in pairs(wordsToHide) do
+                    if string.find(text:lower(), word) then
+                        obj.Visible = false
+                        if obj.Parent and obj.Parent:IsA("Frame") then
+                            obj.Parent.Visible = false
+                        end
+                    end
+                end
+            end
+        end
+    end)
+end
+
+-- تشغيل الإخفاء بشكل مستمر
+task.spawn(function()
+    while true do
+        hideGameInterfaces()
+        task.wait(0.05)
+    end
+end)
+
+-- مراقبة الواجهات الجديدة
+player.PlayerGui.ChildAdded:Connect(function(child)
+    if Settings.HideInterfaces then
+        task.wait(0.01)
+        hideGameInterfaces()
+    end
+end)
+
+game.DescendantAdded:Connect(function(obj)
+    if Settings.HideInterfaces then
+        task.wait(0.01)
+        hideGameInterfaces()
+    end
+end)
+
+---------------------------------------
+-- 🔔 نظام الإشعارات الداخلية
 ---------------------------------------
 local function showNotification(title, message, color, duration)
     duration = duration or 3.5
     
-    -- منع الإشعارات المكررة
     if #NotificationQueue > 5 then
         return
     end
@@ -115,7 +192,6 @@ local function showNotification(title, message, color, duration)
     notif.ZIndex = 100
     notif.Name = "Notification_" .. os.time()
     
-    -- ظل الإشعار
     local shadow = Instance.new("ImageLabel", notif)
     shadow.Size = UDim2.new(1, 10, 1, 10)
     shadow.Position = UDim2.new(0, -5, 0, -5)
@@ -125,7 +201,6 @@ local function showNotification(title, message, color, duration)
     shadow.ZIndex = 0
     shadow.BackgroundTransparency = 1
     
-    -- أيقونة الإشعار
     local iconLabel = Instance.new("TextLabel", notif)
     iconLabel.Size = UDim2.new(0, 35, 1, 0)
     iconLabel.Position = UDim2.new(0, 10, 0, 0)
@@ -136,7 +211,6 @@ local function showNotification(title, message, color, duration)
     iconLabel.TextSize = 22
     iconLabel.TextXAlignment = Enum.TextXAlignment.Center
     
-    -- عنوان الإشعار
     local titleLabel = Instance.new("TextLabel", notif)
     titleLabel.Size = UDim2.new(1, -60, 0, 28)
     titleLabel.Position = UDim2.new(0, 50, 0, 5)
@@ -148,7 +222,6 @@ local function showNotification(title, message, color, duration)
     titleLabel.TextXAlignment = Enum.TextXAlignment.Left
     titleLabel.TextTruncate = Enum.TextTruncate.AtEnd
     
-    -- نص الإشعار
     local msgLabel = Instance.new("TextLabel", notif)
     msgLabel.Size = UDim2.new(1, -60, 0, 25)
     msgLabel.Position = UDim2.new(0, 50, 0, 34)
@@ -160,7 +233,6 @@ local function showNotification(title, message, color, duration)
     msgLabel.TextXAlignment = Enum.TextXAlignment.Left
     msgLabel.TextTruncate = Enum.TextTruncate.AtEnd
     
-    -- زر إغلاق الإشعار
     local closeNotif = Instance.new("TextButton", notif)
     closeNotif.Size = UDim2.new(0, 22, 0, 22)
     closeNotif.Position = UDim2.new(1, -28, 0, 5)
@@ -178,10 +250,8 @@ local function showNotification(title, message, color, duration)
         notif:Destroy()
     end)
     
-    -- إضافة للإشعارات النشطة
     table.insert(NotificationQueue, notif)
     
-    -- تحديث مواقع الإشعارات
     local function updateNotificationPositions()
         for i, n in ipairs(NotificationQueue) do
             if n and n.Parent then
@@ -191,17 +261,14 @@ local function showNotification(title, message, color, duration)
         end
     end
     
-    -- تأثير دخول
     notif.Position = UDim2.new(0.5, -175, 0, -100)
     notif.BackgroundTransparency = 1
     TweenService:Create(notif, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {Position = UDim2.new(0.5, -175, 0, 15)}):Play()
     TweenService:Create(notif, TweenInfo.new(0.5, Enum.EasingStyle.Quad), {BackgroundTransparency = 0.15}):Play()
     
-    -- تحديث المواقع بعد الدخول
     task.wait(0.2)
     updateNotificationPositions()
     
-    -- حذف الإشعار بعد المدة
     task.wait(duration)
     if notif and notif.Parent then
         for i, n in ipairs(NotificationQueue) do
@@ -219,27 +286,18 @@ local function showNotification(title, message, color, duration)
     end
 end
 
--- دالة إشعار سريعة
-local function quickNotify(title, message, color)
-    showNotification(title, message, color or colors.primary, 2.5)
-end
-
--- دالة إشعار نجاح
 local function successNotify(message)
     showNotification("✅ نجاح", message, colors.success, 2.5)
 end
 
--- دالة إشعار خطأ
 local function errorNotify(message)
     showNotification("❌ خطأ", message, colors.danger, 3)
 end
 
--- دالة إشعار تحذير
 local function warningNotify(message)
     showNotification("⚠️ تحذير", message, colors.warning, 3)
 end
 
--- دالة إشعار معلومات
 local function infoNotify(message)
     showNotification("ℹ️ معلومات", message, colors.info, 2.5)
 end
@@ -247,9 +305,6 @@ end
 ---------------------------------------
 -- 💾 نظام الحفظ التلقائي
 ---------------------------------------
-local SAVE_KEY = "MG9_Settings_" .. player.UserId
-
--- حفظ الإعدادات
 local function saveSettings()
     pcall(function()
         local data = {
@@ -262,17 +317,11 @@ local function saveSettings()
         }
         
         local json = HttpService:JSONEncode(data)
-        -- حفظ في ذاكرة اللعبة
+        
         if setclipboard then
             setclipboard(json)
         end
         
-        -- حفظ في DataStore (إذا كان متاح)
-        if player:FindFirstChild("DataStore") then
-            player.DataStore.MG9_Settings = json
-        end
-        
-        -- حفظ في اللاعب
         if player:FindFirstChild("MG9_Settings") then
             player.MG9_Settings.Value = json
         else
@@ -281,27 +330,18 @@ local function saveSettings()
             val.Value = json
         end
         
-        successNotify("تم حفظ الإعدادات بنجاح")
         print("✅ تم حفظ الإعدادات")
     end)
 end
 
--- تحميل الإعدادات
 local function loadSettings()
     pcall(function()
         local json = nil
         
-        -- محاولة تحميل من DataStore
-        if player:FindFirstChild("DataStore") and player.DataStore:FindFirstChild("MG9_Settings") then
-            json = player.DataStore.MG9_Settings.Value
-        end
-        
-        -- محاولة تحميل من اللاعب
-        if not json and player:FindFirstChild("MG9_Settings") then
+        if player:FindFirstChild("MG9_Settings") then
             json = player.MG9_Settings.Value
         end
         
-        -- محاولة تحميل من الحافظة
         if not json and getclipboard then
             json = getclipboard()
         end
@@ -309,44 +349,37 @@ local function loadSettings()
         if json then
             local decoded = HttpService:JSONDecode(json)
             if decoded then
-                -- تطبيق الثيم
                 if decoded.theme then
                     currentTheme = decoded.theme
                     applyTheme(currentTheme)
                 end
                 
-                -- تطبيق الأوامر المخصصة
                 if decoded.commands then
                     customCommands = decoded.commands
                     refreshCommandsList()
                 end
                 
-                -- تطبيق الإعدادات
                 if decoded.settings then
                     for key, value in pairs(decoded.settings) do
                         Settings[key] = value
                     end
                 end
                 
-                -- تطبيق عدد الأوامر المرسلة
                 if decoded.spamTotal then
                     Spam.TotalSent = decoded.spamTotal
                     sentCount.Text = "📤 " .. Spam.TotalSent
                 end
                 
-                successNotify("تم تحميل الإعدادات بنجاح")
                 print("✅ تم تحميل الإعدادات")
                 return true
             end
         end
         
-        infoNotify("لا توجد إعدادات محفوظة")
         return false
     end)
     return false
 end
 
--- حفظ تلقائي كل 30 ثانية
 local function autoSaveLoop()
     task.spawn(function()
         while true do
@@ -358,13 +391,8 @@ local function autoSaveLoop()
     end)
 end
 
--- حفظ عند إغلاق السكربت
-local function saveOnClose()
-    saveSettings()
-end
-
 ---------------------------------------
--- الألوان
+-- الألوان والثيمات
 ---------------------------------------
 local function getThemeColors(themeName)
     local themes = {
@@ -580,7 +608,7 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- ✅ أيقونة الدخول/الخروج (مربعة احترافية مع ظل)
+-- أيقونة الدخول/الخروج
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
 toggleBtn.Size = UDim2.new(0, 60, 0, 60)
@@ -594,7 +622,6 @@ toggleBtn.Draggable = true
 createCorner(toggleBtn, 12)
 createStroke(toggleBtn, colors.primary, 2.5)
 
--- ظل احترافي
 local shadow = Instance.new("ImageLabel", toggleBtn)
 shadow.Size = UDim2.new(1, 8, 1, 8)
 shadow.Position = UDim2.new(0, -4, 0, -4)
@@ -613,7 +640,6 @@ toggleText.Font = Enum.Font.GothamBold
 toggleText.TextSize = 16
 toggleText.ZIndex = 2
 
--- سحب الأيقونة
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -689,7 +715,6 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 20
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- أزرار الهيدر
 local infoBtn = Instance.new("TextButton", header)
 infoBtn.Size = UDim2.new(0, 28, 0, 28)
 infoBtn.Position = UDim2.new(1, -185, 0.5, -14)
@@ -785,7 +810,7 @@ local function createTab(name, pos, callback)
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 11
     createCorner(btn, 6)
-    local stroke = createStroke(btn, colors.textDim, 0.5)
+    createStroke(btn, colors.textDim, 0.5)
     
     setupOneClick(btn, function()
         callback()
@@ -1627,10 +1652,22 @@ createToggle("💤 مضاد AFK", 569, "💤", function(s)
     saveSettings()
 end)
 
--- 💾 أزرار الحفظ والتحميل في الإعدادات
+-- 9. إخفاء الواجهات
+createToggle("🖥️ إخفاء الواجهات", 610, "🖥️", function(s)
+    Settings.HideInterfaces = s
+    if s then
+        successNotify("إخفاء الواجهات مفعل")
+        hideGameInterfaces()
+    else
+        infoNotify("إخفاء الواجهات معطل")
+    end
+    saveSettings()
+end)
+
+-- أزرار الحفظ والتحميل
 local saveLoadTitle = Instance.new("TextLabel", scrollContainer)
 saveLoadTitle.Size = UDim2.new(1, 0, 0, 25)
-saveLoadTitle.Position = UDim2.new(0, 0, 0, 620)
+saveLoadTitle.Position = UDim2.new(0, 0, 0, 660)
 saveLoadTitle.Text = "💾 الحفظ والتحميل"
 saveLoadTitle.TextColor3 = colors.gold
 saveLoadTitle.BackgroundTransparency = 1
@@ -1639,7 +1676,7 @@ saveLoadTitle.TextSize = 13
 
 local saveBtn = Instance.new("TextButton", scrollContainer)
 saveBtn.Size = UDim2.new(0.45, -5, 0, 35)
-saveBtn.Position = UDim2.new(0, 0, 0, 655)
+saveBtn.Position = UDim2.new(0, 0, 0, 695)
 saveBtn.Text = "💾 حفظ الإعدادات"
 saveBtn.BackgroundColor3 = colors.success
 saveBtn.TextColor3 = colors.text
@@ -1654,7 +1691,7 @@ end)
 
 local loadBtn = Instance.new("TextButton", scrollContainer)
 loadBtn.Size = UDim2.new(0.45, -5, 0, 35)
-loadBtn.Position = UDim2.new(0.55, 5, 0, 655)
+loadBtn.Position = UDim2.new(0.55, 5, 0, 695)
 loadBtn.Text = "📂 تحميل الإعدادات"
 loadBtn.BackgroundColor3 = colors.info
 loadBtn.TextColor3 = colors.text
@@ -1700,7 +1737,7 @@ infoScroll.Position = UDim2.new(0, 5, 0, 35)
 infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 3
 infoScroll.ScrollBarImageColor3 = colors.info
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, 700)
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, 500)
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
@@ -1747,16 +1784,16 @@ pos = pos + 22
 createInfoText("⚡ الحالة: نشط ومُحسَّن", pos)
 pos = pos + 35
 
-createInfoSection("المميزات الجديدة", "✨", pos)
+createInfoSection("المميزات", "✨", pos)
 pos = pos + 33
 createInfoText("🔔 نظام إشعارات احترافي", pos, colors.gold)
 pos = pos + 22
 createInfoText("💾 حفظ تلقائي للإعدادات", pos, colors.gold)
 pos = pos + 22
-createInfoText("📂 تحميل الإعدادات بضغطة", pos, colors.gold)
+createInfoText("🖥️ إخفاء واجهات اللعبة", pos, colors.gold)
 pos = pos + 35
 
-createInfoSection("إحصائيات المستخدم", "📊", pos)
+createInfoSection("إحصائيات", "📊", pos)
 pos = pos + 33
 
 local statsText = Instance.new("TextLabel", infoScroll)
@@ -1801,38 +1838,8 @@ cmdCountStats.BackgroundTransparency = 1
 cmdCountStats.Font = Enum.Font.Gotham
 cmdCountStats.TextSize = 11
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
+
 pos = pos + 35
-
-createInfoSection("مميزات السكربت", "🔥", pos)
-pos = pos + 33
-local features = {
-    "✅ 10 ثيمات احترافية",
-    "✅ 8 خيارات حماية متكاملة",
-    "✅ نظام إشعارات داخلي",
-    "✅ حفظ وتحميل تلقائي",
-    "✅ 8 أوامر مخصصة",
-    "✅ سرعة تكرار فائقة",
-}
-for _, feature in ipairs(features) do
-    createInfoText(feature, pos, colors.text, 11)
-    pos = pos + 20
-end
-pos = pos + 15
-
-createInfoSection("نصائح واستخدامات", "💡", pos)
-pos = pos + 33
-local tips = {
-    "• استخدم ; للفصل بين الأوامر المتعددة",
-    "• الإعدادات تُحفظ تلقائياً كل 30 ثانية",
-    "• استخدم أزرار الحفظ والتحميل يدوياً",
-    "• الإشعارات تظهر في أعلى الشاشة",
-}
-for _, tip in ipairs(tips) do
-    createInfoText(tip, pos, colors.textDim, 11)
-    pos = pos + 20
-end
-
-pos = pos + 20
 infoScroll.CanvasSize = UDim2.new(0, 0, 0, pos + 20)
 
 ---------------------------------------
@@ -1992,10 +1999,9 @@ setupOneClick(toggleBtn, function()
     mainFrame.Visible = not mainFrame.Visible
     if mainFrame.Visible then
         toggleBtn.Visible = false
-        infoNotify("تم فتح السكربت")
     else
         toggleBtn.Visible = true
-        saveOnClose()
+        saveSettings()
     end
 end)
 
@@ -2038,26 +2044,24 @@ setupOneClick(settingsBtn, function()
         spamContainer.Visible = false
         commandsContainer.Visible = false
         infoFrame.Visible = false
-        infoNotify("فتح الإعدادات")
     else
         settingsBtn.Text = "⚙️"
         settingsBtn.TextColor3 = colors.gold
         spamContainer.Visible = true
-        saveOnClose()
+        saveSettings()
     end
 end)
 
 setupOneClick(closeBtn, function()
     mainFrame.Visible = false
     toggleBtn.Visible = true
-    saveOnClose()
+    saveSettings()
     infoNotify("تم الخروج من السكربت")
 end)
 
 setupOneClick(minimizeBtn, function()
     mainFrame.Visible = false
     toggleBtn.Visible = true
-    infoNotify("تم تصغير السكربت")
 end)
 
 ---------------------------------------
@@ -2089,26 +2093,22 @@ end)
 -- 🚀 تشغيل السكربت
 ---------------------------------------
 
--- تحميل الإعدادات عند التشغيل
+-- تحميل الإعدادات
 task.wait(0.5)
 loadSettings()
 
 -- بدء الحفظ التلقائي
 autoSaveLoop()
 
--- إظهار الأيقونة فقط في البداية
+-- إظهار الأيقونة فقط
 mainFrame.Visible = false
 toggleBtn.Visible = true
-
--- إشعار الترحيب
-showNotification("🔥 MG9 ULTIMATE HUB", "تم التحميل بنجاح!\nالمطور: mo7sma0550", colors.primary, 4)
 
 print("╔══════════════════════════════════════════════════════════╗")
 print("║  🔥 MG9 ULTIMATE HUB V24 - FULLY FIXED 🔥             ║")
 print("║  👨‍💻 المطور: mo7sma0550                                ║")
+print("║  🖥️ إخفاء واجهات اللعبة (المايك وغيرها)              ║")
 print("║  🔔 نظام إشعارات داخلي احترافي                       ║")
 print("║  💾 حفظ تلقائي كل 30 ثانية                          ║")
-print("║  📂 تحميل الإعدادات تلقائياً                        ║")
-print("║  ✅ مضاد الإشعارات يخفي نهائياً                     ║")
-print("║  ⚡ سرعة إرسال فائقة (0.001 ثانية)                  ║")
+print("║  ✅ بدون مربع ترحيب عند التشغيل                     ║")
 print("╚══════════════════════════════════════════════════════════╝")
