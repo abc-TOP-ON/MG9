@@ -11,11 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
-local SoundService = game:GetService("SoundService")
 local player = Players.LocalPlayer
-
--- حذف النسخ السابقة
-if CoreGui:FindFirstChild("ABC") then CoreGui.ABC:Destroy() end
 
 -- ============================================================
 -- 🚀 شاشة التحميل الأسطورية
@@ -390,6 +386,8 @@ local function UpdateProgress(percent)
     BarFill.Size = UDim2.new(percent / 100, 0, 1, 0)
 end
 
+local MainScriptLoaded = false
+
 local function StartLoading()
     local stages = {
         {text = "⚡ تهيئة المحرك الرئيسي...", progress = 15, bottom = "🔄 تهيئة الأنظمة..."},
@@ -442,7 +440,7 @@ local function StartLoading()
     
     task.wait(0.3)
     
-    local fade = TweenInfo.new(1, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
+    local fade = TweenInfo.new(0.8, Enum.EasingStyle.Quad, Enum.EasingDirection.InOut)
     TweenService:Create(Background, fade, {BackgroundTransparency = 1}):Play()
     TweenService:Create(Container, fade, {BackgroundTransparency = 1}):Play()
     TweenService:Create(Logo, fade, {TextTransparency = 1}):Play()
@@ -464,7 +462,7 @@ local function StartLoading()
     TweenService:Create(Blur1, fade, {Size = 0}):Play()
     TweenService:Create(Blur2, fade, {Size = 0}):Play()
     
-    task.wait(1.1)
+    task.wait(0.8)
     
     LoaderGui:Destroy()
     Blur1:Destroy()
@@ -474,6 +472,7 @@ local function StartLoading()
     print("✅ تم التحميل بنجاح!")
     
     -- بدء تشغيل السكربت الرئيسي
+    MainScriptLoaded = true
     InitializeMainScript()
 end
 
@@ -482,6 +481,9 @@ end
 -- ============================================================
 
 local function InitializeMainScript()
+    -- حذف النسخ السابقة
+    if CoreGui:FindFirstChild("ABC") then CoreGui.ABC:Destroy() end
+
     local gui = Instance.new("ScreenGui", CoreGui)
     gui.Name = "ABC"
     gui.ResetOnSpawn = false
@@ -2529,6 +2531,7 @@ local function InitializeMainScript()
         end
     end)
 
+    -- ✅ مهم جداً: إظهار الأيقونة دائماً
     mainFrame.Visible = false
     toggleBtn.Visible = true
 
