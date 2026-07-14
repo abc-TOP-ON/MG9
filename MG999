@@ -11,6 +11,7 @@ local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
@@ -60,6 +61,94 @@ local ProtectionThreads = {
     AntiAlerts = nil,
     AntiKick = nil,
     AntiAFK = nil,
+}
+
+---------------------------------------
+-- 💾 نظام حفظ الإعدادات
+---------------------------------------
+local SaveKey = "ABC_Ultimate_Settings_" .. player.UserId
+
+-- دالة لحفظ الإعدادات
+local function saveSettings()
+    local data = {
+        theme = currentTheme,
+        antiFling = Settings.AntiFling,
+        antiLogs = Settings.AntiLogs,
+        antiNV = Settings.AntiNV,
+        antiClogs = Settings.AntiClogs,
+        antiCmdBar = Settings.AntiCmdBar,
+        antiAlerts = Settings.AntiAlerts,
+        antiKick = Settings.AntiKick,
+        antiAFK = Settings.AntiAFK,
+        customCommands = customCommands,
+        lastInput = inputBox and inputBox.Text or "",
+        spamTime = timeBox and timeBox.Text or "10",
+        spamCopies = copyBox and copyBox.Text or "3",
+        spamSpeed = speedBox and speedBox.Text or "0.01"
+    }
+    
+    if shared then
+        shared[SaveKey] = data
+    end
+    
+    _G.ABCSettings = data
+    
+    if statusLabel then
+        statusLabel.Text = "💾 تم حفظ الإعدادات"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    end
+end
+
+-- دالة لتحميل الإعدادات
+local function loadSettings()
+    local data = nil
+    
+    if shared and shared[SaveKey] then
+        data = shared[SaveKey]
+    elseif _G.ABCSettings then
+        data = _G.ABCSettings
+    end
+    
+    if data then
+        if data.theme and getThemeColors(data.theme) then
+            currentTheme = data.theme
+        end
+        
+        Settings.AntiFling = data.antiFling or false
+        Settings.AntiLogs = data.antiLogs or false
+        Settings.AntiNV = data.antiNV or false
+        Settings.AntiClogs = data.antiClogs or false
+        Settings.AntiCmdBar = data.antiCmdBar or false
+        Settings.AntiAlerts = data.antiAlerts or false
+        Settings.AntiKick = data.antiKick or false
+        Settings.AntiAFK = data.antiAFK or false
+        
+        if data.customCommands then
+            customCommands = data.customCommands
+        end
+        
+        return true
+    end
+    
+    return false
+end
+
+---------------------------------------
+-- 🧠 نظام التكرار الذكي
+---------------------------------------
+local SmartSpam = {
+    Active = false,
+    DetectedSpam = false,
+    ResponseCount = 0,
+    MaxResponseCount = 3,
+    AutoAdjustSpeed = true,
+    CurrentSpeed = 0.01,
+    MinSpeed = 0.005,
+    MaxSpeed = 0.05,
+    LastResponse = "",
 }
 
 ---------------------------------------
@@ -136,27 +225,12 @@ local function createBlur(parent, size)
     return blur
 end
 
-local function createParticle(parent, color)
-    local particle = Instance.new("ParticleEmitter", parent)
-    particle.Texture = "rbxassetid://608640871"
-    particle.Color = ColorSequence.new(color)
-    particle.Rate = 30
-    particle.Lifetime = NumberRange.new(1, 2)
-    particle.SpreadAngle = Vector2.new(180, 180)
-    particle.VelocityInheritance = 0
-    particle.Speed = NumberRange.new(2, 5)
-    particle.RotSpeed = NumberRange.new(-100, 100)
-    particle.Size = NumberSequence.new(1, 3)
-    particle.Transparency = NumberSequence.new(0.7, 1)
-    particle.Enabled = false
-    return particle
-end
-
 ---------------------------------------
--- الألوان 100ZX
+-- 🎨 الألوان 100ZX مع الثيمات الجديدة
 ---------------------------------------
 local function getThemeColors(themeName)
     local themes = {
+        -- الثيمات الأصلية
         neon = {
             primary = Color3.fromRGB(0, 200, 255),
             secondary = Color3.fromRGB(150, 0, 255),
@@ -394,11 +468,137 @@ local function getThemeColors(themeName)
             gold = Color3.fromRGB(200, 240, 255),
             info = Color3.fromRGB(180, 230, 255),
             glow = Color3.fromRGB(100, 220, 255),
-        }
+        },
+        
+        -- 🎨 الثيمات الجديدة
+        blood = {
+            primary = Color3.fromRGB(200, 0, 0),
+            secondary = Color3.fromRGB(150, 0, 0),
+            accent = Color3.fromRGB(255, 50, 50),
+            bg = Color3.fromRGB(20, 5, 5),
+            bg2 = Color3.fromRGB(35, 8, 8),
+            bg3 = Color3.fromRGB(55, 15, 15),
+            bg4 = Color3.fromRGB(75, 22, 22),
+            text = Color3.fromRGB(255, 255, 255),
+            textDim = Color3.fromRGB(200, 150, 150),
+            success = Color3.fromRGB(100, 255, 100),
+            danger = Color3.fromRGB(255, 0, 0),
+            warning = Color3.fromRGB(255, 200, 0),
+            gold = Color3.fromRGB(255, 200, 100),
+            info = Color3.fromRGB(255, 100, 100),
+            glow = Color3.fromRGB(200, 0, 0),
+        },
+        midnight = {
+            primary = Color3.fromRGB(100, 100, 255),
+            secondary = Color3.fromRGB(60, 60, 200),
+            accent = Color3.fromRGB(150, 150, 255),
+            bg = Color3.fromRGB(5, 5, 15),
+            bg2 = Color3.fromRGB(10, 10, 25),
+            bg3 = Color3.fromRGB(18, 18, 40),
+            bg4 = Color3.fromRGB(28, 28, 55),
+            text = Color3.fromRGB(220, 220, 255),
+            textDim = Color3.fromRGB(150, 150, 200),
+            success = Color3.fromRGB(100, 255, 200),
+            danger = Color3.fromRGB(255, 60, 60),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(200, 200, 255),
+            info = Color3.fromRGB(150, 150, 255),
+            glow = Color3.fromRGB(80, 80, 200),
+        },
+        forest = {
+            primary = Color3.fromRGB(50, 200, 50),
+            secondary = Color3.fromRGB(30, 150, 30),
+            accent = Color3.fromRGB(100, 255, 100),
+            bg = Color3.fromRGB(5, 20, 5),
+            bg2 = Color3.fromRGB(8, 35, 8),
+            bg3 = Color3.fromRGB(15, 50, 15),
+            bg4 = Color3.fromRGB(22, 70, 22),
+            text = Color3.fromRGB(220, 255, 220),
+            textDim = Color3.fromRGB(150, 200, 150),
+            success = Color3.fromRGB(100, 255, 100),
+            danger = Color3.fromRGB(255, 60, 60),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(200, 255, 150),
+            info = Color3.fromRGB(150, 255, 150),
+            glow = Color3.fromRGB(50, 200, 50),
+        },
+        gold = {
+            primary = Color3.fromRGB(255, 215, 0),
+            secondary = Color3.fromRGB(200, 170, 0),
+            accent = Color3.fromRGB(255, 230, 100),
+            bg = Color3.fromRGB(20, 15, 5),
+            bg2 = Color3.fromRGB(35, 25, 8),
+            bg3 = Color3.fromRGB(55, 40, 15),
+            bg4 = Color3.fromRGB(75, 55, 22),
+            text = Color3.fromRGB(255, 255, 220),
+            textDim = Color3.fromRGB(220, 200, 150),
+            success = Color3.fromRGB(100, 255, 100),
+            danger = Color3.fromRGB(255, 60, 60),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(255, 215, 0),
+            info = Color3.fromRGB(255, 220, 150),
+            glow = Color3.fromRGB(255, 200, 0),
+        },
+        pink = {
+            primary = Color3.fromRGB(255, 100, 200),
+            secondary = Color3.fromRGB(200, 50, 150),
+            accent = Color3.fromRGB(255, 150, 220),
+            bg = Color3.fromRGB(25, 8, 20),
+            bg2 = Color3.fromRGB(42, 12, 35),
+            bg3 = Color3.fromRGB(60, 20, 50),
+            bg4 = Color3.fromRGB(80, 30, 65),
+            text = Color3.fromRGB(255, 255, 255),
+            textDim = Color3.fromRGB(220, 160, 200),
+            success = Color3.fromRGB(100, 255, 200),
+            danger = Color3.fromRGB(255, 60, 60),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(255, 200, 200),
+            info = Color3.fromRGB(255, 150, 220),
+            glow = Color3.fromRGB(200, 50, 150),
+        },
+        chocolate = {
+            primary = Color3.fromRGB(180, 120, 60),
+            secondary = Color3.fromRGB(140, 90, 40),
+            accent = Color3.fromRGB(220, 160, 100),
+            bg = Color3.fromRGB(20, 12, 5),
+            bg2 = Color3.fromRGB(35, 20, 8),
+            bg3 = Color3.fromRGB(55, 32, 15),
+            bg4 = Color3.fromRGB(75, 45, 22),
+            text = Color3.fromRGB(255, 240, 220),
+            textDim = Color3.fromRGB(220, 190, 160),
+            success = Color3.fromRGB(150, 255, 150),
+            danger = Color3.fromRGB(255, 80, 80),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(255, 200, 150),
+            info = Color3.fromRGB(220, 180, 150),
+            glow = Color3.fromRGB(180, 120, 60),
+        },
+        aqua = {
+            primary = Color3.fromRGB(0, 255, 255),
+            secondary = Color3.fromRGB(0, 200, 200),
+            accent = Color3.fromRGB(100, 255, 255),
+            bg = Color3.fromRGB(5, 20, 25),
+            bg2 = Color3.fromRGB(8, 35, 42),
+            bg3 = Color3.fromRGB(15, 50, 60),
+            bg4 = Color3.fromRGB(22, 70, 80),
+            text = Color3.fromRGB(220, 255, 255),
+            textDim = Color3.fromRGB(150, 210, 220),
+            success = Color3.fromRGB(100, 255, 200),
+            danger = Color3.fromRGB(255, 60, 60),
+            warning = Color3.fromRGB(255, 200, 50),
+            gold = Color3.fromRGB(200, 255, 255),
+            info = Color3.fromRGB(150, 255, 255),
+            glow = Color3.fromRGB(0, 200, 200),
+        },
     }
     return themes[themeName] or themes.neon
 end
 
+local colors = getThemeColors(currentTheme)
+
+---------------------------------------
+-- دالة تطبيق الثيم
+---------------------------------------
 local function applyTheme(themeName)
     currentTheme = themeName
     local colors = getThemeColors(themeName)
@@ -473,14 +673,14 @@ local function applyTheme(themeName)
         end
     end
     
-    statusLabel.Text = "🎨 تم تغيير الثيم"
+    statusLabel.Text = "🎨 تم تغيير الثيم إلى " .. themeName
     statusLabel.TextColor3 = colors.gold
     task.wait(1.2)
     statusLabel.Text = "جاهز للتشغيل"
     statusLabel.TextColor3 = colors.textDim
+    
+    saveSettings()
 end
-
-local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
 -- ✅ أيقونة الدخول/الخروج (صغيرة)
@@ -950,6 +1150,61 @@ timerDisplay.TextSize = 13
 timerDisplay.Font = Enum.Font.GothamBold
 
 ---------------------------------------
+-- 🧠 زر التكرار الذكي
+---------------------------------------
+local smartFrame = Instance.new("Frame", spamContainer)
+smartFrame.Size = UDim2.new(1, 0, 0, 30)
+smartFrame.Position = UDim2.new(0, 0, 0, 205)
+smartFrame.BackgroundTransparency = 1
+
+local smartLabel = Instance.new("TextLabel", smartFrame)
+smartLabel.Size = UDim2.new(0.4, 0, 1, 0)
+smartLabel.Text = "🧠 التكرار الذكي:"
+smartLabel.TextColor3 = colors.text
+smartLabel.BackgroundTransparency = 1
+smartLabel.Font = Enum.Font.GothamBold
+smartLabel.TextSize = 13
+smartLabel.TextXAlignment = Enum.TextXAlignment.Left
+
+local smartBtn = Instance.new("TextButton", smartFrame)
+smartBtn.Size = UDim2.new(0.15, 0, 0.8, 0)
+smartBtn.Position = UDim2.new(0.42, 0, 0.1, 0)
+smartBtn.BackgroundColor3 = colors.bg3
+smartBtn.Text = "🧠 OFF"
+smartBtn.TextColor3 = colors.text
+smartBtn.Font = Enum.Font.GothamBold
+smartBtn.TextSize = 11
+createCorner(smartBtn, 8)
+createStroke(smartBtn, colors.textDim, 0.5)
+smartBtn.AutoButtonColor = true
+
+setupOneClick(smartBtn, function()
+    SmartSpam.Active = not SmartSpam.Active
+    if SmartSpam.Active then
+        SmartSpam.AutoAdjustSpeed = true
+        SmartSpam.CurrentSpeed = tonumber(speedBox.Text) or 0.01
+        SmartSpam.MinSpeed = tonumber(speedBox.Text) or 0.01
+        SmartSpam.MaxSpeed = SmartSpam.MinSpeed * 5
+        smartBtn.BackgroundColor3 = colors.success
+        smartBtn.Text = "🧠 ON"
+        smartBtn.UIStroke.Color = colors.success
+        statusLabel.Text = "🧠 تم تفعيل التكرار الذكي"
+        statusLabel.TextColor3 = colors.success
+    else
+        smartBtn.BackgroundColor3 = colors.bg3
+        smartBtn.Text = "🧠 OFF"
+        smartBtn.UIStroke.Color = colors.textDim
+        SmartSpam.ResponseCount = 0
+        SmartSpam.DetectedSpam = false
+        statusLabel.Text = "🧠 تم إيقاف التكرار الذكي"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+---------------------------------------
 -- حاوية الأوامر المخصصة
 ---------------------------------------
 local commandsContainer = Instance.new("Frame", mainFrame)
@@ -1026,11 +1281,13 @@ local function addCustomCommand(name, command)
         return false
     end
     table.insert(customCommands, {name = name, command = command})
+    saveSettings()
     return true
 end
 
 local function removeCustomCommand(index)
     table.remove(customCommands, index)
+    saveSettings()
     return true
 end
 
@@ -1168,6 +1425,46 @@ settingsTitle.Font = Enum.Font.GothamBold
 settingsTitle.TextSize = 16
 settingsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
+-- زر حفظ الإعدادات
+local saveBtn = Instance.new("TextButton", settingsHeader)
+saveBtn.Size = UDim2.new(0, 60, 0, 30)
+saveBtn.Position = UDim2.new(1, -65, 0.5, -15)
+saveBtn.Text = "💾 حفظ"
+saveBtn.BackgroundColor3 = colors.success
+saveBtn.TextColor3 = colors.text
+saveBtn.Font = Enum.Font.GothamBold
+saveBtn.TextSize = 11
+createCorner(saveBtn, 8)
+saveBtn.AutoButtonColor = true
+
+setupOneClick(saveBtn, function()
+    saveSettings()
+end)
+
+-- زر حذف الإعدادات
+local resetBtn = Instance.new("TextButton", settingsHeader)
+resetBtn.Size = UDim2.new(0, 50, 0, 30)
+resetBtn.Position = UDim2.new(1, -120, 0.5, -15)
+resetBtn.Text = "🗑️ إعادة"
+resetBtn.BackgroundColor3 = colors.danger
+resetBtn.TextColor3 = colors.text
+resetBtn.Font = Enum.Font.GothamBold
+resetBtn.TextSize = 10
+createCorner(resetBtn, 8)
+resetBtn.AutoButtonColor = true
+
+setupOneClick(resetBtn, function()
+    if shared then
+        shared[SaveKey] = nil
+    end
+    _G.ABCSettings = nil
+    statusLabel.Text = "🗑️ تم حذف الإعدادات"
+    statusLabel.TextColor3 = colors.danger
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
 local scrollContainer = Instance.new("ScrollingFrame", settingsFrame)
 scrollContainer.Size = UDim2.new(1, -10, 1, -45)
 scrollContainer.Position = UDim2.new(0, 5, 0, 40)
@@ -1185,7 +1482,8 @@ themeTitle.BackgroundTransparency = 1
 themeTitle.Font = Enum.Font.GothamBold
 themeTitle.TextSize = 15
 
-local allThemes = {"neon", "dark", "light", "red", "green", "purple", "ocean", "sunset", "cyber", "royal", "galaxy", "crystal", "magma", "ice"}
+-- 🎨 قائمة الثيمات الكاملة (مع الثيمات الجديدة)
+local allThemes = {"neon", "dark", "light", "red", "green", "purple", "ocean", "sunset", "cyber", "royal", "galaxy", "crystal", "magma", "ice", "blood", "midnight", "forest", "gold", "pink", "chocolate", "aqua"}
 local themeNames = {
     neon = "✨ نيون",
     dark = "🌙 داكن",
@@ -1200,11 +1498,18 @@ local themeNames = {
     galaxy = "🌌 مجرة",
     crystal = "💎 كريستال",
     magma = "🌋 ماغما",
-    ice = "❄️ جليد"
+    ice = "❄️ جليد",
+    blood = "🩸 دموي",
+    midnight = "🌙 منتصف الليل",
+    forest = "🌲 غابة",
+    gold = "🏆 ذهبي",
+    pink = "🌸 وردي",
+    chocolate = "🍫 شوكولاتة",
+    aqua = "💧 مائي",
 }
 
 local themeGrid = Instance.new("Frame", scrollContainer)
-themeGrid.Size = UDim2.new(1, 0, 0, 230)
+themeGrid.Size = UDim2.new(1, 0, 0, 350)
 themeGrid.Position = UDim2.new(0, 0, 0, 35)
 themeGrid.BackgroundTransparency = 1
 
@@ -1231,13 +1536,14 @@ end
 -- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
 protectTitle.Size = UDim2.new(1, 0, 0, 30)
-protectTitle.Position = UDim2.new(0, 0, 0, 285)
+protectTitle.Position = UDim2.new(0, 0, 0, 395)
 protectTitle.Text = "🛡️ الحماية"
 protectTitle.TextColor3 = colors.primary
 protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
 protectTitle.TextSize = 15
 
+-- دالة إنشاء زر التبديل
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
     frame.Size = UDim2.new(1, 0, 0, 45)
@@ -1285,6 +1591,7 @@ local function createToggle(name, pos, icon, callback)
         toggle.Text = state and "ON" or "OFF"
         toggle.UIStroke.Color = state and colors.success or colors.danger
         callback(state)
+        saveSettings()
     end
     
     setupOneClick(toggle, toggleState)
@@ -1292,8 +1599,78 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- جميع خيارات الحماية
-createToggle("🌀 مضاد الفلينج", 320, "🌀", function(s) 
+-- دالة fireSpam المحسنة للسبام الذكي
+local function fireSpam(cmd)
+    -- إذا كان التكرار الذكي مفعل
+    if SmartSpam.Active then
+        local success, result = pcall(function()
+            return ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
+        end)
+        
+        if success and result and type(result) == "string" then
+            SmartSpam.LastResponse = result:lower()
+            
+            local spamKeywords = {"too fast", "spam", "slow down", "rate limit", "cooldown", "wait", "slow"}
+            for _, keyword in ipairs(spamKeywords) do
+                if string.find(SmartSpam.LastResponse, keyword) then
+                    SmartSpam.DetectedSpam = true
+                    SmartSpam.ResponseCount = SmartSpam.ResponseCount + 1
+                    
+                    if SmartSpam.AutoAdjustSpeed then
+                        SmartSpam.CurrentSpeed = math.min(SmartSpam.CurrentSpeed + 0.005, SmartSpam.MaxSpeed)
+                        speedBox.Text = string.format("%.3f", SmartSpam.CurrentSpeed)
+                    end
+                    
+                    if SmartSpam.ResponseCount >= SmartSpam.MaxResponseCount then
+                        Spam.Active = false
+                        statusLabel.Text = "⚠️ تم اكتشاف سبام! توقف تلقائياً"
+                        statusLabel.TextColor3 = colors.warning
+                        
+                        task.spawn(function()
+                            task.wait(5)
+                            SmartSpam.ResponseCount = 0
+                            SmartSpam.DetectedSpam = false
+                            if SmartSpam.AutoAdjustSpeed then
+                                SmartSpam.CurrentSpeed = SmartSpam.MinSpeed
+                                speedBox.Text = string.format("%.3f", SmartSpam.CurrentSpeed)
+                            end
+                            statusLabel.Text = "🔄 جاهز للتكرار من جديد"
+                            statusLabel.TextColor3 = colors.success
+                            task.wait(2)
+                            statusLabel.Text = "جاهز للتشغيل"
+                            statusLabel.TextColor3 = colors.textDim
+                        end)
+                        
+                        return false
+                    end
+                    
+                    return false
+                end
+            end
+        end
+        
+        if SmartSpam.AutoAdjustSpeed and not SmartSpam.DetectedSpam then
+            if SmartSpam.CurrentSpeed > SmartSpam.MinSpeed then
+                SmartSpam.CurrentSpeed = math.max(SmartSpam.CurrentSpeed - 0.001, SmartSpam.MinSpeed)
+                speedBox.Text = string.format("%.3f", SmartSpam.CurrentSpeed)
+            end
+        end
+        
+        return true
+    else
+        -- الإرسال العادي
+        pcall(function()
+            ReplicatedStorage.HDAdminHDClient.Signals.CreateLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
+        end)
+        pcall(function()
+            ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
+        end)
+        return true
+    end
+end
+
+-- خيارات الحماية
+createToggle("🌀 مضاد الفلينج", 420, "🌀", function(s) 
     Settings.AntiFling = s
     
     if s then
@@ -1341,7 +1718,7 @@ createToggle("🌀 مضاد الفلينج", 320, "🌀", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("📋 مضاد اللاق (Logs)", 369, "📋", function(s) 
+createToggle("📋 مضاد اللاق (Logs)", 469, "📋", function(s) 
     Settings.AntiLogs = s
     if s then
         ProtectionThreads.AntiLogs = task.spawn(function()
@@ -1388,7 +1765,7 @@ createToggle("📋 مضاد اللاق (Logs)", 369, "📋", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("👁️ مضاد NV", 418, "👁️", function(s) 
+createToggle("👁️ مضاد NV", 518, "👁️", function(s) 
     Settings.AntiNV = s
     if s then
         ProtectionThreads.AntiNV = task.spawn(function()
@@ -1418,7 +1795,7 @@ createToggle("👁️ مضاد NV", 418, "👁️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🚫 مضاد Clogs", 467, "🚫", function(s) 
+createToggle("🚫 مضاد Clogs", 567, "🚫", function(s) 
     Settings.AntiClogs = s
     if s then
         ProtectionThreads.AntiClogs = task.spawn(function()
@@ -1454,7 +1831,7 @@ createToggle("🚫 مضاد Clogs", 467, "🚫", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("⌨️ مضاد CmdBar", 516, "⌨️", function(s) 
+createToggle("⌨️ مضاد CmdBar", 616, "⌨️", function(s) 
     Settings.AntiCmdBar = s
     if s then
         for _, g in pairs(player.PlayerGui:GetChildren()) do
@@ -1494,7 +1871,7 @@ createToggle("⌨️ مضاد CmdBar", 516, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🔕 مضاد الإشعارات", 565, "🔕", function(s) 
+createToggle("🔕 مضاد الإشعارات", 665, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
@@ -1508,7 +1885,8 @@ createToggle("🔕 مضاد الإشعارات", 565, "🔕", function(s)
                                 g.Enabled = false
                                 g:Destroy()
                             end
-                        end                    end
+                        end
+                    end
                 end
                 for _, g in pairs(player.PlayerGui:GetChildren()) do
                     if g:IsA("ScreenGui") then
@@ -1576,7 +1954,7 @@ createToggle("🔕 مضاد الإشعارات", 565, "🔕", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🛡️ مضاد الطرد", 614, "🛡️", function(s) 
+createToggle("🛡️ مضاد الطرد", 714, "🛡️", function(s) 
     Settings.AntiKick = s
     if s then
         ProtectionThreads.AntiKick = task.spawn(function()
@@ -1604,7 +1982,7 @@ createToggle("🛡️ مضاد الطرد", 614, "🛡️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("💤 مضاد AFK", 663, "💤", function(s) 
+createToggle("💤 مضاد AFK", 763, "💤", function(s) 
     Settings.AntiAFK = s
     if s then
         ProtectionThreads.AntiAFK = task.spawn(function()
@@ -1636,7 +2014,7 @@ createToggle("💤 مضاد AFK", 663, "💤", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 720)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 820)
 
 ---------------------------------------
 -- نافذة المعلومات 100ZX
@@ -1717,6 +2095,21 @@ pos = pos + 26
 createInfoText("⚡ الحالة: Ultra Optimized", pos)
 pos = pos + 40
 
+createInfoSection("المميزات الجديدة", "🔥", pos)
+pos = pos + 37
+local newFeatures = {
+    "💾 حفظ الإعدادات تلقائياً",
+    "🧠 التكرار الذكي مع كشف السبام",
+    "🎨 7 ثيومات جديدة (إجمالي 21 ثيماً)",
+    "⚡ ضبط السرعة التلقائي",
+    "🔒 حماية متطورة",
+}
+for _, feature in ipairs(newFeatures) do
+    createInfoText("✅ " .. feature, pos, colors.success, 12)
+    pos = pos + 24
+end
+pos = pos + 40
+
 createInfoSection("إحصائيات المستخدم", "📊", pos)
 pos = pos + 37
 
@@ -1782,64 +2175,15 @@ createInfoSection("معلومات تقنية", "⚙️", pos)
 pos = pos + 37
 createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
 pos = pos + 26
-createInfoText("🔹 عدد الملفات: 1 (سكربت واحد)", pos)
+createInfoText("🔹 عدد الثيمات: 21 ثيماً", pos)
 pos = pos + 26
-createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
+createInfoText("🔹 عدد الحمايات: 8 حمايات", pos)
 pos = pos + 26
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
 pos = pos + 26
 createInfoText("🔹 آخر تحديث: V26 100ZX", pos)
 pos = pos + 40
 
-createInfoSection("مميزات السكربت", "🔥", pos)
-pos = pos + 37
-local features = {
-    "✅ 14 ثيماً احترافية",
-    "✅ 8 خيارات حماية متكاملة",
-    "✅ مضاد Logs مدمج",
-    "✅ إيقاف الحماية فوراً",
-    "✅ 10 أوامر مخصصة قابلة للحفظ",
-    "✅ سرعة تكرار فائقة",
-    "✅ واجهة Premium للهواتف",
-    "✅ تأثيرات حركية جذابة",
-}
-for _, feature in ipairs(features) do
-    createInfoText(feature, pos, colors.text, 12)
-    pos = pos + 24
-end
-pos = pos + 20
-
-createInfoSection("نصائح واستخدامات", "💡", pos)
-pos = pos + 37
-local tips = {
-    "• استخدم ; للفصل بين الأوامر",
-    "• فعّل الحماية قبل بدء التكرار",
-    "• اضغط 🎨 لتغيير الثيم بسرعة",
-    "• الأوامر المخصصة تُحفظ تلقائياً",
-    "• اسحب الأيقونة الجانبية لأي مكان",
-    "• الحماية تنطفئ فوراً عند الضغط على OFF",
-}
-for _, tip in ipairs(tips) do
-    createInfoText(tip, pos, colors.textDim, 12)
-    pos = pos + 24
-end
-pos = pos + 20
-
-createInfoSection("تحديثات قادمة", "🚀", pos)
-pos = pos + 37
-local updates = {
-    "🔹 وضع التكرار الذكي (Smart Spam)",
-    "🔹 حفظ الإعدادات تلقائياً",
-    "🔹 أوامر صوتية",
-    "🔹 ثيمات جديدة",
-    "🔹 تحسين الأداء والسرعة",
-}
-for _, update in ipairs(updates) do
-    createInfoText(update, pos, colors.warning, 12)
-    pos = pos + 24
-end
-
-pos = pos + 25
 infoScroll.CanvasSize = UDim2.new(0, 0, 0, pos + 20)
 
 ---------------------------------------
@@ -1865,15 +2209,6 @@ end)
 ---------------------------------------
 -- منطق السبام
 ---------------------------------------
-local function fireSpam(cmd)
-    pcall(function()
-        ReplicatedStorage.HDAdminHDClient.Signals.CreateLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
-    end)
-    pcall(function()
-        ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
-    end)
-end
-
 setupOneClick(infTimeBtn, function()
     Spam.InfiniteTime = not Spam.InfiniteTime
     if Spam.InfiniteTime then
@@ -1935,6 +2270,13 @@ setupOneClick(startBtn, function()
     statusLabel.Text = "🔄 جاري التكرار..."
     statusLabel.TextColor3 = colors.primary
     
+    -- تحديث سرعة التكرار الذكي
+    if SmartSpam.Active then
+        SmartSpam.CurrentSpeed = speed
+        SmartSpam.MinSpeed = speed
+        SmartSpam.MaxSpeed = speed * 5
+    end
+    
     task.spawn(function()
         local startTime = tick()
         while Spam.Active and (tick() - startTime) < duration do
@@ -1951,16 +2293,21 @@ setupOneClick(startBtn, function()
                     task.spawn(function() fireSpam(c) end)
                     Spam.TotalSent = Spam.TotalSent + 1
                     sentCount.Text = "📤 " .. Spam.TotalSent
-                    task.wait(0.001)
+                    
+                    -- استخدام سرعة التكرار الذكي إذا كان مفعلاً
+                    local currentSpeed = SmartSpam.Active and SmartSpam.CurrentSpeed or speed
+                    task.wait(currentSpeed)
                 end
                 copyCount = copyCount + 1
                 if copies == math.huge then
-                    task.wait(speed)
+                    local currentSpeed = SmartSpam.Active and SmartSpam.CurrentSpeed or speed
+                    task.wait(currentSpeed)
                 else
                     break
                 end
             end
-            task.wait(speed)
+            local currentSpeed = SmartSpam.Active and SmartSpam.CurrentSpeed or speed
+            task.wait(currentSpeed)
         end
         
         Spam.Active = false
@@ -2061,6 +2408,7 @@ setupOneClick(settingsBtn, function()
 end)
 
 setupOneClick(closeBtn, function()
+    saveSettings()
     mainFrame.Visible = false
     toggleBtn.Visible = true
     statusLabel.Text = "🚪 خروج من السكربت"
@@ -2100,14 +2448,24 @@ task.spawn(function()
     end
 end)
 
+---------------------------------------
+-- تحميل الإعدادات عند التشغيل
+---------------------------------------
+loadSettings()
+
+-- تطبيق الثيم المحفوظ
+applyTheme(currentTheme)
+
+-- عرض السكربت
 mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔════════════════════════════════════════════════════════════╗")
 print("║  🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥              ║")
 print("║  👨‍💻 المطور: Hamza000599                                  ║")
-print("║  ✅ 14 ثيماً احترافية                                  ║")
+print("║  ✅ 21 ثيماً احترافية (7 ثيومات جديدة)                 ║")
+print("║  ✅ نظام حفظ الإعدادات التلقائي                       ║")
+print("║  ✅ التكرار الذكي مع كشف السبام                       ║")
 print("║  ✅ واجهة مخصصة للموبايل                              ║")
 print("║  ✅ سرعة فائقة + تصميم 100ZX                         ║")
-print("║  ✅ زر دخول/خروج صغير 45×45                          ║")
 print("╚════════════════════════════════════════════════════════════╝")
