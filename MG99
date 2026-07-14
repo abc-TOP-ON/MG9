@@ -1,6 +1,6 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V25 - 10X PREMIUM 🔥
--- 👨‍💻 المطور: mo7sma0550
+-- 🔥 ABC ULTIMATE HUB V25 - 10X PREMIUM 🔥
+-- 👨‍💻 المطور: Hamza000599
 -- 📱 متوافق مع الموبايل والكمبيوتر
 -- ═══════════════════════════════════════════════════════════════
 
@@ -13,10 +13,10 @@ local UserInputService = game:GetService("UserInputService")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
-if CoreGui:FindFirstChild("MG9") then CoreGui.MG9:Destroy() end
+if CoreGui:FindFirstChild("ABC") then CoreGui.ABC:Destroy() end
 
 local gui = Instance.new("ScreenGui", CoreGui)
-gui.Name = "MG9"
+gui.Name = "ABC"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
 
@@ -448,7 +448,7 @@ createGradient(btnBg, colors.primary, colors.secondary, "diagonal")
 
 local toggleText = Instance.new("TextLabel", toggleBtn)
 toggleText.Size = UDim2.new(1, 0, 1, 0)
-toggleText.Text = "✦MG9"
+toggleText.Text = "✦ABC"
 toggleText.TextColor3 = colors.text
 toggleText.BackgroundTransparency = 1
 toggleText.Font = Enum.Font.GothamBold
@@ -556,7 +556,7 @@ divider.BackgroundTransparency = 0.3
 local title = Instance.new("TextLabel", header)
 title.Size = UDim2.new(0.4, 0, 1, 0)
 title.Position = UDim2.new(0, 15, 0, 0)
-title.Text = "✦ MG9"
+title.Text = "✦ ABC"
 title.TextColor3 = colors.text
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
@@ -1657,7 +1657,7 @@ local pos = 5
 
 createInfoSection("المعلومات الأساسية", "📋", pos)
 pos = pos + 35
-createInfoText("👨‍💻 المطور: mo7sma0550", pos, colors.info, 13)
+createInfoText("👨‍💻 المطور: Hamza000599", pos, colors.info, 13)
 pos = pos + 24
 createInfoText("📌 الإصدار: V25 (10X Premium)", pos)
 pos = pos + 24
@@ -1718,7 +1718,7 @@ pos = pos + 35
 local welcomeText = Instance.new("TextLabel", infoScroll)
 welcomeText.Size = UDim2.new(1, -10, 0, 55)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
-welcomeText.Text = "مرحباً بك في MG9 HUB!\nتم تطوير هذا السكربت لتجربة أفضل\nمع حماية متكاملة وسبام احترافي"
+welcomeText.Text = "مرحباً بك في ABC HUB!\nتم تطوير هذا السكربت لتجربة أفضل\nمع حماية متكاملة وسبام احترافي"
 welcomeText.TextColor3 = colors.text
 welcomeText.BackgroundTransparency = 1
 welcomeText.Font = Enum.Font.GothamBold
@@ -2054,8 +2054,8 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔════════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V25 - 10X PREMIUM 🔥               ║")
-print("║  👨‍💻 المطور: mo7sma0550                                  ║")
+print("║  🔥 ABC ULTIMATE HUB V25 - 10X PREMIUM 🔥               ║")
+print("║  👨‍💻 المطور: Hamza000599                                  ║")
 print("║  ✅ 12 ثيماً احترافية                                  ║")
 print("║  ✅ واجهة مخصصة للموبايل                              ║")
 print("║  ✅ سرعة فائقة + تصميم Premium                        ║")
