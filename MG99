@@ -33,12 +33,6 @@ local Settings = {
     AntiAlerts = false,
     AntiKick = false,
     AntiAFK = false,
-    AutoFarm = false,
-    AutoClick = false,
-    SpeedBoost = false,
-    JumpBoost = false,
-    NoClip = false,
-    Fly = false,
 }
 
 local Spam = {
@@ -53,10 +47,6 @@ local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
 local isMainOpen = false
-local flySpeed = 50
-local isFlying = false
-local flyBodyVelocity = nil
-local flyBodyGyro = nil
 
 ---------------------------------------
 -- متغيرات التحكم في الحلقات
@@ -70,12 +60,6 @@ local ProtectionThreads = {
     AntiAlerts = nil,
     AntiKick = nil,
     AntiAFK = nil,
-    AutoFarm = nil,
-    AutoClick = nil,
-    SpeedBoost = nil,
-    JumpBoost = nil,
-    NoClip = nil,
-    Fly = nil,
 }
 
 ---------------------------------------
@@ -377,7 +361,6 @@ local function getThemeColors(themeName)
             info = Color3.fromRGB(200, 240, 255),
             glow = Color3.fromRGB(100, 200, 255),
         },
-        -- ثيمات جديدة 100ZX
         magma = {
             primary = Color3.fromRGB(255, 100, 0),
             secondary = Color3.fromRGB(255, 50, 50),
@@ -420,7 +403,6 @@ local function applyTheme(themeName)
     currentTheme = themeName
     local colors = getThemeColors(themeName)
     
-    -- تحديث الألوان الأساسية
     mainFrame.BackgroundColor3 = colors.bg
     if mainFrame:FindFirstChild("UIStroke") then
         mainFrame.UIStroke.Color = colors.primary
@@ -454,7 +436,6 @@ local function applyTheme(themeName)
     
     statusBar.BackgroundColor3 = colors.bg2
     
-    -- تحديث جميع المكونات
     for _, child in pairs(scrollContainer:GetChildren()) do
         if child:IsA("Frame") then
             child.BackgroundColor3 = colors.bg2
@@ -467,7 +448,6 @@ local function applyTheme(themeName)
         end
     end
     
-    -- تحديث التبويبات
     for _, child in pairs(tabFrame:GetChildren()) do
         if child:IsA("TextButton") then
             child.BackgroundColor3 = colors.bg2
@@ -482,7 +462,6 @@ local function applyTheme(themeName)
     spamTab.TextColor3 = colors.text
     spamTab.UIStroke.Color = colors.primary
     
-    -- تحديث أزرار الحماية
     for _, child in pairs(scrollContainer:GetChildren()) do
         if child:IsA("Frame") then
             for _, btn in pairs(child:GetChildren()) do
@@ -504,11 +483,11 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- ✅ أيقونة الدخول/الخروج (100ZX)
+-- ✅ أيقونة الدخول/الخروج (صغيرة)
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0, 70, 0, 70)
-toggleBtn.Position = UDim2.new(1, -85, 0.5, -35)
+toggleBtn.Size = UDim2.new(0, 45, 0, 45)
+toggleBtn.Position = UDim2.new(1, -55, 0.5, -22.5)
 toggleBtn.BackgroundColor3 = colors.bg2
 toggleBtn.Image = "rbxassetid://131604529"
 toggleBtn.ImageColor3 = colors.primary
@@ -516,45 +495,39 @@ toggleBtn.ImageTransparency = 0.1
 toggleBtn.Visible = true
 toggleBtn.Draggable = true
 toggleBtn.AutoButtonColor = true
-createCorner(toggleBtn, 20)
-createStroke(toggleBtn, colors.primary, 3)
+createCorner(toggleBtn, 14)
+createStroke(toggleBtn, colors.primary, 2)
 
--- ظل Premium
-local shadow = createShadow(toggleBtn, 12, 0.5)
-local glow = createGlow(toggleBtn, colors.glow, 40)
+local shadow = createShadow(toggleBtn, 8, 0.5)
+local glow = createGlow(toggleBtn, colors.glow, 20)
 
--- محتوى الأيقونة
 local btnBg = Instance.new("Frame", toggleBtn)
 btnBg.Size = UDim2.new(1, -4, 1, -4)
 btnBg.Position = UDim2.new(0, 2, 0, 2)
 btnBg.BackgroundColor3 = colors.bg2
 btnBg.BackgroundTransparency = 0.3
-createCorner(btnBg, 18)
+createCorner(btnBg, 12)
 createGradient(btnBg, colors.primary, colors.secondary, "diagonal")
 
 local toggleText = Instance.new("TextLabel", toggleBtn)
 toggleText.Size = UDim2.new(1, 0, 1, 0)
-toggleText.Text = "✦ABC"
+toggleText.Text = "✦"
 toggleText.TextColor3 = colors.text
 toggleText.BackgroundTransparency = 1
 toggleText.Font = Enum.Font.GothamBold
-toggleText.TextSize = 16
+toggleText.TextSize = 14
 toggleText.ZIndex = 2
 toggleText.TextScaled = true
 toggleText.TextWrapped = true
 
--- جسيمات حول الأيقونة
-local particle = createParticle(toggleBtn, colors.glow)
-particle.Enabled = true
-
--- تأثير نبض للأيقونة
+-- تأثير نبض خفيف
 task.spawn(function()
     while true do
         local colors = getThemeColors(currentTheme)
         local info = TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 75, 0, 75)}):Play()
+        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 48, 0, 48)}):Play()
         task.wait(0.3)
-        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 65, 0, 65)}):Play()
+        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 42, 0, 42)}):Play()
         task.wait(0.3)
     end
 end)
@@ -571,7 +544,7 @@ local function setupDragging(button)
             dragStart = input.Position
             startPos = button.Position
             button.ZIndex = 100
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 75, 0, 75)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 50, 0, 50)}):Play()
         end
     end)
     
@@ -598,7 +571,7 @@ local function setupDragging(button)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
             button.ZIndex = 1
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 70)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 45, 0, 45)}):Play()
         end
     end)
 end
@@ -618,15 +591,12 @@ mainFrame.Visible = false
 createCorner(mainFrame, 24)
 createStroke(mainFrame, colors.primary, 2)
 
--- خلفية متدرجة
 local bgGradient = createGradient(mainFrame, colors.bg, colors.bg2, "vertical")
 bgGradient.Transparency = NumberSequence.new(0, 0.5)
 
--- تأثير blur للخلفية
 local blur = createBlur(mainFrame, 10)
 blur.Enabled = false
 
--- ظل للواجهة
 local mainShadow = createShadow(mainFrame, 20, 0.3)
 
 ---------------------------------------
@@ -640,7 +610,6 @@ createCorner(header, 24)
 createGradient(header, colors.primary, colors.secondary, "horizontal")
 header.BackgroundTransparency = 0.3
 
--- خط فاصل تحت الهيدر
 local divider = Instance.new("Frame", mainFrame)
 divider.Size = UDim2.new(1, 0, 0, 2)
 divider.Position = UDim2.new(0, 0, 0, 65)
@@ -657,7 +626,6 @@ title.Font = Enum.Font.GothamBold
 title.TextSize = 24
 title.TextXAlignment = Enum.TextXAlignment.Left
 
--- subtitle
 local subtitle = Instance.new("TextLabel", header)
 subtitle.Size = UDim2.new(0.35, 0, 0.4, 0)
 subtitle.Position = UDim2.new(0, 15, 0.6, 0)
@@ -681,7 +649,6 @@ local function createHeaderButton(parent, text, color, posX)
     btn.ZIndex = 10
     btn.AutoButtonColor = true
     
-    -- تأثير hover
     btn.MouseEnter:Connect(function()
         TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 24}):Play()
     end)
@@ -728,7 +695,6 @@ statusLabel.Font = Enum.Font.Gotham
 statusLabel.TextSize = 12
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- نقطة حية
 task.spawn(function()
     while true do
         local info = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
@@ -797,7 +763,6 @@ local spamTab = createTab("📢 SPAM", 0, function()
     commandsContainer.Visible = false
     settingsFrame.Visible = false
     infoFrame.Visible = false
-    extraFrame.Visible = false
 end)
 
 local cmdsTab = createTab("📝 أوامر", 0.35, function()
@@ -805,7 +770,6 @@ local cmdsTab = createTab("📝 أوامر", 0.35, function()
     commandsContainer.Visible = true
     settingsFrame.Visible = false
     infoFrame.Visible = false
-    extraFrame.Visible = false
 end)
 
 local settingsTab = createTab("⚙️ إعدادات", 0.70, function()
@@ -813,7 +777,6 @@ local settingsTab = createTab("⚙️ إعدادات", 0.70, function()
     commandsContainer.Visible = false
     settingsFrame.Visible = true
     infoFrame.Visible = false
-    extraFrame.Visible = false
 end)
 
 spamTab.BackgroundColor3 = colors.primary
@@ -830,7 +793,6 @@ spamContainer.Position = UDim2.new(0, 15, 0, 160)
 spamContainer.BackgroundTransparency = 1
 spamContainer.Visible = true
 
--- صندوق الإدخال
 local inputBox = Instance.new("TextBox", spamContainer)
 inputBox.Size = UDim2.new(1, 0, 0, 75)
 inputBox.Position = UDim2.new(0, 0, 0, 0)
@@ -846,7 +808,6 @@ createCorner(inputBox, 14)
 createStroke(inputBox, colors.textDim, 0.5)
 inputBox.PlaceholderColor3 = colors.textDim
 
--- إطار الإعدادات
 local settingsRow = Instance.new("Frame", spamContainer)
 settingsRow.Size = UDim2.new(1, 0, 0, 35)
 settingsRow.Position = UDim2.new(0, 0, 0, 83)
@@ -873,7 +834,6 @@ local function createSettingCell(parent, label, pos)
     return cell
 end
 
--- الوقت
 local timeCell = createSettingCell(settingsRow, "⏱️ الوقت", 0)
 local timeBox = Instance.new("TextBox", timeCell)
 timeBox.Size = UDim2.new(0.6, 0, 0.45, 0)
@@ -897,7 +857,6 @@ infTimeBtn.Font = Enum.Font.GothamBold
 createCorner(infTimeBtn, 6)
 createStroke(infTimeBtn, colors.textDim, 0.3)
 
--- النسخ
 local copyCell = createSettingCell(settingsRow, "📋 النسخ", 0.26)
 local copyBox = Instance.new("TextBox", copyCell)
 copyBox.Size = UDim2.new(0.6, 0, 0.45, 0)
@@ -921,7 +880,6 @@ infCopyBtn.Font = Enum.Font.GothamBold
 createCorner(infCopyBtn, 6)
 createStroke(infCopyBtn, colors.textDim, 0.3)
 
--- السرعة
 local speedCell = createSettingCell(settingsRow, "⚡ السرعة", 0.52)
 local speedBox = Instance.new("TextBox", speedCell)
 speedBox.Size = UDim2.new(0.6, 0, 0.45, 0)
@@ -934,7 +892,6 @@ speedBox.Font = Enum.Font.GothamBold
 createCorner(speedBox, 6)
 createStroke(speedBox, colors.textDim, 0.3)
 
--- الإحصائيات
 local statCell = createSettingCell(settingsRow, "📊 الإحصائيات", 0.78)
 local cmdCount = Instance.new("TextLabel", statCell)
 cmdCount.Size = UDim2.new(1, 0, 0.4, 0)
@@ -954,7 +911,6 @@ sentCount.BackgroundTransparency = 1
 sentCount.TextSize = 10
 sentCount.Font = Enum.Font.Gotham
 
--- أزرار التحكم
 local controlRow = Instance.new("Frame", spamContainer)
 controlRow.Size = UDim2.new(1, 0, 0, 45)
 controlRow.Position = UDim2.new(0, 0, 0, 126)
@@ -984,7 +940,6 @@ createCorner(stopBtn, 12)
 createStroke(stopBtn, colors.danger, 2)
 stopBtn.AutoButtonColor = true
 
--- مؤقت
 local timerDisplay = Instance.new("TextLabel", spamContainer)
 timerDisplay.Size = UDim2.new(1, 0, 0, 22)
 timerDisplay.Position = UDim2.new(0, 0, 0, 180)
@@ -1012,7 +967,6 @@ cmdsTitle.Font = Enum.Font.GothamBold
 cmdsTitle.TextSize = 16
 cmdsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- إطار الإضافة
 local addFrame = Instance.new("Frame", commandsContainer)
 addFrame.Size = UDim2.new(1, 0, 0, 55)
 addFrame.Position = UDim2.new(0, 0, 0, 38)
@@ -1054,7 +1008,6 @@ addCmdBtn.Font = Enum.Font.GothamBold
 addCmdBtn.TextSize = 12
 createCorner(addCmdBtn, 8)
 
--- قائمة الأوامر
 local cmdsList = Instance.new("ScrollingFrame", commandsContainer)
 cmdsList.Size = UDim2.new(1, 0, 1, -110)
 cmdsList.Position = UDim2.new(0, 0, 0, 105)
@@ -1221,7 +1174,7 @@ scrollContainer.Position = UDim2.new(0, 5, 0, 40)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 3
 scrollContainer.ScrollBarImageColor3 = colors.primary
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 850)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 680)
 
 -- قسم الثيمات
 local themeTitle = Instance.new("TextLabel", scrollContainer)
@@ -1555,8 +1508,7 @@ createToggle("🔕 مضاد الإشعارات", 565, "🔕", function(s)
                                 g.Enabled = false
                                 g:Destroy()
                             end
-                        end
-                    end
+                        end                    end
                 end
                 for _, g in pairs(player.PlayerGui:GetChildren()) do
                     if g:IsA("ScreenGui") then
@@ -1684,89 +1636,7 @@ createToggle("💤 مضاد AFK", 663, "💤", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
--- قسم المميزات الإضافية
-local extraTitle = Instance.new("TextLabel", scrollContainer)
-extraTitle.Size = UDim2.new(1, 0, 0, 30)
-extraTitle.Position = UDim2.new(0, 0, 0, 718)
-extraTitle.Text = "⚡ مميزات إضافية"
-extraTitle.TextColor3 = colors.primary
-extraTitle.BackgroundTransparency = 1
-extraTitle.Font = Enum.Font.GothamBold
-extraTitle.TextSize = 15
-
--- سرعة
-createToggle("🏃 سرعة فائقة", 752, "🏃", function(s)
-    Settings.SpeedBoost = s
-    if s then
-        ProtectionThreads.SpeedBoost = RunService.Heartbeat:Connect(function()
-            if not Settings.SpeedBoost then return end
-            local char = player.Character
-            if char then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum then
-                    hum.WalkSpeed = 50
-                end
-            end
-        end)
-        statusLabel.Text = "✅ سرعة فائقة مفعلة"
-        statusLabel.TextColor3 = colors.success
-    else
-        if ProtectionThreads.SpeedBoost then
-            ProtectionThreads.SpeedBoost:Disconnect()
-            ProtectionThreads.SpeedBoost = nil
-        end
-        local char = player.Character
-        if char then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                hum.WalkSpeed = 16
-            end
-        end
-        statusLabel.Text = "❌ سرعة فائقة معطلة"
-        statusLabel.TextColor3 = colors.danger
-    end
-    task.wait(1.5)
-    statusLabel.Text = "جاهز للتشغيل"
-    statusLabel.TextColor3 = colors.textDim
-end)
-
--- قفز
-createToggle("🦘 قفز عالي", 801, "🦘", function(s)
-    Settings.JumpBoost = s
-    if s then
-        ProtectionThreads.JumpBoost = RunService.Heartbeat:Connect(function()
-            if not Settings.JumpBoost then return end
-            local char = player.Character
-            if char then
-                local hum = char:FindFirstChildOfClass("Humanoid")
-                if hum then
-                    hum.JumpPower = 100
-                end
-            end
-        end)
-        statusLabel.Text = "✅ قفز عالي مفعل"
-        statusLabel.TextColor3 = colors.success
-    else
-        if ProtectionThreads.JumpBoost then
-            ProtectionThreads.JumpBoost:Disconnect()
-            ProtectionThreads.JumpBoost = nil
-        end
-        local char = player.Character
-        if char then
-            local hum = char:FindFirstChildOfClass("Humanoid")
-            if hum then
-                hum.JumpPower = 50
-            end
-        end
-        statusLabel.Text = "❌ قفز عالي معطل"
-        statusLabel.TextColor3 = colors.danger
-    end
-    task.wait(1.5)
-    statusLabel.Text = "جاهز للتشغيل"
-    statusLabel.TextColor3 = colors.textDim
-end)
-
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 860)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 720)
 
 ---------------------------------------
 -- نافذة المعلومات 100ZX
@@ -1932,7 +1802,6 @@ local features = {
     "✅ سرعة تكرار فائقة",
     "✅ واجهة Premium للهواتف",
     "✅ تأثيرات حركية جذابة",
-    "✅ سرعة فائقة وقفز عالي",
 }
 for _, feature in ipairs(features) do
     createInfoText(feature, pos, colors.text, 12)
@@ -1964,7 +1833,6 @@ local updates = {
     "🔹 أوامر صوتية",
     "🔹 ثيمات جديدة",
     "🔹 تحسين الأداء والسرعة",
-    "🔹 نظام إشعارات متقدم",
 }
 for _, update in ipairs(updates) do
     createInfoText(update, pos, colors.warning, 12)
@@ -2232,7 +2100,6 @@ task.spawn(function()
     end
 end)
 
--- تأثير دخول للواجهة
 mainFrame.Visible = false
 toggleBtn.Visible = true
 
@@ -2242,5 +2109,5 @@ print("║  👨‍💻 المطور: Hamza000599                               
 print("║  ✅ 14 ثيماً احترافية                                  ║")
 print("║  ✅ واجهة مخصصة للموبايل                              ║")
 print("║  ✅ سرعة فائقة + تصميم 100ZX                         ║")
-print("║  ✅ مميزات إضافية: سرعة + قفز                        ║")
+print("║  ✅ زر دخول/خروج صغير 45×45                          ║")
 print("╚════════════════════════════════════════════════════════════╝")
