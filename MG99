@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 MG9 ULTIMATE HUB V25 - ULTRA DESIGN 🔥
+-- 🔥 MG9 ULTIMATE HUB V25 - ULTRA DESIGN (MOBILE OPTIMIZED) 🔥
 -- 👨‍💻 المطور: mo7sma0550
 -- ═══════════════════════════════════════════════════════════════
 
@@ -19,6 +19,7 @@ local gui = Instance.new("ScreenGui", CoreGui)
 gui.Name = "MG9"
 gui.ResetOnSpawn = false
 gui.ZIndexBehavior = Enum.ZIndexBehavior.Sibling
+gui.IgnoreGuiInset = true
 
 ---------------------------------------
 -- تأثيرات بصرية متقدمة
@@ -111,16 +112,35 @@ local ProtectionThreads = {
 }
 
 ---------------------------------------
--- ⚡ دالة الضغطة الواحدة
+-- ⚡ دالة الضغطة الواحدة (محسنة للهاتف)
 ---------------------------------------
 local function setupOneClick(button, callback)
     if not button then return end
-    button.MouseButton1Click:Connect(callback)
-    button.TouchTap:Connect(callback)
+    
+    -- منع الضغط المتكرر
+    local debounce = false
+    
+    local function handlePress()
+        if debounce then return end
+        debounce = true
+        callback()
+        task.wait(0.15) -- منع التكرار السريع
+        debounce = false
+    end
+    
+    button.MouseButton1Click:Connect(handlePress)
+    button.TouchTap:Connect(handlePress)
+    
+    -- للهواتف بشكل خاص
     button.InputBegan:Connect(function(input)
         if input.UserInputType == Enum.UserInputType.Touch or input.UserInputType == Enum.UserInputType.MouseButton1 then
-            callback()
+            handlePress()
         end
+    end)
+    
+    -- منع الـ Double Tap على الهواتف
+    button.TouchLongPress:Connect(function()
+        -- لا تفعل شيء لمنع الضغط المطول
     end)
 end
 
@@ -322,11 +342,9 @@ local function applyTheme(themeName)
     currentTheme = themeName
     local colors = getThemeColors(themeName)
     
-    -- إخفاء مؤقت لتجنب وميض
     local wasVisible = mainFrame.Visible
     mainFrame.Visible = false
     
-    -- تحديث جميع العناصر
     mainFrame.BackgroundColor3 = colors.bg
     if mainFrame:FindFirstChild("UIStroke") then
         mainFrame.UIStroke.Color = colors.primary
@@ -343,7 +361,6 @@ local function applyTheme(themeName)
     toggleBtn.ImageColor3 = colors.primary
     toggleBtn.UIStroke.Color = colors.primary
     
-    -- تحديث الظل
     if toggleBtn:FindFirstChild("ShadowGlow") then
         toggleBtn.ShadowGlow.ImageColor3 = colors.glow
     end
@@ -369,7 +386,6 @@ local function applyTheme(themeName)
         statusBar.UIStroke.Color = colors.textDim
     end
     
-    -- تحديث التبويبات
     for _, child in pairs(tabFrame:GetChildren()) do
         if child:IsA("TextButton") then
             child.BackgroundColor3 = colors.bg2
@@ -386,7 +402,6 @@ local function applyTheme(themeName)
         spamTab.UIStroke.Color = colors.primary
     end
     
-    -- تحديث الحاويات
     for _, container in pairs({spamContainer, commandsContainer}) do
         if container then
             for _, child in pairs(container:GetChildren()) do
@@ -404,7 +419,6 @@ local function applyTheme(themeName)
         end
     end
     
-    -- تحديث إعدادات الحماية
     for _, child in pairs(scrollContainer:GetChildren()) do
         if child:IsA("Frame") and child:FindFirstChild("Label") then
             child.BackgroundColor3 = colors.bg2
@@ -423,10 +437,7 @@ local function applyTheme(themeName)
         end
     end
     
-    -- تحديث الأوامر
     refreshCommandsList()
-    
-    -- تحديث زر الأيقونة
     toggleText.TextColor3 = colors.text
     
     mainFrame.Visible = wasVisible
@@ -439,11 +450,11 @@ local function applyTheme(themeName)
 end
 
 ---------------------------------------
--- ✅ أيقونة الدخول/الخروج (تصميم فاخر)
+-- ✅ أيقونة الدخول/الخروج (محسنة للهاتف - ضغطة واحدة)
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0, 65, 0, 65)
-toggleBtn.Position = UDim2.new(1, -80, 0.5, -32)
+toggleBtn.Size = UDim2.new(0, 75, 0, 75) -- أكبر للهاتف
+toggleBtn.Position = UDim2.new(1, -90, 0.5, -37)
 toggleBtn.BackgroundColor3 = colors.bg2
 toggleBtn.Image = "rbxassetid://131604529"
 toggleBtn.ImageColor3 = colors.primary
@@ -451,13 +462,14 @@ toggleBtn.ImageTransparency = 0.1
 toggleBtn.Visible = true
 toggleBtn.Draggable = true
 toggleBtn.ZIndex = 100
-createCorner(toggleBtn, 16)
-createStroke(toggleBtn, colors.primary, 2.5, 0.3)
+toggleBtn.AutoButtonColor = false -- منع تغيير اللون التلقائي
+createCorner(toggleBtn, 20)
+createStroke(toggleBtn, colors.primary, 3, 0.3)
 
 -- ظل متوهج
 local shadowGlow = Instance.new("ImageLabel", toggleBtn)
-shadowGlow.Size = UDim2.new(1, 16, 1, 16)
-shadowGlow.Position = UDim2.new(0, -8, 0, -8)
+shadowGlow.Size = UDim2.new(1, 20, 1, 20)
+shadowGlow.Position = UDim2.new(0, -10, 0, -10)
 shadowGlow.Image = "rbxassetid://131604529"
 shadowGlow.ImageColor3 = colors.glow
 shadowGlow.ImageTransparency = 0.6
@@ -467,8 +479,8 @@ shadowGlow.Name = "ShadowGlow"
 
 -- نيون رينغ
 local ringGlow = Instance.new("ImageLabel", toggleBtn)
-ringGlow.Size = UDim2.new(1.4, 0, 1.4, 0)
-ringGlow.Position = UDim2.new(-0.2, 0, -0.2, 0)
+ringGlow.Size = UDim2.new(1.5, 0, 1.5, 0)
+ringGlow.Position = UDim2.new(-0.25, 0, -0.25, 0)
 ringGlow.Image = "rbxassetid://131604529"
 ringGlow.ImageColor3 = colors.primary
 ringGlow.ImageTransparency = 0.85
@@ -482,12 +494,12 @@ toggleText.Text = "MG9"
 toggleText.TextColor3 = colors.text
 toggleText.BackgroundTransparency = 1
 toggleText.Font = Enum.Font.GothamBold
-toggleText.TextSize = 18
+toggleText.TextSize = 20
 toggleText.ZIndex = 2
 toggleText.TextStrokeColor3 = colors.primary
 toggleText.TextStrokeTransparency = 0.5
 
--- سحب الأيقونة المحسن
+-- سحب الأيقونة المحسن للهاتف
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -499,8 +511,7 @@ local function setupDragging(button)
             dragStart = input.Position
             startPos = button.Position
             button.ZIndex = 100
-            -- تكبير الأيقونة عند السحب
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 75, 0, 75)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 85, 0, 85)}):Play()
         end
     end)
     
@@ -527,31 +538,62 @@ local function setupDragging(button)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
             button.ZIndex = 1
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 65, 0, 65)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 75, 0, 75)}):Play()
         end
     end)
 end
 
 setupDragging(toggleBtn)
 
+-- ✅ ضغطة واحدة لفتح وإغلاق السكربت (بدون ضغط مزدوج)
+local toggleDebounce = false
+local function toggleMainFrame()
+    if toggleDebounce then return end
+    toggleDebounce = true
+    
+    mainFrame.Visible = not mainFrame.Visible
+    if mainFrame.Visible then
+        toggleBtn.Visible = false
+        statusLabel.Text = "تم فتح السكربت"
+        statusLabel.TextColor3 = colors.success
+        task.wait(1.5)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    else
+        toggleBtn.Visible = true
+    end
+    
+    task.wait(0.2)
+    toggleDebounce = false
+end
+
+-- ربط الأحداث للضغطة الواحدة
+toggleBtn.MouseButton1Click:Connect(toggleMainFrame)
+toggleBtn.TouchTap:Connect(toggleMainFrame)
+toggleBtn.InputBegan:Connect(function(input)
+    if input.UserInputType == Enum.UserInputType.Touch then
+        toggleMainFrame()
+    end
+end)
+
 ---------------------------------------
--- الواجهة الرئيسية (تصميم فاخر)
+-- الواجهة الرئيسية (محسنة للهاتف - أكبر)
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.new(0, 420, 0, 580)
-mainFrame.Position = UDim2.new(0.5, -210, 0.5, -290)
+mainFrame.Size = UDim2.new(0, 440, 0, 620) -- أكبر للهاتف
+mainFrame.Position = UDim2.new(0.5, -220, 0.5, -310)
 mainFrame.BackgroundColor3 = colors.bg
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = false
 mainFrame.ZIndex = 50
-createCorner(mainFrame, 20)
-createStroke(mainFrame, colors.primary, 1.5, 0.3)
+createCorner(mainFrame, 24)
+createStroke(mainFrame, colors.primary, 2, 0.3)
 
 -- ظل ناعم للواجهة
 local mainShadow = Instance.new("ImageLabel", mainFrame)
-mainShadow.Size = UDim2.new(1, 30, 1, 30)
-mainShadow.Position = UDim2.new(0, -15, 0, -15)
+mainShadow.Size = UDim2.new(1, 40, 1, 40)
+mainShadow.Position = UDim2.new(0, -20, 0, -20)
 mainShadow.Image = "rbxassetid://131604529"
 mainShadow.ImageColor3 = Color3.fromRGB(0, 0, 0)
 mainShadow.ImageTransparency = 0.6
@@ -571,22 +613,22 @@ bgGradient.Rotation = 135
 -- الهيدر (تصميم عصري)
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
-header.Size = UDim2.new(1, 0, 0, 60)
+header.Size = UDim2.new(1, 0, 0, 65)
 header.BackgroundColor3 = colors.bg2
 header.BackgroundTransparency = 0.2
-createCorner(header, 20)
+createCorner(header, 24)
 
 -- خط متوهج تحت الهيدر
 local headerLine = Instance.new("Frame", mainFrame)
 headerLine.Size = UDim2.new(0.8, 0, 0, 2)
-headerLine.Position = UDim2.new(0.1, 0, 0, 60)
+headerLine.Position = UDim2.new(0.1, 0, 0, 65)
 headerLine.BackgroundColor3 = colors.primary
 headerLine.BackgroundTransparency = 0.5
 createCorner(headerLine, 1)
 
 local headerGlow = Instance.new("ImageLabel", mainFrame)
-headerGlow.Size = UDim2.new(0.6, 0, 0, 15)
-headerGlow.Position = UDim2.new(0.2, 0, 0, 54)
+headerGlow.Size = UDim2.new(0.6, 0, 0, 20)
+headerGlow.Position = UDim2.new(0.2, 0, 0, 58)
 headerGlow.Image = "rbxassetid://131604529"
 headerGlow.ImageColor3 = colors.glow
 headerGlow.ImageTransparency = 0.9
@@ -595,93 +637,93 @@ headerGlow.ZIndex = 0
 
 local title = Instance.new("TextLabel", header)
 title.Size = UDim2.new(0.4, 0, 1, 0)
-title.Position = UDim2.new(0, 15, 0, 0)
+title.Position = UDim2.new(0, 18, 0, 0)
 title.Text = "✦ MG9"
 title.TextColor3 = colors.primary
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
-title.TextSize = 22
+title.TextSize = 24
 title.TextXAlignment = Enum.TextXAlignment.Left
 title.TextStrokeColor3 = colors.glow
 title.TextStrokeTransparency = 0.7
 
 local subtitle = Instance.new("TextLabel", header)
 subtitle.Size = UDim2.new(0.4, 0, 1, 0)
-subtitle.Position = UDim2.new(0, 15, 0, 0)
+subtitle.Position = UDim2.new(0, 18, 0, 0)
 subtitle.Text = "V25 ULTRA"
 subtitle.TextColor3 = colors.textDim
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
-subtitle.TextSize = 10
+subtitle.TextSize = 11
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 subtitle.TextYAlignment = Enum.TextYAlignment.Bottom
 
--- أزرار الهيدر (أيقونات محسنة)
+-- أزرار الهيدر (أكبر للهاتف)
 local function createHeaderButton(parent, text, color, pos, tooltip)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(0, 32, 0, 32)
-    btn.Position = UDim2.new(1, pos, 0.5, -16)
+    btn.Size = UDim2.new(0, 38, 0, 38)
+    btn.Position = UDim2.new(1, pos, 0.5, -19)
     btn.Text = text
     btn.TextColor3 = color
     btn.BackgroundColor3 = colors.bg3
     btn.BackgroundTransparency = 0.5
-    btn.TextSize = 16
+    btn.TextSize = 18
     btn.Font = Enum.Font.GothamBold
     btn.ZIndex = 10
-    createCorner(btn, 8)
+    createCorner(btn, 10)
     createStroke(btn, color, 0.5, 0.5)
     return btn
 end
 
-local infoBtn = createHeaderButton(header, "ℹ️", colors.info, -210, "معلومات")
-local themeBtn = createHeaderButton(header, "🎨", colors.primary, -172, "تغيير الثيم")
-local settingsBtn = createHeaderButton(header, "⚙️", colors.gold, -134, "إعدادات")
-local closeBtn = createHeaderButton(header, "✕", colors.danger, -96, "إغلاق")
-local minimizeBtn = createHeaderButton(header, "−", colors.textDim, -58, "تصغير")
+local infoBtn = createHeaderButton(header, "ℹ️", colors.info, -230, "معلومات")
+local themeBtn = createHeaderButton(header, "🎨", colors.primary, -188, "تغيير الثيم")
+local settingsBtn = createHeaderButton(header, "⚙️", colors.gold, -146, "إعدادات")
+local closeBtn = createHeaderButton(header, "✕", colors.danger, -104, "إغلاق")
+local minimizeBtn = createHeaderButton(header, "−", colors.textDim, -62, "تصغير")
 
 ---------------------------------------
 -- شريط الحالة (تصميم متطور)
 ---------------------------------------
 local statusBar = Instance.new("Frame", mainFrame)
-statusBar.Size = UDim2.new(1, -30, 0, 30)
-statusBar.Position = UDim2.new(0, 15, 0, 72)
+statusBar.Size = UDim2.new(1, -30, 0, 35)
+statusBar.Position = UDim2.new(0, 15, 0, 78)
 statusBar.BackgroundColor3 = colors.bg2
 statusBar.BackgroundTransparency = 0.3
-createCorner(statusBar, 10)
+createCorner(statusBar, 12)
 createStroke(statusBar, colors.textDim, 0.5, 0.3)
 
 -- مؤشر النشاط
 local statusPulse = Instance.new("Frame", statusBar)
-statusPulse.Size = UDim2.new(0, 8, 0, 8)
-statusPulse.Position = UDim2.new(0, 10, 0.5, -4)
+statusPulse.Size = UDim2.new(0, 10, 0, 10)
+statusPulse.Position = UDim2.new(0, 12, 0.5, -5)
 statusPulse.BackgroundColor3 = colors.success
 statusPulse.BackgroundTransparency = 0.3
-createCorner(statusPulse, 4)
+createCorner(statusPulse, 5)
 
 local statusIcon = Instance.new("TextLabel", statusBar)
-statusIcon.Size = UDim2.new(0, 20, 1, 0)
-statusIcon.Position = UDim2.new(0, 22, 0, 0)
+statusIcon.Size = UDim2.new(0, 22, 1, 0)
+statusIcon.Position = UDim2.new(0, 26, 0, 0)
 statusIcon.Text = "●"
 statusIcon.TextColor3 = colors.success
 statusIcon.BackgroundTransparency = 1
-statusIcon.TextSize = 12
+statusIcon.TextSize = 14
 
 local statusLabel = Instance.new("TextLabel", statusBar)
-statusLabel.Size = UDim2.new(1, -50, 1, 0)
-statusLabel.Position = UDim2.new(0, 40, 0, 0)
+statusLabel.Size = UDim2.new(1, -55, 1, 0)
+statusLabel.Position = UDim2.new(0, 45, 0, 0)
 statusLabel.Text = "جاهز للتشغيل"
 statusLabel.TextColor3 = colors.textDim
 statusLabel.BackgroundTransparency = 1
 statusLabel.Font = Enum.Font.Gotham
-statusLabel.TextSize = 11
+statusLabel.TextSize = 12
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
 ---------------------------------------
 -- علامات تبويب (تصميم عصري)
 ---------------------------------------
 local tabFrame = Instance.new("Frame", mainFrame)
-tabFrame.Size = UDim2.new(1, -30, 0, 35)
-tabFrame.Position = UDim2.new(0, 15, 0, 110)
+tabFrame.Size = UDim2.new(1, -30, 0, 40)
+tabFrame.Position = UDim2.new(0, 15, 0, 122)
 tabFrame.BackgroundTransparency = 1
 
 local function createTab(name, pos, callback)
@@ -693,8 +735,8 @@ local function createTab(name, pos, callback)
     btn.Text = name
     btn.TextColor3 = colors.textDim
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 12
-    createCorner(btn, 8)
+    btn.TextSize = 13
+    createCorner(btn, 10)
     local stroke = createStroke(btn, colors.textDim, 0.5, 0.3)
     
     setupOneClick(btn, function()
@@ -750,33 +792,33 @@ spamTab.UIStroke.Color = colors.primary
 spamTab.UIStroke.Transparency = 0.5
 
 ---------------------------------------
--- حاوية SPAM (تصميم محسن)
+-- حاوية SPAM (تصميم محسن للهاتف)
 ---------------------------------------
 local spamContainer = Instance.new("Frame", mainFrame)
-spamContainer.Size = UDim2.new(1, -30, 1, -160)
-spamContainer.Position = UDim2.new(0, 15, 0, 152)
+spamContainer.Size = UDim2.new(1, -30, 1, -178)
+spamContainer.Position = UDim2.new(0, 15, 0, 170)
 spamContainer.BackgroundTransparency = 1
 spamContainer.Visible = true
 
 local inputBox = Instance.new("TextBox", spamContainer)
-inputBox.Size = UDim2.new(1, 0, 0, 70)
+inputBox.Size = UDim2.new(1, 0, 0, 80)
 inputBox.Position = UDim2.new(0, 0, 0, 0)
 inputBox.PlaceholderText = "📝 اكتب الأوامر... (افصل بـ ;)"
 inputBox.Text = ""
 inputBox.TextColor3 = colors.text
-inputBox.TextSize = 12
+inputBox.TextSize = 13
 inputBox.BackgroundColor3 = colors.bg2
 inputBox.BackgroundTransparency = 0.3
 inputBox.MultiLine = true
 inputBox.ClearTextOnFocus = false
 inputBox.Font = Enum.Font.Gotham
-createCorner(inputBox, 10)
+createCorner(inputBox, 12)
 createStroke(inputBox, colors.primary, 0.5, 0.4)
 
 -- إطار متوهج حول الـ TextBox
 local inputGlow = Instance.new("ImageLabel", inputBox)
-inputGlow.Size = UDim2.new(1, 20, 1, 20)
-inputGlow.Position = UDim2.new(0, -10, 0, -10)
+inputGlow.Size = UDim2.new(1, 24, 1, 24)
+inputGlow.Position = UDim2.new(0, -12, 0, -12)
 inputGlow.Image = "rbxassetid://131604529"
 inputGlow.ImageColor3 = colors.glow
 inputGlow.ImageTransparency = 0.85
@@ -784,8 +826,8 @@ inputGlow.ZIndex = 0
 inputGlow.BackgroundTransparency = 1
 
 local settingsRow = Instance.new("Frame", spamContainer)
-settingsRow.Size = UDim2.new(1, 0, 0, 32)
-settingsRow.Position = UDim2.new(0, 0, 0, 78)
+settingsRow.Size = UDim2.new(1, 0, 0, 38)
+settingsRow.Position = UDim2.new(0, 0, 0, 88)
 settingsRow.BackgroundTransparency = 1
 
 -- حقل الوقت
@@ -794,7 +836,7 @@ timeLabel.Size = UDim2.new(0.12, 0, 1, 0)
 timeLabel.Text = "⏱️"
 timeLabel.TextColor3 = colors.textDim
 timeLabel.BackgroundTransparency = 1
-timeLabel.TextSize = 13
+timeLabel.TextSize = 15
 timeLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 local timeBox = Instance.new("TextBox", settingsRow)
@@ -804,9 +846,9 @@ timeBox.Text = "10"
 timeBox.TextColor3 = colors.text
 timeBox.BackgroundColor3 = colors.bg2
 timeBox.BackgroundTransparency = 0.3
-timeBox.TextSize = 12
+timeBox.TextSize = 13
 timeBox.Font = Enum.Font.GothamBold
-createCorner(timeBox, 6)
+createCorner(timeBox, 8)
 createStroke(timeBox, colors.textDim, 0.5, 0.3)
 
 local infTimeBtn = Instance.new("TextButton", settingsRow)
@@ -816,9 +858,9 @@ infTimeBtn.Text = "∞"
 infTimeBtn.TextColor3 = colors.text
 infTimeBtn.BackgroundColor3 = colors.bg2
 infTimeBtn.BackgroundTransparency = 0.3
-infTimeBtn.TextSize = 16
+infTimeBtn.TextSize = 18
 infTimeBtn.Font = Enum.Font.GothamBold
-createCorner(infTimeBtn, 6)
+createCorner(infTimeBtn, 8)
 createStroke(infTimeBtn, colors.textDim, 0.5, 0.3)
 
 -- حقل التكرار
@@ -828,7 +870,7 @@ copyLabel.Position = UDim2.new(0.38, 0, 0, 0)
 copyLabel.Text = "📋"
 copyLabel.TextColor3 = colors.textDim
 copyLabel.BackgroundTransparency = 1
-copyLabel.TextSize = 13
+copyLabel.TextSize = 15
 copyLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 local copyBox = Instance.new("TextBox", settingsRow)
@@ -838,9 +880,9 @@ copyBox.Text = "3"
 copyBox.TextColor3 = colors.text
 copyBox.BackgroundColor3 = colors.bg2
 copyBox.BackgroundTransparency = 0.3
-copyBox.TextSize = 12
+copyBox.TextSize = 13
 copyBox.Font = Enum.Font.GothamBold
-createCorner(copyBox, 6)
+createCorner(copyBox, 8)
 createStroke(copyBox, colors.textDim, 0.5, 0.3)
 
 local infCopyBtn = Instance.new("TextButton", settingsRow)
@@ -850,9 +892,9 @@ infCopyBtn.Text = "∞"
 infCopyBtn.TextColor3 = colors.text
 infCopyBtn.BackgroundColor3 = colors.bg2
 infCopyBtn.BackgroundTransparency = 0.3
-infCopyBtn.TextSize = 16
+infCopyBtn.TextSize = 18
 infCopyBtn.Font = Enum.Font.GothamBold
-createCorner(infCopyBtn, 6)
+createCorner(infCopyBtn, 8)
 createStroke(infCopyBtn, colors.textDim, 0.5, 0.3)
 
 -- حقل السرعة
@@ -862,7 +904,7 @@ speedLabel.Position = UDim2.new(0.76, 0, 0, 0)
 speedLabel.Text = "⚡"
 speedLabel.TextColor3 = colors.textDim
 speedLabel.BackgroundTransparency = 1
-speedLabel.TextSize = 13
+speedLabel.TextSize = 15
 speedLabel.TextXAlignment = Enum.TextXAlignment.Right
 
 local speedBox = Instance.new("TextBox", settingsRow)
@@ -872,15 +914,15 @@ speedBox.Text = "0.01"
 speedBox.TextColor3 = colors.text
 speedBox.BackgroundColor3 = colors.bg2
 speedBox.BackgroundTransparency = 0.3
-speedBox.TextSize = 12
+speedBox.TextSize = 13
 speedBox.Font = Enum.Font.GothamBold
-createCorner(speedBox, 6)
+createCorner(speedBox, 8)
 createStroke(speedBox, colors.textDim, 0.5, 0.3)
 
 -- إحصائيات
 local statsRow = Instance.new("Frame", spamContainer)
-statsRow.Size = UDim2.new(1, 0, 0, 22)
-statsRow.Position = UDim2.new(0, 0, 0, 118)
+statsRow.Size = UDim2.new(1, 0, 0, 26)
+statsRow.Position = UDim2.new(0, 0, 0, 134)
 statsRow.BackgroundTransparency = 1
 
 local cmdCount = Instance.new("TextLabel", statsRow)
@@ -888,7 +930,7 @@ cmdCount.Size = UDim2.new(0.33, 0, 1, 0)
 cmdCount.Text = "📝 0"
 cmdCount.TextColor3 = colors.textDim
 cmdCount.BackgroundTransparency = 1
-cmdCount.TextSize = 11
+cmdCount.TextSize = 12
 cmdCount.Font = Enum.Font.Gotham
 cmdCount.TextXAlignment = Enum.TextXAlignment.Left
 
@@ -898,7 +940,7 @@ sentCount.Position = UDim2.new(0.33, 0, 0, 0)
 sentCount.Text = "📤 0"
 sentCount.TextColor3 = colors.textDim
 sentCount.BackgroundTransparency = 1
-sentCount.TextSize = 11
+sentCount.TextSize = 12
 sentCount.Font = Enum.Font.Gotham
 
 local spamStatus = Instance.new("TextLabel", statsRow)
@@ -907,14 +949,14 @@ spamStatus.Position = UDim2.new(0.67, 0, 0, 0)
 spamStatus.Text = "⏸️"
 spamStatus.TextColor3 = colors.textDim
 spamStatus.BackgroundTransparency = 1
-spamStatus.TextSize = 11
+spamStatus.TextSize = 12
 spamStatus.Font = Enum.Font.Gotham
 spamStatus.TextXAlignment = Enum.TextXAlignment.Right
 
 -- أزرار التحكم (تصميم أنيق)
 local controlRow = Instance.new("Frame", spamContainer)
-controlRow.Size = UDim2.new(1, 0, 0, 48)
-controlRow.Position = UDim2.new(0, 0, 0, 148)
+controlRow.Size = UDim2.new(1, 0, 0, 55)
+controlRow.Position = UDim2.new(0, 0, 0, 168)
 controlRow.BackgroundTransparency = 1
 
 local startBtn = Instance.new("TextButton", controlRow)
@@ -925,14 +967,14 @@ startBtn.BackgroundColor3 = colors.success
 startBtn.BackgroundTransparency = 0.1
 startBtn.TextColor3 = colors.text
 startBtn.Font = Enum.Font.GothamBold
-startBtn.TextSize = 14
-createCorner(startBtn, 10)
-createStroke(startBtn, colors.success, 1.5, 0.3)
+startBtn.TextSize = 16
+createCorner(startBtn, 12)
+createStroke(startBtn, colors.success, 2, 0.3)
 
 -- تأثير التوهج لزر التشغيل
 local startGlow = Instance.new("ImageLabel", startBtn)
-startGlow.Size = UDim2.new(1, 20, 1, 20)
-startGlow.Position = UDim2.new(0, -10, 0, -10)
+startGlow.Size = UDim2.new(1, 24, 1, 24)
+startGlow.Position = UDim2.new(0, -12, 0, -12)
 startGlow.Image = "rbxassetid://131604529"
 startGlow.ImageColor3 = colors.success
 startGlow.ImageTransparency = 0.85
@@ -947,47 +989,47 @@ stopBtn.BackgroundColor3 = colors.danger
 stopBtn.BackgroundTransparency = 0.1
 stopBtn.TextColor3 = colors.text
 stopBtn.Font = Enum.Font.GothamBold
-stopBtn.TextSize = 14
-createCorner(stopBtn, 10)
-createStroke(stopBtn, colors.danger, 1.5, 0.3)
+stopBtn.TextSize = 16
+createCorner(stopBtn, 12)
+createStroke(stopBtn, colors.danger, 2, 0.3)
 
 local timerDisplay = Instance.new("TextLabel", spamContainer)
-timerDisplay.Size = UDim2.new(1, 0, 0, 20)
-timerDisplay.Position = UDim2.new(0, 0, 0, 202)
+timerDisplay.Size = UDim2.new(1, 0, 0, 24)
+timerDisplay.Position = UDim2.new(0, 0, 0, 230)
 timerDisplay.Text = "⏱️ --"
 timerDisplay.TextColor3 = colors.warning
 timerDisplay.BackgroundTransparency = 1
-timerDisplay.TextSize = 12
+timerDisplay.TextSize = 13
 timerDisplay.Font = Enum.Font.GothamBold
 timerDisplay.TextStrokeColor3 = colors.warning
 timerDisplay.TextStrokeTransparency = 0.5
 
 ---------------------------------------
--- حاوية الأوامر المخصصة (تصميم محسن)
+-- حاوية الأوامر المخصصة (تصميم محسن للهاتف)
 ---------------------------------------
 local commandsContainer = Instance.new("Frame", mainFrame)
-commandsContainer.Size = UDim2.new(1, -30, 1, -160)
-commandsContainer.Position = UDim2.new(0, 15, 0, 152)
+commandsContainer.Size = UDim2.new(1, -30, 1, -178)
+commandsContainer.Position = UDim2.new(0, 15, 0, 170)
 commandsContainer.BackgroundTransparency = 1
 commandsContainer.Visible = false
 
 local cmdsTitle = Instance.new("TextLabel", commandsContainer)
-cmdsTitle.Size = UDim2.new(1, 0, 0, 30)
+cmdsTitle.Size = UDim2.new(1, 0, 0, 35)
 cmdsTitle.Text = "📝 الأوامر المخصصة"
 cmdsTitle.TextColor3 = colors.primary
 cmdsTitle.BackgroundTransparency = 1
 cmdsTitle.Font = Enum.Font.GothamBold
-cmdsTitle.TextSize = 15
+cmdsTitle.TextSize = 16
 cmdsTitle.TextXAlignment = Enum.TextXAlignment.Left
 cmdsTitle.TextStrokeColor3 = colors.glow
 cmdsTitle.TextStrokeTransparency = 0.7
 
 local addFrame = Instance.new("Frame", commandsContainer)
-addFrame.Size = UDim2.new(1, 0, 0, 52)
-addFrame.Position = UDim2.new(0, 0, 0, 35)
+addFrame.Size = UDim2.new(1, 0, 0, 60)
+addFrame.Position = UDim2.new(0, 0, 0, 40)
 addFrame.BackgroundColor3 = colors.bg2
 addFrame.BackgroundTransparency = 0.3
-createCorner(addFrame, 10)
+createCorner(addFrame, 12)
 createStroke(addFrame, colors.textDim, 0.5, 0.3)
 
 local nameBox = Instance.new("TextBox", addFrame)
@@ -996,11 +1038,11 @@ nameBox.Position = UDim2.new(0, 5, 0, 0)
 nameBox.PlaceholderText = "📌 الاسم"
 nameBox.Text = ""
 nameBox.TextColor3 = colors.text
-nameBox.TextSize = 11
+nameBox.TextSize = 12
 nameBox.BackgroundColor3 = colors.bg3
 nameBox.BackgroundTransparency = 0.3
 nameBox.Font = Enum.Font.Gotham
-createCorner(nameBox, 6)
+createCorner(nameBox, 8)
 createStroke(nameBox, colors.textDim, 0.5, 0.3)
 
 local cmdBox = Instance.new("TextBox", addFrame)
@@ -1009,11 +1051,11 @@ cmdBox.Position = UDim2.new(0.37, 0, 0, 0)
 cmdBox.PlaceholderText = "📝 الأمر"
 cmdBox.Text = ""
 cmdBox.TextColor3 = colors.text
-cmdBox.TextSize = 11
+cmdBox.TextSize = 12
 cmdBox.BackgroundColor3 = colors.bg3
 cmdBox.BackgroundTransparency = 0.3
 cmdBox.Font = Enum.Font.Gotham
-createCorner(cmdBox, 6)
+createCorner(cmdBox, 8)
 createStroke(cmdBox, colors.textDim, 0.5, 0.3)
 
 local addCmdBtn = Instance.new("TextButton", addFrame)
@@ -1024,13 +1066,13 @@ addCmdBtn.BackgroundColor3 = colors.success
 addCmdBtn.BackgroundTransparency = 0.1
 addCmdBtn.TextColor3 = colors.text
 addCmdBtn.Font = Enum.Font.GothamBold
-addCmdBtn.TextSize = 11
-createCorner(addCmdBtn, 6)
+addCmdBtn.TextSize = 12
+createCorner(addCmdBtn, 8)
 createStroke(addCmdBtn, colors.success, 1, 0.3)
 
 local cmdsList = Instance.new("ScrollingFrame", commandsContainer)
-cmdsList.Size = UDim2.new(1, 0, 1, -100)
-cmdsList.Position = UDim2.new(0, 0, 0, 95)
+cmdsList.Size = UDim2.new(1, 0, 1, -115)
+cmdsList.Position = UDim2.new(0, 0, 0, 108)
 cmdsList.BackgroundTransparency = 1
 cmdsList.ScrollBarThickness = 4
 cmdsList.ScrollBarImageColor3 = colors.primary
@@ -1062,15 +1104,15 @@ local function refreshCommandsList()
         end
     end
     
-    cmdsList.CanvasSize = UDim2.new(0, 0, 0, #customCommands * 48 + 10)
+    cmdsList.CanvasSize = UDim2.new(0, 0, 0, #customCommands * 55 + 10)
     
     for i, cmd in ipairs(customCommands) do
         local frame = Instance.new("Frame", cmdsList)
-        frame.Size = UDim2.new(1, 0, 0, 42)
-        frame.Position = UDim2.new(0, 0, 0, (i-1) * 48 + 5)
+        frame.Size = UDim2.new(1, 0, 0, 48)
+        frame.Position = UDim2.new(0, 0, 0, (i-1) * 55 + 5)
         frame.BackgroundColor3 = colors.bg2
         frame.BackgroundTransparency = 0.3
-        createCorner(frame, 8)
+        createCorner(frame, 10)
         createStroke(frame, colors.textDim, 0.5, 0.3)
         
         local nameLabel = Instance.new("TextLabel", frame)
@@ -1080,7 +1122,7 @@ local function refreshCommandsList()
         nameLabel.TextColor3 = colors.primary
         nameLabel.BackgroundTransparency = 1
         nameLabel.Font = Enum.Font.GothamBold
-        nameLabel.TextSize = 12
+        nameLabel.TextSize = 13
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
         nameLabel.TextStrokeColor3 = colors.glow
         nameLabel.TextStrokeTransparency = 0.7
@@ -1092,7 +1134,7 @@ local function refreshCommandsList()
         cmdLabel.TextColor3 = colors.text
         cmdLabel.BackgroundTransparency = 1
         cmdLabel.Font = Enum.Font.Gotham
-        cmdLabel.TextSize = 11
+        cmdLabel.TextSize = 12
         cmdLabel.TextXAlignment = Enum.TextXAlignment.Left
         
         local useBtn = Instance.new("TextButton", frame)
@@ -1104,7 +1146,7 @@ local function refreshCommandsList()
         useBtn.TextColor3 = colors.text
         useBtn.Font = Enum.Font.GothamBold
         useBtn.TextSize = 10
-        createCorner(useBtn, 6)
+        createCorner(useBtn, 8)
         createStroke(useBtn, colors.success, 0.5, 0.3)
         
         setupOneClick(useBtn, function()
@@ -1132,7 +1174,7 @@ local function refreshCommandsList()
         delBtn.TextColor3 = colors.text
         delBtn.Font = Enum.Font.GothamBold
         delBtn.TextSize = 10
-        createCorner(delBtn, 6)
+        createCorner(delBtn, 8)
         createStroke(delBtn, colors.danger, 0.5, 0.3)
         
         setupOneClick(delBtn, function()
@@ -1171,15 +1213,15 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات (تصميم محسن)
+-- نافذة الإعدادات (تصميم محسن للهاتف)
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
-settingsFrame.Size = UDim2.new(1, -30, 1, -160)
-settingsFrame.Position = UDim2.new(0, 15, 0, 152)
+settingsFrame.Size = UDim2.new(1, -30, 1, -178)
+settingsFrame.Position = UDim2.new(0, 15, 0, 170)
 settingsFrame.BackgroundColor3 = colors.bg2
 settingsFrame.BackgroundTransparency = 0.3
 settingsFrame.Visible = false
-createCorner(settingsFrame, 12)
+createCorner(settingsFrame, 14)
 createStroke(settingsFrame, colors.gold, 1, 0.3)
 
 -- خلفية متدرجة للإعدادات
@@ -1192,7 +1234,7 @@ settingsGradient.Rotation = 180
 settingsGradient.Transparency = 0.5
 
 local settingsHeader = Instance.new("Frame", settingsFrame)
-settingsHeader.Size = UDim2.new(1, 0, 0, 35)
+settingsHeader.Size = UDim2.new(1, 0, 0, 40)
 settingsHeader.BackgroundTransparency = 1
 
 local settingsTitle = Instance.new("TextLabel", settingsHeader)
@@ -1202,28 +1244,28 @@ settingsTitle.Text = "⚙️ الإعدادات"
 settingsTitle.TextColor3 = colors.gold
 settingsTitle.BackgroundTransparency = 1
 settingsTitle.Font = Enum.Font.GothamBold
-settingsTitle.TextSize = 15
+settingsTitle.TextSize = 16
 settingsTitle.TextXAlignment = Enum.TextXAlignment.Left
 settingsTitle.TextStrokeColor3 = colors.gold
 settingsTitle.TextStrokeTransparency = 0.5
 
 local scrollContainer = Instance.new("ScrollingFrame", settingsFrame)
-scrollContainer.Size = UDim2.new(1, -10, 1, -45)
-scrollContainer.Position = UDim2.new(0, 5, 0, 40)
+scrollContainer.Size = UDim2.new(1, -10, 1, -50)
+scrollContainer.Position = UDim2.new(0, 5, 0, 45)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 4
 scrollContainer.ScrollBarImageColor3 = colors.primary
 scrollContainer.ScrollBarImageTransparency = 0.3
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 650)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 700)
 
 -- قسم الثيمات (تصميم شبكي)
 local themeTitle = Instance.new("TextLabel", scrollContainer)
-themeTitle.Size = UDim2.new(1, 0, 0, 30)
+themeTitle.Size = UDim2.new(1, 0, 0, 35)
 themeTitle.Text = "🎨 اختيار الثيم"
 themeTitle.TextColor3 = colors.primary
 themeTitle.BackgroundTransparency = 1
 themeTitle.Font = Enum.Font.GothamBold
-themeTitle.TextSize = 14
+themeTitle.TextSize = 15
 themeTitle.TextStrokeColor3 = colors.glow
 themeTitle.TextStrokeTransparency = 0.7
 
@@ -1256,23 +1298,23 @@ local themeColors = {
 
 for i, theme in ipairs(allThemes) do
     local btn = Instance.new("TextButton", scrollContainer)
-    btn.Size = UDim2.new(0.45, -5, 0, 32)
-    btn.Position = UDim2.new((i % 2 == 1) and 0 or 0.55, 0, 0, 35 + math.floor((i-1)/2) * 38)
+    btn.Size = UDim2.new(0.45, -5, 0, 38)
+    btn.Position = UDim2.new((i % 2 == 1) and 0 or 0.55, 0, 0, 40 + math.floor((i-1)/2) * 44)
     btn.Text = themeNames[theme] or theme
     btn.BackgroundColor3 = getThemeColors(theme).bg2
     btn.BackgroundTransparency = 0.3
     btn.TextColor3 = getThemeColors(theme).text
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    createCorner(btn, 8)
+    btn.TextSize = 12
+    createCorner(btn, 10)
     createStroke(btn, themeColors[theme] or getThemeColors(theme).primary, 1, 0.3)
     
     -- مؤشر اللون
     local colorDot = Instance.new("Frame", btn)
-    colorDot.Size = UDim2.new(0, 12, 0, 12)
-    colorDot.Position = UDim2.new(0, 8, 0.5, -6)
+    colorDot.Size = UDim2.new(0, 14, 0, 14)
+    colorDot.Position = UDim2.new(0, 10, 0.5, -7)
     colorDot.BackgroundColor3 = themeColors[theme] or getThemeColors(theme).primary
-    createCorner(colorDot, 6)
+    createCorner(colorDot, 7)
     createStroke(colorDot, Color3.fromRGB(255, 255, 255), 0.5, 0.5)
     
     setupOneClick(btn, function()
@@ -1282,57 +1324,57 @@ end
 
 -- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
-protectTitle.Size = UDim2.new(1, 0, 0, 30)
-protectTitle.Position = UDim2.new(0, 0, 0, 240)
+protectTitle.Size = UDim2.new(1, 0, 0, 35)
+protectTitle.Position = UDim2.new(0, 0, 0, 280)
 protectTitle.Text = "🛡️ الحماية المتقدمة"
 protectTitle.TextColor3 = colors.primary
 protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
-protectTitle.TextSize = 14
+protectTitle.TextSize = 15
 protectTitle.TextStrokeColor3 = colors.glow
 protectTitle.TextStrokeTransparency = 0.7
 
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
-    frame.Size = UDim2.new(1, 0, 0, 44)
+    frame.Size = UDim2.new(1, 0, 0, 50)
     frame.Position = UDim2.new(0, 0, 0, pos)
     frame.BackgroundColor3 = colors.bg2
     frame.BackgroundTransparency = 0.3
-    createCorner(frame, 8)
+    createCorner(frame, 10)
     createStroke(frame, colors.textDim, 0.5, 0.3)
     frame.Selectable = false
     
     local iconLabel = Instance.new("TextLabel", frame)
-    iconLabel.Size = UDim2.new(0, 32, 1, 0)
-    iconLabel.Position = UDim2.new(0, 8, 0, 0)
+    iconLabel.Size = UDim2.new(0, 36, 1, 0)
+    iconLabel.Position = UDim2.new(0, 10, 0, 0)
     iconLabel.Text = icon or "◆"
     iconLabel.TextColor3 = colors.primary
     iconLabel.BackgroundTransparency = 1
-    iconLabel.TextSize = 16
+    iconLabel.TextSize = 18
     
     local label = Instance.new("TextLabel", frame)
-    label.Size = UDim2.new(0.5, -40, 1, 0)
-    label.Position = UDim2.new(0, 44, 0, 0)
+    label.Size = UDim2.new(0.5, -45, 1, 0)
+    label.Position = UDim2.new(0, 48, 0, 0)
     label.Text = name
     label.TextColor3 = colors.text
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
+    label.TextSize = 13
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.Name = "Label"
     
     local toggle = Instance.new("TextButton", frame)
-    toggle.Size = UDim2.new(0, 52, 0, 28)
-    toggle.Position = UDim2.new(1, -58, 0.5, -14)
+    toggle.Size = UDim2.new(0, 58, 0, 32)
+    toggle.Position = UDim2.new(1, -64, 0.5, -16)
     toggle.BackgroundColor3 = colors.danger
     toggle.BackgroundTransparency = 0.1
     toggle.Text = "OFF"
     toggle.TextColor3 = colors.text
     toggle.Font = Enum.Font.GothamBold
-    toggle.TextSize = 11
-    createCorner(toggle, 14)
+    toggle.TextSize = 12
+    createCorner(toggle, 16)
     createStroke(toggle, colors.danger, 1.5, 0.3)
-    toggle.AutoButtonColor = true
+    toggle.AutoButtonColor = false
     toggle.Name = "Toggle"
     
     local state = false
@@ -1353,7 +1395,7 @@ local function createToggle(name, pos, icon, callback)
 end
 
 -- جميع خيارات الحماية
-createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s) 
+createToggle("🌀 مضاد الفلينج", 320, "🌀", function(s) 
     Settings.AntiFling = s
     
     if s then
@@ -1407,7 +1449,7 @@ createToggle("🌀 مضاد الفلينج", 275, "🌀", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("📋 مضاد اللاق (Logs)", 323, "📋", function(s) 
+createToggle("📋 مضاد اللاق (Logs)", 375, "📋", function(s) 
     Settings.AntiLogs = s
     
     if s then
@@ -1459,7 +1501,7 @@ createToggle("📋 مضاد اللاق (Logs)", 323, "📋", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("👁️ مضاد NV", 371, "👁️", function(s) 
+createToggle("👁️ مضاد NV", 430, "👁️", function(s) 
     Settings.AntiNV = s
     
     if s then
@@ -1490,7 +1532,7 @@ createToggle("👁️ مضاد NV", 371, "👁️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🚫 مضاد Clogs", 419, "🚫", function(s) 
+createToggle("🚫 مضاد Clogs", 485, "🚫", function(s) 
     Settings.AntiClogs = s
     
     if s then
@@ -1527,7 +1569,7 @@ createToggle("🚫 مضاد Clogs", 419, "🚫", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("⌨️ مضاد CmdBar", 467, "⌨️", function(s) 
+createToggle("⌨️ مضاد CmdBar", 540, "⌨️", function(s) 
     Settings.AntiCmdBar = s
     
     if s then
@@ -1569,7 +1611,7 @@ createToggle("⌨️ مضاد CmdBar", 467, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🔕 مضاد الإشعارات", 515, "🔕", function(s) 
+createToggle("🔕 مضاد الإشعارات", 595, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
@@ -1653,7 +1695,7 @@ createToggle("🔕 مضاد الإشعارات", 515, "🔕", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🛡️ مضاد الطرد", 563, "🛡️", function(s) 
+createToggle("🛡️ مضاد الطرد", 650, "🛡️", function(s) 
     Settings.AntiKick = s
     
     if s then
@@ -1682,7 +1724,7 @@ createToggle("🛡️ مضاد الطرد", 563, "🛡️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("💤 مضاد AFK", 611, "💤", function(s) 
+createToggle("💤 مضاد AFK", 705, "💤", function(s) 
     Settings.AntiAFK = s
     
     if s then
@@ -1716,15 +1758,15 @@ createToggle("💤 مضاد AFK", 611, "💤", function(s)
 end)
 
 ---------------------------------------
--- نافذة المعلومات (تصميم محسن)
+-- نافذة المعلومات (تصميم محسن للهاتف)
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
-infoFrame.Size = UDim2.new(1, -30, 1, -160)
-infoFrame.Position = UDim2.new(0, 15, 0, 152)
+infoFrame.Size = UDim2.new(1, -30, 1, -178)
+infoFrame.Position = UDim2.new(0, 15, 0, 170)
 infoFrame.BackgroundColor3 = colors.bg2
 infoFrame.BackgroundTransparency = 0.3
 infoFrame.Visible = false
-createCorner(infoFrame, 12)
+createCorner(infoFrame, 14)
 createStroke(infoFrame, colors.info, 1, 0.3)
 
 local infoGradient = Instance.new("UIGradient", infoFrame)
@@ -1736,7 +1778,7 @@ infoGradient.Rotation = 135
 infoGradient.Transparency = 0.5
 
 local infoHeader = Instance.new("Frame", infoFrame)
-infoHeader.Size = UDim2.new(1, 0, 0, 35)
+infoHeader.Size = UDim2.new(1, 0, 0, 40)
 infoHeader.BackgroundTransparency = 1
 
 local infoTitle = Instance.new("TextLabel", infoHeader)
@@ -1746,23 +1788,23 @@ infoTitle.Text = "ℹ️ المعلومات"
 infoTitle.TextColor3 = colors.info
 infoTitle.BackgroundTransparency = 1
 infoTitle.Font = Enum.Font.GothamBold
-infoTitle.TextSize = 15
+infoTitle.TextSize = 16
 infoTitle.TextXAlignment = Enum.TextXAlignment.Left
 infoTitle.TextStrokeColor3 = colors.info
 infoTitle.TextStrokeTransparency = 0.5
 
 local infoScroll = Instance.new("ScrollingFrame", infoFrame)
-infoScroll.Size = UDim2.new(1, -10, 1, -45)
-infoScroll.Position = UDim2.new(0, 5, 0, 40)
+infoScroll.Size = UDim2.new(1, -10, 1, -50)
+infoScroll.Position = UDim2.new(0, 5, 0, 45)
 infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 4
 infoScroll.ScrollBarImageColor3 = colors.info
 infoScroll.ScrollBarImageTransparency = 0.3
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, 700)
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, 750)
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
-    frame.Size = UDim2.new(1, 0, 0, 32)
+    frame.Size = UDim2.new(1, 0, 0, 35)
     frame.Position = UDim2.new(0, 0, 0, pos)
     frame.BackgroundTransparency = 1
     
@@ -1772,7 +1814,7 @@ local function createInfoSection(title, icon, pos)
     label.TextColor3 = colors.info
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 14
+    label.TextSize = 15
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.TextYAlignment = Enum.TextYAlignment.Bottom
     label.TextStrokeColor3 = colors.info
@@ -1783,13 +1825,13 @@ end
 
 local function createInfoText(text, pos, color, size)
     local label = Instance.new("TextLabel", infoScroll)
-    label.Size = UDim2.new(1, -10, 0, 20)
+    label.Size = UDim2.new(1, -10, 0, 22)
     label.Position = UDim2.new(0, 10, 0, pos)
     label.Text = text
     label.TextColor3 = color or colors.textDim
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.Gotham
-    label.TextSize = size or 11
+    label.TextSize = size or 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     return label
 end
@@ -1797,81 +1839,81 @@ end
 local pos = 5
 
 createInfoSection("المعلومات الأساسية", "📋", pos)
-pos = pos + 35
-createInfoText("👨‍💻 المطور: mo7sma0550", pos, colors.info, 12)
-pos = pos + 22
+pos = pos + 38
+createInfoText("👨‍💻 المطور: mo7sma0550", pos, colors.info, 13)
+pos = pos + 24
 createInfoText("📌 الإصدار: V25 (Ultra Design)", pos)
-pos = pos + 22
+pos = pos + 24
 createInfoText("📅 التاريخ: 14/07/2026", pos)
-pos = pos + 22
+pos = pos + 24
 createInfoText("⚡ الحالة: نشط ومُحسَّن 10x", pos)
-pos = pos + 35
+pos = pos + 38
 
 createInfoSection("إحصائيات المستخدم", "📊", pos)
-pos = pos + 35
+pos = pos + 38
 
 local statsText = Instance.new("TextLabel", infoScroll)
-statsText.Size = UDim2.new(1, -10, 0, 20)
+statsText.Size = UDim2.new(1, -10, 0, 22)
 statsText.Position = UDim2.new(0, 10, 0, pos)
 statsText.Text = "📝 الأوامر المرسلة: 0"
 statsText.TextColor3 = colors.textDim
 statsText.BackgroundTransparency = 1
 statsText.Font = Enum.Font.Gotham
-statsText.TextSize = 11
+statsText.TextSize = 12
 statsText.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
+pos = pos + 24
 
 local protectStats = Instance.new("TextLabel", infoScroll)
-protectStats.Size = UDim2.new(1, -10, 0, 20)
+protectStats.Size = UDim2.new(1, -10, 0, 22)
 protectStats.Position = UDim2.new(0, 10, 0, pos)
 protectStats.Text = "🛡️ الحمايات المفعلة: 0/8"
 protectStats.TextColor3 = colors.textDim
 protectStats.BackgroundTransparency = 1
 protectStats.Font = Enum.Font.Gotham
-protectStats.TextSize = 11
+protectStats.TextSize = 12
 protectStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
+pos = pos + 24
 
 local timeStats = Instance.new("TextLabel", infoScroll)
-timeStats.Size = UDim2.new(1, -10, 0, 20)
+timeStats.Size = UDim2.new(1, -10, 0, 22)
 timeStats.Position = UDim2.new(0, 10, 0, pos)
 timeStats.Text = "⏱️ وقت التشغيل: 00:00"
 timeStats.TextColor3 = colors.textDim
 timeStats.BackgroundTransparency = 1
 timeStats.Font = Enum.Font.Gotham
-timeStats.TextSize = 11
+timeStats.TextSize = 12
 timeStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 22
+pos = pos + 24
 
 local cmdCountStats = Instance.new("TextLabel", infoScroll)
-cmdCountStats.Size = UDim2.new(1, -10, 0, 20)
+cmdCountStats.Size = UDim2.new(1, -10, 0, 22)
 cmdCountStats.Position = UDim2.new(0, 10, 0, pos)
 cmdCountStats.Text = "📂 الأوامر المخصصة: 0"
 cmdCountStats.TextColor3 = colors.textDim
 cmdCountStats.BackgroundTransparency = 1
 cmdCountStats.Font = Enum.Font.Gotham
-cmdCountStats.TextSize = 11
+cmdCountStats.TextSize = 12
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 35
+pos = pos + 38
 
 createInfoSection("رسالة ترحيبية", "🎯", pos)
-pos = pos + 35
+pos = pos + 38
 local welcomeText = Instance.new("TextLabel", infoScroll)
-welcomeText.Size = UDim2.new(1, -10, 0, 55)
+welcomeText.Size = UDim2.new(1, -10, 0, 60)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
 welcomeText.Text = "مرحباً بك في MG9 ULTRA HUB!\nتم تطوير هذا السكربت بتصميم فاخر\nمع حماية متكاملة وسبام احترافي"
 welcomeText.TextColor3 = colors.text
 welcomeText.BackgroundTransparency = 1
 welcomeText.Font = Enum.Font.GothamBold
-welcomeText.TextSize = 12
+welcomeText.TextSize = 13
 welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.LineHeight = 1.5
 welcomeText.TextStrokeColor3 = colors.glow
 welcomeText.TextStrokeTransparency = 0.8
-pos = pos + 60
+pos = pos + 65
 
 createInfoSection("معلومات تقنية", "⚙️", pos)
-pos = pos + 35
+pos = pos + 38
 local techInfo = {
     "🔹 لغة البرمجة: Lua (Luau)",
     "🔹 عدد الملفات: 1 (سكربت واحد)",
@@ -1880,13 +1922,13 @@ local techInfo = {
     "🔹 آخر تحديث: V25 Ultra",
 }
 for _, info in ipairs(techInfo) do
-    createInfoText(info, pos, colors.text, 11)
-    pos = pos + 20
+    createInfoText(info, pos, colors.text, 12)
+    pos = pos + 22
 end
-pos = pos + 35
+pos = pos + 38
 
 createInfoSection("مميزات السكربت", "🔥", pos)
-pos = pos + 35
+pos = pos + 38
 local features = {
     "✅ 10 ثيمات احترافية مع تأثيرات",
     "✅ 8 خيارات حماية متكاملة",
@@ -1896,15 +1938,16 @@ local features = {
     "✅ سرعة تكرار فائقة",
     "✅ واجهة أنيقة مع تأثيرات حركية",
     "✅ زر جانبي متحرك بتأثير نيون",
+    "✅ محسّن للهواتف (ضغطة واحدة)",
 }
 for _, feature in ipairs(features) do
-    createInfoText(feature, pos, colors.text, 11)
-    pos = pos + 20
+    createInfoText(feature, pos, colors.text, 12)
+    pos = pos + 22
 end
-pos = pos + 35
+pos = pos + 38
 
 createInfoSection("نصائح واستخدامات", "💡", pos)
-pos = pos + 35
+pos = pos + 38
 local tips = {
     "• استخدم ; للفصل بين الأوامر المتعددة",
     "• فعّل الحماية قبل بدء التكرار",
@@ -1914,13 +1957,13 @@ local tips = {
     "• الحماية تنطفئ فوراً عند الضغط على OFF",
 }
 for _, tip in ipairs(tips) do
-    createInfoText(tip, pos, colors.textDim, 11)
-    pos = pos + 20
+    createInfoText(tip, pos, colors.textDim, 12)
+    pos = pos + 22
 end
-pos = pos + 35
+pos = pos + 38
 
 createInfoSection("تحديثات قادمة", "🚀", pos)
-pos = pos + 35
+pos = pos + 38
 local updates = {
     "🔹 وضع التكرار الذكي (Smart Spam)",
     "🔹 حفظ الإعدادات تلقائياً",
@@ -1930,8 +1973,8 @@ local updates = {
     "🔹 نظام إشعارات متقدم",
 }
 for _, update in ipairs(updates) do
-    createInfoText(update, pos, colors.warning, 11)
-    pos = pos + 20
+    createInfoText(update, pos, colors.warning, 12)
+    pos = pos + 22
 end
 
 pos = pos + 20
@@ -2105,22 +2148,9 @@ setupOneClick(stopBtn, function()
 end)
 
 ---------------------------------------
--- أحداث الأزرار
+-- أحداث الأزرار (محسنة للهاتف - ضغطة واحدة)
 ---------------------------------------
-setupOneClick(toggleBtn, function()
-    mainFrame.Visible = not mainFrame.Visible
-    if mainFrame.Visible then
-        toggleBtn.Visible = false
-        statusLabel.Text = "تم فتح السكربت"
-        statusLabel.TextColor3 = colors.success
-        task.wait(1.5)
-        statusLabel.Text = "جاهز للتشغيل"
-        statusLabel.TextColor3 = colors.textDim
-    else
-        toggleBtn.Visible = true
-    end
-end)
-
+-- Info Button
 setupOneClick(infoBtn, function()
     infoFrame.Visible = not infoFrame.Visible
     if infoFrame.Visible then
@@ -2144,6 +2174,7 @@ setupOneClick(infoBtn, function()
     end
 end)
 
+-- Theme Button
 setupOneClick(themeBtn, function()
     local currentIndex = nil
     for i, theme in ipairs(allThemes) do
@@ -2158,6 +2189,7 @@ setupOneClick(themeBtn, function()
     applyTheme(nextTheme)
 end)
 
+-- Settings Button
 setupOneClick(settingsBtn, function()
     settingsFrame.Visible = not settingsFrame.Visible
     if settingsFrame.Visible then
@@ -2181,6 +2213,7 @@ setupOneClick(settingsBtn, function()
     end
 end)
 
+-- Close Button
 setupOneClick(closeBtn, function()
     mainFrame.Visible = false
     toggleBtn.Visible = true
@@ -2191,6 +2224,7 @@ setupOneClick(closeBtn, function()
     statusLabel.TextColor3 = colors.textDim
 end)
 
+-- Minimize Button
 setupOneClick(minimizeBtn, function()
     mainFrame.Visible = false
     toggleBtn.Visible = true
@@ -2204,15 +2238,15 @@ task.spawn(function()
     while true do
         local colors = getThemeColors(currentTheme)
         TweenService:Create(toggleBtn, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Size = UDim2.new(0, 68, 0, 68)
+            Size = UDim2.new(0, 80, 0, 80)
         }):Play()
         task.wait(0.5)
         TweenService:Create(toggleBtn, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Size = UDim2.new(0, 62, 0, 62)
+            Size = UDim2.new(0, 70, 0, 70)
         }):Play()
         task.wait(1.5)
         TweenService:Create(toggleBtn, TweenInfo.new(1.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut), {
-            Size = UDim2.new(0, 65, 0, 65)
+            Size = UDim2.new(0, 75, 0, 75)
         }):Play()
         task.wait(2)
     end
@@ -2310,8 +2344,9 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔══════════════════════════════════════════════════════════╗")
-print("║  🔥 MG9 ULTIMATE HUB V25 - ULTRA DESIGN 🔥            ║")
+print("║  🔥 MG9 ULTIMATE HUB V25 - MOBILE OPTIMIZED 🔥        ║")
 print("║  👨‍💻 المطور: mo7sma0550                                ║")
+print("║  📱 محسّن للهواتف - ضغطة واحدة                       ║")
 print("║  🎨 تصميم محسّن 10x مع تأثيرات احترافية             ║")
 print("║  ✅ مضاد الإشعارات يخفي نهائياً (قوي)               ║")
 print("║  ✅ سرعة إرسال فائقة (0.001 ثانية)                  ║")
