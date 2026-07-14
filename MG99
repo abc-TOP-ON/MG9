@@ -1,5 +1,5 @@
 -- ═══════════════════════════════════════════════════════════════
--- 🔥 ABC ULTIMATE HUB V25 - 10X PREMIUM 🔥
+-- 🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥
 -- 👨‍💻 المطور: Hamza000599
 -- 📱 متوافق مع الموبايل والكمبيوتر
 -- ═══════════════════════════════════════════════════════════════
@@ -10,6 +10,7 @@ local Players = game:GetService("Players")
 local ReplicatedStorage = game:GetService("ReplicatedStorage")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
+local Lighting = game:GetService("Lighting")
 local player = Players.LocalPlayer
 
 -- حذف النسخ السابقة
@@ -32,6 +33,12 @@ local Settings = {
     AntiAlerts = false,
     AntiKick = false,
     AntiAFK = false,
+    AutoFarm = false,
+    AutoClick = false,
+    SpeedBoost = false,
+    JumpBoost = false,
+    NoClip = false,
+    Fly = false,
 }
 
 local Spam = {
@@ -46,6 +53,10 @@ local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
 local isMainOpen = false
+local flySpeed = 50
+local isFlying = false
+local flyBodyVelocity = nil
+local flyBodyGyro = nil
 
 ---------------------------------------
 -- متغيرات التحكم في الحلقات
@@ -59,6 +70,12 @@ local ProtectionThreads = {
     AntiAlerts = nil,
     AntiKick = nil,
     AntiAFK = nil,
+    AutoFarm = nil,
+    AutoClick = nil,
+    SpeedBoost = nil,
+    JumpBoost = nil,
+    NoClip = nil,
+    Fly = nil,
 }
 
 ---------------------------------------
@@ -76,7 +93,7 @@ local function setupOneClick(button, callback)
 end
 
 ---------------------------------------
--- دوال مساعدة للتصميم premium
+-- دوال مساعدة للتصميم 100ZX
 ---------------------------------------
 local function createCorner(parent, radius)
     local corner = Instance.new("UICorner", parent)
@@ -129,8 +146,30 @@ local function createGlow(parent, color, size)
     return glow
 end
 
+local function createBlur(parent, size)
+    local blur = Instance.new("BlurEffect", parent)
+    blur.Size = size or 12
+    return blur
+end
+
+local function createParticle(parent, color)
+    local particle = Instance.new("ParticleEmitter", parent)
+    particle.Texture = "rbxassetid://608640871"
+    particle.Color = ColorSequence.new(color)
+    particle.Rate = 30
+    particle.Lifetime = NumberRange.new(1, 2)
+    particle.SpreadAngle = Vector2.new(180, 180)
+    particle.VelocityInheritance = 0
+    particle.Speed = NumberRange.new(2, 5)
+    particle.RotSpeed = NumberRange.new(-100, 100)
+    particle.Size = NumberSequence.new(1, 3)
+    particle.Transparency = NumberSequence.new(0.7, 1)
+    particle.Enabled = false
+    return particle
+end
+
 ---------------------------------------
--- الألوان المحسنة
+-- الألوان 100ZX
 ---------------------------------------
 local function getThemeColors(themeName)
     local themes = {
@@ -337,6 +376,41 @@ local function getThemeColors(themeName)
             gold = Color3.fromRGB(255, 240, 200),
             info = Color3.fromRGB(200, 240, 255),
             glow = Color3.fromRGB(100, 200, 255),
+        },
+        -- ثيمات جديدة 100ZX
+        magma = {
+            primary = Color3.fromRGB(255, 100, 0),
+            secondary = Color3.fromRGB(255, 50, 50),
+            accent = Color3.fromRGB(255, 150, 50),
+            bg = Color3.fromRGB(20, 8, 5),
+            bg2 = Color3.fromRGB(35, 15, 8),
+            bg3 = Color3.fromRGB(55, 25, 15),
+            bg4 = Color3.fromRGB(75, 35, 20),
+            text = Color3.fromRGB(255, 200, 150),
+            textDim = Color3.fromRGB(200, 150, 120),
+            success = Color3.fromRGB(255, 200, 100),
+            danger = Color3.fromRGB(255, 0, 0),
+            warning = Color3.fromRGB(255, 150, 0),
+            gold = Color3.fromRGB(255, 200, 100),
+            info = Color3.fromRGB(255, 180, 150),
+            glow = Color3.fromRGB(255, 100, 0),
+        },
+        ice = {
+            primary = Color3.fromRGB(100, 220, 255),
+            secondary = Color3.fromRGB(200, 240, 255),
+            accent = Color3.fromRGB(150, 230, 255),
+            bg = Color3.fromRGB(5, 15, 25),
+            bg2 = Color3.fromRGB(10, 25, 40),
+            bg3 = Color3.fromRGB(18, 38, 55),
+            bg4 = Color3.fromRGB(28, 50, 70),
+            text = Color3.fromRGB(220, 240, 255),
+            textDim = Color3.fromRGB(180, 210, 230),
+            success = Color3.fromRGB(150, 255, 220),
+            danger = Color3.fromRGB(255, 100, 100),
+            warning = Color3.fromRGB(255, 230, 150),
+            gold = Color3.fromRGB(200, 240, 255),
+            info = Color3.fromRGB(180, 230, 255),
+            glow = Color3.fromRGB(100, 220, 255),
         }
     }
     return themes[themeName] or themes.neon
@@ -408,6 +482,18 @@ local function applyTheme(themeName)
     spamTab.TextColor3 = colors.text
     spamTab.UIStroke.Color = colors.primary
     
+    -- تحديث أزرار الحماية
+    for _, child in pairs(scrollContainer:GetChildren()) do
+        if child:IsA("Frame") then
+            for _, btn in pairs(child:GetChildren()) do
+                if btn:IsA("TextButton") and btn.Size.X.Offset == 50 then
+                    btn.BackgroundColor3 = colors.bg2
+                    btn.UIStroke.Color = colors.textDim
+                end
+            end
+        end
+    end
+    
     statusLabel.Text = "🎨 تم تغيير الثيم"
     statusLabel.TextColor3 = colors.gold
     task.wait(1.2)
@@ -418,11 +504,11 @@ end
 local colors = getThemeColors(currentTheme)
 
 ---------------------------------------
--- ✅ أيقونة الدخول/الخروج (Premium)
+-- ✅ أيقونة الدخول/الخروج (100ZX)
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
-toggleBtn.Size = UDim2.new(0, 65, 0, 65)
-toggleBtn.Position = UDim2.new(1, -80, 0.5, -32.5)
+toggleBtn.Size = UDim2.new(0, 70, 0, 70)
+toggleBtn.Position = UDim2.new(1, -85, 0.5, -35)
 toggleBtn.BackgroundColor3 = colors.bg2
 toggleBtn.Image = "rbxassetid://131604529"
 toggleBtn.ImageColor3 = colors.primary
@@ -430,12 +516,12 @@ toggleBtn.ImageTransparency = 0.1
 toggleBtn.Visible = true
 toggleBtn.Draggable = true
 toggleBtn.AutoButtonColor = true
-createCorner(toggleBtn, 16)
-createStroke(toggleBtn, colors.primary, 2.5)
+createCorner(toggleBtn, 20)
+createStroke(toggleBtn, colors.primary, 3)
 
 -- ظل Premium
-local shadow = createShadow(toggleBtn, 10, 0.5)
-local glow = createGlow(toggleBtn, colors.glow, 30)
+local shadow = createShadow(toggleBtn, 12, 0.5)
+local glow = createGlow(toggleBtn, colors.glow, 40)
 
 -- محتوى الأيقونة
 local btnBg = Instance.new("Frame", toggleBtn)
@@ -443,7 +529,7 @@ btnBg.Size = UDim2.new(1, -4, 1, -4)
 btnBg.Position = UDim2.new(0, 2, 0, 2)
 btnBg.BackgroundColor3 = colors.bg2
 btnBg.BackgroundTransparency = 0.3
-createCorner(btnBg, 14)
+createCorner(btnBg, 18)
 createGradient(btnBg, colors.primary, colors.secondary, "diagonal")
 
 local toggleText = Instance.new("TextLabel", toggleBtn)
@@ -452,24 +538,28 @@ toggleText.Text = "✦ABC"
 toggleText.TextColor3 = colors.text
 toggleText.BackgroundTransparency = 1
 toggleText.Font = Enum.Font.GothamBold
-toggleText.TextSize = 15
+toggleText.TextSize = 16
 toggleText.ZIndex = 2
 toggleText.TextScaled = true
 toggleText.TextWrapped = true
+
+-- جسيمات حول الأيقونة
+local particle = createParticle(toggleBtn, colors.glow)
+particle.Enabled = true
 
 -- تأثير نبض للأيقونة
 task.spawn(function()
     while true do
         local colors = getThemeColors(currentTheme)
-        local info = TweenInfo.new(0.8, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
-        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 68, 0, 68)}):Play()
-        task.wait(0.4)
-        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 62, 0, 62)}):Play()
-        task.wait(0.4)
+        local info = TweenInfo.new(0.6, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 75, 0, 75)}):Play()
+        task.wait(0.3)
+        TweenService:Create(toggleBtn, info, {Size = UDim2.new(0, 65, 0, 65)}):Play()
+        task.wait(0.3)
     end
 end)
 
--- سحب الأيقونة مع تحسين
+-- سحب الأيقونة
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -481,7 +571,7 @@ local function setupDragging(button)
             dragStart = input.Position
             startPos = button.Position
             button.ZIndex = 100
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 70)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 75, 0, 75)}):Play()
         end
     end)
     
@@ -508,7 +598,7 @@ local function setupDragging(button)
         if input.UserInputType == Enum.UserInputType.MouseButton1 or input.UserInputType == Enum.UserInputType.Touch then
             dragging = false
             button.ZIndex = 1
-            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 65, 0, 65)}):Play()
+            TweenService:Create(button, TweenInfo.new(0.2), {Size = UDim2.new(0, 70, 0, 70)}):Play()
         end
     end)
 end
@@ -516,102 +606,106 @@ end
 setupDragging(toggleBtn)
 
 ---------------------------------------
--- الواجهة الرئيسية Premium
+-- الواجهة الرئيسية 100ZX
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
-mainFrame.Size = UDim2.new(0, 400, 0, 560)
-mainFrame.Position = UDim2.new(0.5, -200, 0.5, -280)
+mainFrame.Size = UDim2.new(0, 420, 0, 580)
+mainFrame.Position = UDim2.new(0.5, -210, 0.5, -290)
 mainFrame.BackgroundColor3 = colors.bg
 mainFrame.Active = true
 mainFrame.Draggable = true
 mainFrame.Visible = false
-createCorner(mainFrame, 20)
-createStroke(mainFrame, colors.primary, 1.5)
+createCorner(mainFrame, 24)
+createStroke(mainFrame, colors.primary, 2)
 
 -- خلفية متدرجة
 local bgGradient = createGradient(mainFrame, colors.bg, colors.bg2, "vertical")
 bgGradient.Transparency = NumberSequence.new(0, 0.5)
 
+-- تأثير blur للخلفية
+local blur = createBlur(mainFrame, 10)
+blur.Enabled = false
+
 -- ظل للواجهة
-local mainShadow = createShadow(mainFrame, 15, 0.3)
+local mainShadow = createShadow(mainFrame, 20, 0.3)
 
 ---------------------------------------
--- الهيدر Premium
+-- الهيدر 100ZX
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
-header.Size = UDim2.new(1, 0, 0, 60)
+header.Size = UDim2.new(1, 0, 0, 65)
 header.BackgroundColor3 = colors.bg2
 header.BackgroundTransparency = 0.2
-createCorner(header, 20)
+createCorner(header, 24)
 createGradient(header, colors.primary, colors.secondary, "horizontal")
 header.BackgroundTransparency = 0.3
 
 -- خط فاصل تحت الهيدر
 local divider = Instance.new("Frame", mainFrame)
 divider.Size = UDim2.new(1, 0, 0, 2)
-divider.Position = UDim2.new(0, 0, 0, 60)
+divider.Position = UDim2.new(0, 0, 0, 65)
 divider.BackgroundColor3 = colors.primary
 divider.BackgroundTransparency = 0.3
 
 local title = Instance.new("TextLabel", header)
-title.Size = UDim2.new(0.4, 0, 1, 0)
+title.Size = UDim2.new(0.45, 0, 1, 0)
 title.Position = UDim2.new(0, 15, 0, 0)
 title.Text = "✦ ABC"
 title.TextColor3 = colors.text
 title.BackgroundTransparency = 1
 title.Font = Enum.Font.GothamBold
-title.TextSize = 22
+title.TextSize = 24
 title.TextXAlignment = Enum.TextXAlignment.Left
 
 -- subtitle
 local subtitle = Instance.new("TextLabel", header)
-subtitle.Size = UDim2.new(0.3, 0, 0.4, 0)
+subtitle.Size = UDim2.new(0.35, 0, 0.4, 0)
 subtitle.Position = UDim2.new(0, 15, 0.6, 0)
-subtitle.Text = "ULTIMATE"
+subtitle.Text = "100ZX MASTER"
 subtitle.TextColor3 = colors.textDim
 subtitle.BackgroundTransparency = 1
 subtitle.Font = Enum.Font.Gotham
 subtitle.TextSize = 10
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- أزرار الهيدر مع تأثيرات
+-- أزرار الهيدر
 local function createHeaderButton(parent, text, color, posX)
     local btn = Instance.new("TextButton", parent)
-    btn.Size = UDim2.new(0, 32, 0, 32)
-    btn.Position = UDim2.new(1, posX, 0.5, -16)
+    btn.Size = UDim2.new(0, 35, 0, 35)
+    btn.Position = UDim2.new(1, posX, 0.5, -17.5)
     btn.Text = text
     btn.TextColor3 = color
     btn.BackgroundTransparency = 1
-    btn.TextSize = 18
+    btn.TextSize = 20
     btn.Font = Enum.Font.GothamBold
     btn.ZIndex = 10
     btn.AutoButtonColor = true
     
     -- تأثير hover
     btn.MouseEnter:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 22}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 24}):Play()
     end)
     btn.MouseLeave:Connect(function()
-        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 18}):Play()
+        TweenService:Create(btn, TweenInfo.new(0.2), {TextSize = 20}):Play()
     end)
     
     return btn
 end
 
-local infoBtn = createHeaderButton(header, "ℹ️", colors.info, -200)
-local themeBtn = createHeaderButton(header, "🎨", colors.primary, -162)
-local settingsBtn = createHeaderButton(header, "⚙️", colors.gold, -124)
-local closeBtn = createHeaderButton(header, "🚪", colors.danger, -86)
-local minimizeBtn = createHeaderButton(header, "✕", colors.textDim, -48)
+local infoBtn = createHeaderButton(header, "ℹ️", colors.info, -215)
+local themeBtn = createHeaderButton(header, "🎨", colors.primary, -175)
+local settingsBtn = createHeaderButton(header, "⚙️", colors.gold, -135)
+local closeBtn = createHeaderButton(header, "🚪", colors.danger, -95)
+local minimizeBtn = createHeaderButton(header, "✕", colors.textDim, -55)
 
 ---------------------------------------
--- شريط الحالة Premium
+-- شريط الحالة 100ZX
 ---------------------------------------
 local statusBar = Instance.new("Frame", mainFrame)
-statusBar.Size = UDim2.new(1, -30, 0, 28)
-statusBar.Position = UDim2.new(0, 15, 0, 70)
+statusBar.Size = UDim2.new(1, -30, 0, 30)
+statusBar.Position = UDim2.new(0, 15, 0, 75)
 statusBar.BackgroundColor3 = colors.bg2
-createCorner(statusBar, 10)
+createCorner(statusBar, 12)
 createStroke(statusBar, colors.textDim, 0.3)
 
 local statusGlow = createGlow(statusBar, colors.glow, 10)
@@ -622,7 +716,7 @@ statusIcon.Size = UDim2.new(0, 25, 1, 0)
 statusIcon.Text = "●"
 statusIcon.TextColor3 = colors.success
 statusIcon.BackgroundTransparency = 1
-statusIcon.TextSize = 14
+statusIcon.TextSize = 16
 
 local statusLabel = Instance.new("TextLabel", statusBar)
 statusLabel.Size = UDim2.new(1, -35, 1, 0)
@@ -631,10 +725,10 @@ statusLabel.Text = "جاهز للتشغيل"
 statusLabel.TextColor3 = colors.textDim
 statusLabel.BackgroundTransparency = 1
 statusLabel.Font = Enum.Font.Gotham
-statusLabel.TextSize = 11
+statusLabel.TextSize = 12
 statusLabel.TextXAlignment = Enum.TextXAlignment.Left
 
--- نقطة حية للحالة
+-- نقطة حية
 task.spawn(function()
     while true do
         local info = TweenInfo.new(0.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
@@ -646,11 +740,11 @@ task.spawn(function()
 end)
 
 ---------------------------------------
--- علامات تبويب Premium
+-- علامات تبويب 100ZX
 ---------------------------------------
 local tabFrame = Instance.new("Frame", mainFrame)
-tabFrame.Size = UDim2.new(1, -30, 0, 35)
-tabFrame.Position = UDim2.new(0, 15, 0, 108)
+tabFrame.Size = UDim2.new(1, -30, 0, 38)
+tabFrame.Position = UDim2.new(0, 15, 0, 115)
 tabFrame.BackgroundTransparency = 1
 
 local function createTab(name, pos, callback)
@@ -661,11 +755,10 @@ local function createTab(name, pos, callback)
     btn.Text = name
     btn.TextColor3 = colors.textDim
     btn.Font = Enum.Font.GothamBold
-    btn.TextSize = 11
-    createCorner(btn, 8)
+    btn.TextSize = 12
+    createCorner(btn, 10)
     local stroke = createStroke(btn, colors.textDim, 0.5)
     
-    -- تأثير hover
     btn.MouseEnter:Connect(function()
         if btn.BackgroundColor3 ~= colors.primary then
             TweenService:Create(btn, TweenInfo.new(0.2), {BackgroundTransparency = 0.3}):Play()
@@ -704,6 +797,7 @@ local spamTab = createTab("📢 SPAM", 0, function()
     commandsContainer.Visible = false
     settingsFrame.Visible = false
     infoFrame.Visible = false
+    extraFrame.Visible = false
 end)
 
 local cmdsTab = createTab("📝 أوامر", 0.35, function()
@@ -711,6 +805,7 @@ local cmdsTab = createTab("📝 أوامر", 0.35, function()
     commandsContainer.Visible = true
     settingsFrame.Visible = false
     infoFrame.Visible = false
+    extraFrame.Visible = false
 end)
 
 local settingsTab = createTab("⚙️ إعدادات", 0.70, function()
@@ -718,6 +813,7 @@ local settingsTab = createTab("⚙️ إعدادات", 0.70, function()
     commandsContainer.Visible = false
     settingsFrame.Visible = true
     infoFrame.Visible = false
+    extraFrame.Visible = false
 end)
 
 spamTab.BackgroundColor3 = colors.primary
@@ -726,39 +822,38 @@ spamTab.TextColor3 = colors.text
 spamTab.UIStroke.Color = colors.primary
 
 ---------------------------------------
--- حاوية SPAM Premium
+-- حاوية SPAM 100ZX
 ---------------------------------------
 local spamContainer = Instance.new("Frame", mainFrame)
-spamContainer.Size = UDim2.new(1, -30, 1, -160)
-spamContainer.Position = UDim2.new(0, 15, 0, 150)
+spamContainer.Size = UDim2.new(1, -30, 1, -170)
+spamContainer.Position = UDim2.new(0, 15, 0, 160)
 spamContainer.BackgroundTransparency = 1
 spamContainer.Visible = true
 
--- صندوق الإدخال Premium
+-- صندوق الإدخال
 local inputBox = Instance.new("TextBox", spamContainer)
-inputBox.Size = UDim2.new(1, 0, 0, 70)
+inputBox.Size = UDim2.new(1, 0, 0, 75)
 inputBox.Position = UDim2.new(0, 0, 0, 0)
 inputBox.PlaceholderText = "📝 اكتب الأوامر... (افصل بـ ;)"
 inputBox.Text = ""
 inputBox.TextColor3 = colors.text
-inputBox.TextSize = 12
+inputBox.TextSize = 13
 inputBox.BackgroundColor3 = colors.bg2
 inputBox.MultiLine = true
 inputBox.ClearTextOnFocus = false
 inputBox.Font = Enum.Font.Gotham
-createCorner(inputBox, 12)
+createCorner(inputBox, 14)
 createStroke(inputBox, colors.textDim, 0.5)
 inputBox.PlaceholderColor3 = colors.textDim
 
--- إطار الإعدادات Premium
+-- إطار الإعدادات
 local settingsRow = Instance.new("Frame", spamContainer)
-settingsRow.Size = UDim2.new(1, 0, 0, 32)
-settingsRow.Position = UDim2.new(0, 0, 0, 78)
+settingsRow.Size = UDim2.new(1, 0, 0, 35)
+settingsRow.Position = UDim2.new(0, 0, 0, 83)
 settingsRow.BackgroundColor3 = colors.bg2
-createCorner(settingsRow, 10)
+createCorner(settingsRow, 12)
 createStroke(settingsRow, colors.textDim, 0.2)
 
--- خلايا الإعدادات
 local function createSettingCell(parent, label, pos)
     local cell = Instance.new("Frame", parent)
     cell.Size = UDim2.new(0.24, 0, 1, 0)
@@ -766,7 +861,7 @@ local function createSettingCell(parent, label, pos)
     cell.BackgroundTransparency = 1
     
     local labelText = Instance.new("TextLabel", cell)
-    labelText.Size = UDim2.new(1, 0, 0.4, 0)
+    labelText.Size = UDim2.new(1, 0, 0.35, 0)
     labelText.Position = UDim2.new(0, 0, 0, 2)
     labelText.Text = label
     labelText.TextColor3 = colors.textDim
@@ -786,9 +881,9 @@ timeBox.Position = UDim2.new(0.2, 0, 0.45, 0)
 timeBox.Text = "10"
 timeBox.TextColor3 = colors.text
 timeBox.BackgroundColor3 = colors.bg3
-timeBox.TextSize = 11
+timeBox.TextSize = 12
 timeBox.Font = Enum.Font.GothamBold
-createCorner(timeBox, 5)
+createCorner(timeBox, 6)
 createStroke(timeBox, colors.textDim, 0.3)
 
 local infTimeBtn = Instance.new("TextButton", timeCell)
@@ -797,9 +892,9 @@ infTimeBtn.Position = UDim2.new(0.8, -5, 0.45, 0)
 infTimeBtn.Text = "∞"
 infTimeBtn.TextColor3 = colors.text
 infTimeBtn.BackgroundColor3 = colors.bg3
-infTimeBtn.TextSize = 12
+infTimeBtn.TextSize = 13
 infTimeBtn.Font = Enum.Font.GothamBold
-createCorner(infTimeBtn, 5)
+createCorner(infTimeBtn, 6)
 createStroke(infTimeBtn, colors.textDim, 0.3)
 
 -- النسخ
@@ -810,9 +905,9 @@ copyBox.Position = UDim2.new(0.2, 0, 0.45, 0)
 copyBox.Text = "3"
 copyBox.TextColor3 = colors.text
 copyBox.BackgroundColor3 = colors.bg3
-copyBox.TextSize = 11
+copyBox.TextSize = 12
 copyBox.Font = Enum.Font.GothamBold
-createCorner(copyBox, 5)
+createCorner(copyBox, 6)
 createStroke(copyBox, colors.textDim, 0.3)
 
 local infCopyBtn = Instance.new("TextButton", copyCell)
@@ -821,9 +916,9 @@ infCopyBtn.Position = UDim2.new(0.8, -5, 0.45, 0)
 infCopyBtn.Text = "∞"
 infCopyBtn.TextColor3 = colors.text
 infCopyBtn.BackgroundColor3 = colors.bg3
-infCopyBtn.TextSize = 12
+infCopyBtn.TextSize = 13
 infCopyBtn.Font = Enum.Font.GothamBold
-createCorner(infCopyBtn, 5)
+createCorner(infCopyBtn, 6)
 createStroke(infCopyBtn, colors.textDim, 0.3)
 
 -- السرعة
@@ -834,9 +929,9 @@ speedBox.Position = UDim2.new(0.2, 0, 0.45, 0)
 speedBox.Text = "0.01"
 speedBox.TextColor3 = colors.text
 speedBox.BackgroundColor3 = colors.bg3
-speedBox.TextSize = 11
+speedBox.TextSize = 12
 speedBox.Font = Enum.Font.GothamBold
-createCorner(speedBox, 5)
+createCorner(speedBox, 6)
 createStroke(speedBox, colors.textDim, 0.3)
 
 -- الإحصائيات
@@ -859,10 +954,10 @@ sentCount.BackgroundTransparency = 1
 sentCount.TextSize = 10
 sentCount.Font = Enum.Font.Gotham
 
--- أزرار التحكم Premium
+-- أزرار التحكم
 local controlRow = Instance.new("Frame", spamContainer)
-controlRow.Size = UDim2.new(1, 0, 0, 42)
-controlRow.Position = UDim2.new(0, 0, 0, 118)
+controlRow.Size = UDim2.new(1, 0, 0, 45)
+controlRow.Position = UDim2.new(0, 0, 0, 126)
 controlRow.BackgroundTransparency = 1
 
 local startBtn = Instance.new("TextButton", controlRow)
@@ -872,9 +967,9 @@ startBtn.Text = "▶ تشغيل"
 startBtn.BackgroundColor3 = colors.success
 startBtn.TextColor3 = colors.text
 startBtn.Font = Enum.Font.GothamBold
-startBtn.TextSize = 13
-createCorner(startBtn, 10)
-createStroke(startBtn, colors.success, 1.5)
+startBtn.TextSize = 14
+createCorner(startBtn, 12)
+createStroke(startBtn, colors.success, 2)
 startBtn.AutoButtonColor = true
 
 local stopBtn = Instance.new("TextButton", controlRow)
@@ -884,45 +979,45 @@ stopBtn.Text = "⏹ إيقاف"
 stopBtn.BackgroundColor3 = colors.danger
 stopBtn.TextColor3 = colors.text
 stopBtn.Font = Enum.Font.GothamBold
-stopBtn.TextSize = 13
-createCorner(stopBtn, 10)
-createStroke(stopBtn, colors.danger, 1.5)
+stopBtn.TextSize = 14
+createCorner(stopBtn, 12)
+createStroke(stopBtn, colors.danger, 2)
 stopBtn.AutoButtonColor = true
 
 -- مؤقت
 local timerDisplay = Instance.new("TextLabel", spamContainer)
-timerDisplay.Size = UDim2.new(1, 0, 0, 20)
-timerDisplay.Position = UDim2.new(0, 0, 0, 168)
+timerDisplay.Size = UDim2.new(1, 0, 0, 22)
+timerDisplay.Position = UDim2.new(0, 0, 0, 180)
 timerDisplay.Text = "⏱️ --"
 timerDisplay.TextColor3 = colors.warning
 timerDisplay.BackgroundTransparency = 1
-timerDisplay.TextSize = 12
+timerDisplay.TextSize = 13
 timerDisplay.Font = Enum.Font.GothamBold
 
 ---------------------------------------
--- حاوية الأوامر المخصصة Premium
+-- حاوية الأوامر المخصصة
 ---------------------------------------
 local commandsContainer = Instance.new("Frame", mainFrame)
-commandsContainer.Size = UDim2.new(1, -30, 1, -160)
-commandsContainer.Position = UDim2.new(0, 15, 0, 150)
+commandsContainer.Size = UDim2.new(1, -30, 1, -170)
+commandsContainer.Position = UDim2.new(0, 15, 0, 160)
 commandsContainer.BackgroundTransparency = 1
 commandsContainer.Visible = false
 
 local cmdsTitle = Instance.new("TextLabel", commandsContainer)
-cmdsTitle.Size = UDim2.new(1, 0, 0, 28)
+cmdsTitle.Size = UDim2.new(1, 0, 0, 30)
 cmdsTitle.Text = "📝 الأوامر المخصصة"
 cmdsTitle.TextColor3 = colors.primary
 cmdsTitle.BackgroundTransparency = 1
 cmdsTitle.Font = Enum.Font.GothamBold
-cmdsTitle.TextSize = 15
+cmdsTitle.TextSize = 16
 cmdsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 -- إطار الإضافة
 local addFrame = Instance.new("Frame", commandsContainer)
-addFrame.Size = UDim2.new(1, 0, 0, 50)
-addFrame.Position = UDim2.new(0, 0, 0, 35)
+addFrame.Size = UDim2.new(1, 0, 0, 55)
+addFrame.Position = UDim2.new(0, 0, 0, 38)
 addFrame.BackgroundColor3 = colors.bg2
-createCorner(addFrame, 10)
+createCorner(addFrame, 12)
 createStroke(addFrame, colors.textDim, 0.3)
 
 local nameBox = Instance.new("TextBox", addFrame)
@@ -931,10 +1026,10 @@ nameBox.Position = UDim2.new(0, 5, 0.1, 0)
 nameBox.PlaceholderText = "الاسم"
 nameBox.Text = ""
 nameBox.TextColor3 = colors.text
-nameBox.TextSize = 11
+nameBox.TextSize = 12
 nameBox.BackgroundColor3 = colors.bg3
 nameBox.Font = Enum.Font.Gotham
-createCorner(nameBox, 6)
+createCorner(nameBox, 8)
 nameBox.PlaceholderColor3 = colors.textDim
 
 local cmdBox = Instance.new("TextBox", addFrame)
@@ -943,10 +1038,10 @@ cmdBox.Position = UDim2.new(0.37, 0, 0.1, 0)
 cmdBox.PlaceholderText = "الأمر"
 cmdBox.Text = ""
 cmdBox.TextColor3 = colors.text
-cmdBox.TextSize = 11
+cmdBox.TextSize = 12
 cmdBox.BackgroundColor3 = colors.bg3
 cmdBox.Font = Enum.Font.Gotham
-createCorner(cmdBox, 6)
+createCorner(cmdBox, 8)
 cmdBox.PlaceholderColor3 = colors.textDim
 
 local addCmdBtn = Instance.new("TextButton", addFrame)
@@ -956,21 +1051,21 @@ addCmdBtn.Text = "+ إضافة"
 addCmdBtn.BackgroundColor3 = colors.success
 addCmdBtn.TextColor3 = colors.text
 addCmdBtn.Font = Enum.Font.GothamBold
-addCmdBtn.TextSize = 11
-createCorner(addCmdBtn, 6)
+addCmdBtn.TextSize = 12
+createCorner(addCmdBtn, 8)
 
 -- قائمة الأوامر
 local cmdsList = Instance.new("ScrollingFrame", commandsContainer)
-cmdsList.Size = UDim2.new(1, 0, 1, -100)
-cmdsList.Position = UDim2.new(0, 0, 0, 95)
+cmdsList.Size = UDim2.new(1, 0, 1, -110)
+cmdsList.Position = UDim2.new(0, 0, 0, 105)
 cmdsList.BackgroundTransparency = 1
 cmdsList.ScrollBarThickness = 3
 cmdsList.ScrollBarImageColor3 = colors.primary
 cmdsList.CanvasSize = UDim2.new(0, 0, 0, 0)
 
 local function addCustomCommand(name, command)
-    if #customCommands >= 8 then
-        statusLabel.Text = "⚠️ حد أقصى 8 أوامر"
+    if #customCommands >= 10 then
+        statusLabel.Text = "⚠️ حد أقصى 10 أوامر"
         statusLabel.TextColor3 = colors.warning
         task.wait(2)
         statusLabel.Text = "جاهز للتشغيل"
@@ -993,24 +1088,24 @@ local function refreshCommandsList()
         end
     end
     
-    cmdsList.CanvasSize = UDim2.new(0, 0, 0, #customCommands * 45 + 10)
+    cmdsList.CanvasSize = UDim2.new(0, 0, 0, #customCommands * 48 + 10)
     
     for i, cmd in ipairs(customCommands) do
         local frame = Instance.new("Frame", cmdsList)
-        frame.Size = UDim2.new(1, 0, 0, 40)
-        frame.Position = UDim2.new(0, 0, 0, (i-1) * 45 + 5)
+        frame.Size = UDim2.new(1, 0, 0, 43)
+        frame.Position = UDim2.new(0, 0, 0, (i-1) * 48 + 5)
         frame.BackgroundColor3 = colors.bg2
-        createCorner(frame, 8)
+        createCorner(frame, 10)
         createStroke(frame, colors.textDim, 0.2)
         
         local nameLabel = Instance.new("TextLabel", frame)
         nameLabel.Size = UDim2.new(0.25, -5, 1, 0)
-        nameLabel.Position = UDim2.new(0, 8, 0, 0)
+        nameLabel.Position = UDim2.new(0, 10, 0, 0)
         nameLabel.Text = cmd.name
         nameLabel.TextColor3 = colors.primary
         nameLabel.BackgroundTransparency = 1
         nameLabel.Font = Enum.Font.GothamBold
-        nameLabel.TextSize = 11
+        nameLabel.TextSize = 12
         nameLabel.TextXAlignment = Enum.TextXAlignment.Left
         
         local cmdLabel = Instance.new("TextLabel", frame)
@@ -1020,7 +1115,7 @@ local function refreshCommandsList()
         cmdLabel.TextColor3 = colors.text
         cmdLabel.BackgroundTransparency = 1
         cmdLabel.Font = Enum.Font.Gotham
-        cmdLabel.TextSize = 11
+        cmdLabel.TextSize = 12
         cmdLabel.TextXAlignment = Enum.TextXAlignment.Left
         
         local useBtn = Instance.new("TextButton", frame)
@@ -1030,8 +1125,8 @@ local function refreshCommandsList()
         useBtn.BackgroundColor3 = colors.success
         useBtn.TextColor3 = colors.text
         useBtn.Font = Enum.Font.GothamBold
-        useBtn.TextSize = 11
-        createCorner(useBtn, 6)
+        useBtn.TextSize = 12
+        createCorner(useBtn, 8)
         
         setupOneClick(useBtn, function()
             task.spawn(function()
@@ -1056,8 +1151,8 @@ local function refreshCommandsList()
         delBtn.BackgroundColor3 = colors.danger
         delBtn.TextColor3 = colors.text
         delBtn.Font = Enum.Font.GothamBold
-        delBtn.TextSize = 11
-        createCorner(delBtn, 6)
+        delBtn.TextSize = 12
+        createCorner(delBtn, 8)
         
         setupOneClick(delBtn, function()
             removeCustomCommand(i)
@@ -1095,19 +1190,19 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات Premium
+-- نافذة الإعدادات 100ZX
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
-settingsFrame.Size = UDim2.new(1, -30, 1, -160)
-settingsFrame.Position = UDim2.new(0, 15, 0, 150)
+settingsFrame.Size = UDim2.new(1, -30, 1, -170)
+settingsFrame.Position = UDim2.new(0, 15, 0, 160)
 settingsFrame.BackgroundColor3 = colors.bg2
 settingsFrame.BackgroundTransparency = 0.3
 settingsFrame.Visible = false
-createCorner(settingsFrame, 14)
-createStroke(settingsFrame, colors.gold, 1)
+createCorner(settingsFrame, 16)
+createStroke(settingsFrame, colors.gold, 1.5)
 
 local settingsHeader = Instance.new("Frame", settingsFrame)
-settingsHeader.Size = UDim2.new(1, 0, 0, 32)
+settingsHeader.Size = UDim2.new(1, 0, 0, 35)
 settingsHeader.BackgroundTransparency = 1
 
 local settingsTitle = Instance.new("TextLabel", settingsHeader)
@@ -1117,27 +1212,27 @@ settingsTitle.Text = "⚙️ الإعدادات"
 settingsTitle.TextColor3 = colors.gold
 settingsTitle.BackgroundTransparency = 1
 settingsTitle.Font = Enum.Font.GothamBold
-settingsTitle.TextSize = 15
+settingsTitle.TextSize = 16
 settingsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local scrollContainer = Instance.new("ScrollingFrame", settingsFrame)
-scrollContainer.Size = UDim2.new(1, -10, 1, -42)
-scrollContainer.Position = UDim2.new(0, 5, 0, 37)
+scrollContainer.Size = UDim2.new(1, -10, 1, -45)
+scrollContainer.Position = UDim2.new(0, 5, 0, 40)
 scrollContainer.BackgroundTransparency = 1
 scrollContainer.ScrollBarThickness = 3
 scrollContainer.ScrollBarImageColor3 = colors.primary
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 680)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 850)
 
 -- قسم الثيمات
 local themeTitle = Instance.new("TextLabel", scrollContainer)
-themeTitle.Size = UDim2.new(1, 0, 0, 28)
+themeTitle.Size = UDim2.new(1, 0, 0, 30)
 themeTitle.Text = "🎨 اختيار الثيم"
 themeTitle.TextColor3 = colors.primary
 themeTitle.BackgroundTransparency = 1
 themeTitle.Font = Enum.Font.GothamBold
-themeTitle.TextSize = 14
+themeTitle.TextSize = 15
 
-local allThemes = {"neon", "dark", "light", "red", "green", "purple", "ocean", "sunset", "cyber", "royal", "galaxy", "crystal"}
+local allThemes = {"neon", "dark", "light", "red", "green", "purple", "ocean", "sunset", "cyber", "royal", "galaxy", "crystal", "magma", "ice"}
 local themeNames = {
     neon = "✨ نيون",
     dark = "🌙 داكن",
@@ -1150,26 +1245,28 @@ local themeNames = {
     cyber = "💠 سايبر",
     royal = "👑 ملكي",
     galaxy = "🌌 مجرة",
-    crystal = "💎 كريستال"
+    crystal = "💎 كريستال",
+    magma = "🌋 ماغما",
+    ice = "❄️ جليد"
 }
 
 local themeGrid = Instance.new("Frame", scrollContainer)
-themeGrid.Size = UDim2.new(1, 0, 0, 200)
-themeGrid.Position = UDim2.new(0, 0, 0, 32)
+themeGrid.Size = UDim2.new(1, 0, 0, 230)
+themeGrid.Position = UDim2.new(0, 0, 0, 35)
 themeGrid.BackgroundTransparency = 1
 
 for i, theme in ipairs(allThemes) do
     local btn = Instance.new("TextButton", themeGrid)
     local row = math.floor((i-1) / 3)
     local col = (i-1) % 3
-    btn.Size = UDim2.new(0.3, -5, 0, 32)
-    btn.Position = UDim2.new(0.03 + col * 0.33, 0, 0, row * 38)
+    btn.Size = UDim2.new(0.3, -5, 0, 35)
+    btn.Position = UDim2.new(0.03 + col * 0.33, 0, 0, row * 42)
     btn.Text = themeNames[theme] or theme
     btn.BackgroundColor3 = getThemeColors(theme).bg2
     btn.TextColor3 = getThemeColors(theme).text
     btn.Font = Enum.Font.GothamBold
     btn.TextSize = 10
-    createCorner(btn, 8)
+    createCorner(btn, 10)
     createStroke(btn, getThemeColors(theme).primary, 0.5)
     btn.AutoButtonColor = true
     
@@ -1180,50 +1277,50 @@ end
 
 -- قسم الحماية
 local protectTitle = Instance.new("TextLabel", scrollContainer)
-protectTitle.Size = UDim2.new(1, 0, 0, 28)
-protectTitle.Position = UDim2.new(0, 0, 0, 250)
+protectTitle.Size = UDim2.new(1, 0, 0, 30)
+protectTitle.Position = UDim2.new(0, 0, 0, 285)
 protectTitle.Text = "🛡️ الحماية"
 protectTitle.TextColor3 = colors.primary
 protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
-protectTitle.TextSize = 14
+protectTitle.TextSize = 15
 
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
-    frame.Size = UDim2.new(1, 0, 0, 42)
+    frame.Size = UDim2.new(1, 0, 0, 45)
     frame.Position = UDim2.new(0, 0, 0, pos)
     frame.BackgroundColor3 = colors.bg2
-    createCorner(frame, 8)
+    createCorner(frame, 10)
     createStroke(frame, colors.textDim, 0.2)
     frame.Selectable = false
     
     local iconLabel = Instance.new("TextLabel", frame)
-    iconLabel.Size = UDim2.new(0, 30, 1, 0)
+    iconLabel.Size = UDim2.new(0, 32, 1, 0)
     iconLabel.Position = UDim2.new(0, 8, 0, 0)
     iconLabel.Text = icon or "◆"
     iconLabel.TextColor3 = colors.primary
     iconLabel.BackgroundTransparency = 1
-    iconLabel.TextSize = 16
+    iconLabel.TextSize = 18
     
     local label = Instance.new("TextLabel", frame)
     label.Size = UDim2.new(0.5, -40, 1, 0)
-    label.Position = UDim2.new(0, 42, 0, 0)
+    label.Position = UDim2.new(0, 44, 0, 0)
     label.Text = name
     label.TextColor3 = colors.text
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 12
+    label.TextSize = 13
     label.TextXAlignment = Enum.TextXAlignment.Left
     
     local toggle = Instance.new("TextButton", frame)
-    toggle.Size = UDim2.new(0, 50, 0, 28)
-    toggle.Position = UDim2.new(1, -55, 0.5, -14)
+    toggle.Size = UDim2.new(0, 55, 0, 30)
+    toggle.Position = UDim2.new(1, -60, 0.5, -15)
     toggle.BackgroundColor3 = colors.danger
     toggle.Text = "OFF"
     toggle.TextColor3 = colors.text
     toggle.Font = Enum.Font.GothamBold
-    toggle.TextSize = 10
-    createCorner(toggle, 14)
+    toggle.TextSize = 11
+    createCorner(toggle, 15)
     createStroke(toggle, colors.danger, 1.5)
     toggle.AutoButtonColor = true
     
@@ -1243,7 +1340,7 @@ local function createToggle(name, pos, icon, callback)
 end
 
 -- جميع خيارات الحماية
-createToggle("🌀 مضاد الفلينج", 282, "🌀", function(s) 
+createToggle("🌀 مضاد الفلينج", 320, "🌀", function(s) 
     Settings.AntiFling = s
     
     if s then
@@ -1291,7 +1388,7 @@ createToggle("🌀 مضاد الفلينج", 282, "🌀", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("📋 مضاد اللاق (Logs)", 328, "📋", function(s) 
+createToggle("📋 مضاد اللاق (Logs)", 369, "📋", function(s) 
     Settings.AntiLogs = s
     if s then
         ProtectionThreads.AntiLogs = task.spawn(function()
@@ -1338,7 +1435,7 @@ createToggle("📋 مضاد اللاق (Logs)", 328, "📋", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("👁️ مضاد NV", 374, "👁️", function(s) 
+createToggle("👁️ مضاد NV", 418, "👁️", function(s) 
     Settings.AntiNV = s
     if s then
         ProtectionThreads.AntiNV = task.spawn(function()
@@ -1368,7 +1465,7 @@ createToggle("👁️ مضاد NV", 374, "👁️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🚫 مضاد Clogs", 420, "🚫", function(s) 
+createToggle("🚫 مضاد Clogs", 467, "🚫", function(s) 
     Settings.AntiClogs = s
     if s then
         ProtectionThreads.AntiClogs = task.spawn(function()
@@ -1404,7 +1501,7 @@ createToggle("🚫 مضاد Clogs", 420, "🚫", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("⌨️ مضاد CmdBar", 466, "⌨️", function(s) 
+createToggle("⌨️ مضاد CmdBar", 516, "⌨️", function(s) 
     Settings.AntiCmdBar = s
     if s then
         for _, g in pairs(player.PlayerGui:GetChildren()) do
@@ -1444,7 +1541,7 @@ createToggle("⌨️ مضاد CmdBar", 466, "⌨️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🔕 مضاد الإشعارات", 512, "🔕", function(s) 
+createToggle("🔕 مضاد الإشعارات", 565, "🔕", function(s) 
     Settings.AntiAlerts = s
     
     if s then
@@ -1527,7 +1624,7 @@ createToggle("🔕 مضاد الإشعارات", 512, "🔕", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("🛡️ مضاد الطرد", 558, "🛡️", function(s) 
+createToggle("🛡️ مضاد الطرد", 614, "🛡️", function(s) 
     Settings.AntiKick = s
     if s then
         ProtectionThreads.AntiKick = task.spawn(function()
@@ -1555,7 +1652,7 @@ createToggle("🛡️ مضاد الطرد", 558, "🛡️", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
-createToggle("💤 مضاد AFK", 604, "💤", function(s) 
+createToggle("💤 مضاد AFK", 663, "💤", function(s) 
     Settings.AntiAFK = s
     if s then
         ProtectionThreads.AntiAFK = task.spawn(function()
@@ -1587,20 +1684,104 @@ createToggle("💤 مضاد AFK", 604, "💤", function(s)
     statusLabel.TextColor3 = colors.textDim
 end)
 
+-- قسم المميزات الإضافية
+local extraTitle = Instance.new("TextLabel", scrollContainer)
+extraTitle.Size = UDim2.new(1, 0, 0, 30)
+extraTitle.Position = UDim2.new(0, 0, 0, 718)
+extraTitle.Text = "⚡ مميزات إضافية"
+extraTitle.TextColor3 = colors.primary
+extraTitle.BackgroundTransparency = 1
+extraTitle.Font = Enum.Font.GothamBold
+extraTitle.TextSize = 15
+
+-- سرعة
+createToggle("🏃 سرعة فائقة", 752, "🏃", function(s)
+    Settings.SpeedBoost = s
+    if s then
+        ProtectionThreads.SpeedBoost = RunService.Heartbeat:Connect(function()
+            if not Settings.SpeedBoost then return end
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum.WalkSpeed = 50
+                end
+            end
+        end)
+        statusLabel.Text = "✅ سرعة فائقة مفعلة"
+        statusLabel.TextColor3 = colors.success
+    else
+        if ProtectionThreads.SpeedBoost then
+            ProtectionThreads.SpeedBoost:Disconnect()
+            ProtectionThreads.SpeedBoost = nil
+        end
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.WalkSpeed = 16
+            end
+        end
+        statusLabel.Text = "❌ سرعة فائقة معطلة"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- قفز
+createToggle("🦘 قفز عالي", 801, "🦘", function(s)
+    Settings.JumpBoost = s
+    if s then
+        ProtectionThreads.JumpBoost = RunService.Heartbeat:Connect(function()
+            if not Settings.JumpBoost then return end
+            local char = player.Character
+            if char then
+                local hum = char:FindFirstChildOfClass("Humanoid")
+                if hum then
+                    hum.JumpPower = 100
+                end
+            end
+        end)
+        statusLabel.Text = "✅ قفز عالي مفعل"
+        statusLabel.TextColor3 = colors.success
+    else
+        if ProtectionThreads.JumpBoost then
+            ProtectionThreads.JumpBoost:Disconnect()
+            ProtectionThreads.JumpBoost = nil
+        end
+        local char = player.Character
+        if char then
+            local hum = char:FindFirstChildOfClass("Humanoid")
+            if hum then
+                hum.JumpPower = 50
+            end
+        end
+        statusLabel.Text = "❌ قفز عالي معطل"
+        statusLabel.TextColor3 = colors.danger
+    end
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, 860)
+
 ---------------------------------------
--- نافذة المعلومات Premium
+-- نافذة المعلومات 100ZX
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
-infoFrame.Size = UDim2.new(1, -30, 1, -160)
-infoFrame.Position = UDim2.new(0, 15, 0, 150)
+infoFrame.Size = UDim2.new(1, -30, 1, -170)
+infoFrame.Position = UDim2.new(0, 15, 0, 160)
 infoFrame.BackgroundColor3 = colors.bg2
 infoFrame.BackgroundTransparency = 0.3
 infoFrame.Visible = false
-createCorner(infoFrame, 14)
+createCorner(infoFrame, 16)
 createStroke(infoFrame, colors.info, 1.5)
 
 local infoHeader = Instance.new("Frame", infoFrame)
-infoHeader.Size = UDim2.new(1, 0, 0, 32)
+infoHeader.Size = UDim2.new(1, 0, 0, 35)
 infoHeader.BackgroundTransparency = 1
 
 local infoTitle = Instance.new("TextLabel", infoHeader)
@@ -1610,20 +1791,20 @@ infoTitle.Text = "ℹ️ المعلومات"
 infoTitle.TextColor3 = colors.info
 infoTitle.BackgroundTransparency = 1
 infoTitle.Font = Enum.Font.GothamBold
-infoTitle.TextSize = 15
+infoTitle.TextSize = 16
 infoTitle.TextXAlignment = Enum.TextXAlignment.Left
 
 local infoScroll = Instance.new("ScrollingFrame", infoFrame)
-infoScroll.Size = UDim2.new(1, -10, 1, -42)
-infoScroll.Position = UDim2.new(0, 5, 0, 37)
+infoScroll.Size = UDim2.new(1, -10, 1, -45)
+infoScroll.Position = UDim2.new(0, 5, 0, 40)
 infoScroll.BackgroundTransparency = 1
 infoScroll.ScrollBarThickness = 3
 infoScroll.ScrollBarImageColor3 = colors.info
-infoScroll.CanvasSize = UDim2.new(0, 0, 0, 720)
+infoScroll.CanvasSize = UDim2.new(0, 0, 0, 780)
 
 local function createInfoSection(title, icon, pos)
     local frame = Instance.new("Frame", infoScroll)
-    frame.Size = UDim2.new(1, 0, 0, 30)
+    frame.Size = UDim2.new(1, 0, 0, 32)
     frame.Position = UDim2.new(0, 0, 0, pos)
     frame.BackgroundTransparency = 1
     
@@ -1633,7 +1814,7 @@ local function createInfoSection(title, icon, pos)
     label.TextColor3 = colors.info
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.GothamBold
-    label.TextSize = 14
+    label.TextSize = 15
     label.TextXAlignment = Enum.TextXAlignment.Left
     label.TextYAlignment = Enum.TextYAlignment.Bottom
     
@@ -1642,13 +1823,13 @@ end
 
 local function createInfoText(text, pos, color, size)
     local label = Instance.new("TextLabel", infoScroll)
-    label.Size = UDim2.new(1, -10, 0, 20)
+    label.Size = UDim2.new(1, -10, 0, 22)
     label.Position = UDim2.new(0, 10, 0, pos)
     label.Text = text
     label.TextColor3 = color or colors.textDim
     label.BackgroundTransparency = 1
     label.Font = Enum.Font.Gotham
-    label.TextSize = size or 11
+    label.TextSize = size or 12
     label.TextXAlignment = Enum.TextXAlignment.Left
     return label
 end
@@ -1656,21 +1837,21 @@ end
 local pos = 5
 
 createInfoSection("المعلومات الأساسية", "📋", pos)
-pos = pos + 35
-createInfoText("👨‍💻 المطور: Hamza000599", pos, colors.info, 13)
-pos = pos + 24
-createInfoText("📌 الإصدار: V25 (10X Premium)", pos)
-pos = pos + 24
+pos = pos + 37
+createInfoText("👨‍💻 المطور: Hamza000599", pos, colors.info, 14)
+pos = pos + 26
+createInfoText("📌 الإصدار: V26 (100ZX Master)", pos)
+pos = pos + 26
 createInfoText("📅 التاريخ: 14/07/2026", pos)
-pos = pos + 24
-createInfoText("⚡ الحالة: مُحسَّن بالكامل", pos)
-pos = pos + 38
+pos = pos + 26
+createInfoText("⚡ الحالة: Ultra Optimized", pos)
+pos = pos + 40
 
 createInfoSection("إحصائيات المستخدم", "📊", pos)
-pos = pos + 35
+pos = pos + 37
 
 local statsText = Instance.new("TextLabel", infoScroll)
-statsText.Size = UDim2.new(1, -10, 0, 20)
+statsText.Size = UDim2.new(1, -10, 0, 22)
 statsText.Position = UDim2.new(0, 10, 0, pos)
 statsText.Text = "📝 الأوامر المرسلة: 0"
 statsText.TextColor3 = colors.textDim
@@ -1678,10 +1859,10 @@ statsText.BackgroundTransparency = 1
 statsText.Font = Enum.Font.Gotham
 statsText.TextSize = 12
 statsText.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 24
+pos = pos + 26
 
 local protectStats = Instance.new("TextLabel", infoScroll)
-protectStats.Size = UDim2.new(1, -10, 0, 20)
+protectStats.Size = UDim2.new(1, -10, 0, 22)
 protectStats.Position = UDim2.new(0, 10, 0, pos)
 protectStats.Text = "🛡️ الحمايات المفعلة: 0/8"
 protectStats.TextColor3 = colors.textDim
@@ -1689,10 +1870,10 @@ protectStats.BackgroundTransparency = 1
 protectStats.Font = Enum.Font.Gotham
 protectStats.TextSize = 12
 protectStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 24
+pos = pos + 26
 
 local timeStats = Instance.new("TextLabel", infoScroll)
-timeStats.Size = UDim2.new(1, -10, 0, 20)
+timeStats.Size = UDim2.new(1, -10, 0, 22)
 timeStats.Position = UDim2.new(0, 10, 0, pos)
 timeStats.Text = "⏱️ وقت التشغيل: 00:00"
 timeStats.TextColor3 = colors.textDim
@@ -1700,10 +1881,10 @@ timeStats.BackgroundTransparency = 1
 timeStats.Font = Enum.Font.Gotham
 timeStats.TextSize = 12
 timeStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 24
+pos = pos + 26
 
 local cmdCountStats = Instance.new("TextLabel", infoScroll)
-cmdCountStats.Size = UDim2.new(1, -10, 0, 20)
+cmdCountStats.Size = UDim2.new(1, -10, 0, 22)
 cmdCountStats.Position = UDim2.new(0, 10, 0, pos)
 cmdCountStats.Text = "📂 الأوامر المخصصة: 0"
 cmdCountStats.TextColor3 = colors.textDim
@@ -1711,55 +1892,56 @@ cmdCountStats.BackgroundTransparency = 1
 cmdCountStats.Font = Enum.Font.Gotham
 cmdCountStats.TextSize = 12
 cmdCountStats.TextXAlignment = Enum.TextXAlignment.Left
-pos = pos + 38
+pos = pos + 40
 
 createInfoSection("رسالة ترحيبية", "🎯", pos)
-pos = pos + 35
+pos = pos + 37
 local welcomeText = Instance.new("TextLabel", infoScroll)
-welcomeText.Size = UDim2.new(1, -10, 0, 55)
+welcomeText.Size = UDim2.new(1, -10, 0, 60)
 welcomeText.Position = UDim2.new(0, 10, 0, pos)
-welcomeText.Text = "مرحباً بك في ABC HUB!\nتم تطوير هذا السكربت لتجربة أفضل\nمع حماية متكاملة وسبام احترافي"
+welcomeText.Text = "مرحباً بك في ABC HUB 100ZX!\nأقوى سكرببت على الإطلاق\nمع حماية متكاملة وسبام احترافي"
 welcomeText.TextColor3 = colors.text
 welcomeText.BackgroundTransparency = 1
 welcomeText.Font = Enum.Font.GothamBold
-welcomeText.TextSize = 13
+welcomeText.TextSize = 14
 welcomeText.TextXAlignment = Enum.TextXAlignment.Left
 welcomeText.LineHeight = 1.5
-pos = pos + 60
+pos = pos + 65
 
 createInfoSection("معلومات تقنية", "⚙️", pos)
-pos = pos + 35
+pos = pos + 37
 createInfoText("🔹 لغة البرمجة: Lua (Luau)", pos)
-pos = pos + 24
+pos = pos + 26
 createInfoText("🔹 عدد الملفات: 1 (سكربت واحد)", pos)
-pos = pos + 24
+pos = pos + 26
 createInfoText("🔹 حجم السكربت: خفيف جداً", pos)
-pos = pos + 24
+pos = pos + 26
 createInfoText("🔹 متوافق مع: PC + Mobile", pos)
-pos = pos + 24
-createInfoText("🔹 آخر تحديث: V25 Premium", pos)
-pos = pos + 38
+pos = pos + 26
+createInfoText("🔹 آخر تحديث: V26 100ZX", pos)
+pos = pos + 40
 
 createInfoSection("مميزات السكربت", "🔥", pos)
-pos = pos + 35
+pos = pos + 37
 local features = {
-    "✅ 12 ثيماً احترافية",
+    "✅ 14 ثيماً احترافية",
     "✅ 8 خيارات حماية متكاملة",
     "✅ مضاد Logs مدمج",
     "✅ إيقاف الحماية فوراً",
-    "✅ 8 أوامر مخصصة قابلة للحفظ",
+    "✅ 10 أوامر مخصصة قابلة للحفظ",
     "✅ سرعة تكرار فائقة",
     "✅ واجهة Premium للهواتف",
     "✅ تأثيرات حركية جذابة",
+    "✅ سرعة فائقة وقفز عالي",
 }
 for _, feature in ipairs(features) do
     createInfoText(feature, pos, colors.text, 12)
-    pos = pos + 22
+    pos = pos + 24
 end
-pos = pos + 18
+pos = pos + 20
 
 createInfoSection("نصائح واستخدامات", "💡", pos)
-pos = pos + 35
+pos = pos + 37
 local tips = {
     "• استخدم ; للفصل بين الأوامر",
     "• فعّل الحماية قبل بدء التكرار",
@@ -1770,22 +1952,23 @@ local tips = {
 }
 for _, tip in ipairs(tips) do
     createInfoText(tip, pos, colors.textDim, 12)
-    pos = pos + 22
+    pos = pos + 24
 end
-pos = pos + 18
+pos = pos + 20
 
 createInfoSection("تحديثات قادمة", "🚀", pos)
-pos = pos + 35
+pos = pos + 37
 local updates = {
     "🔹 وضع التكرار الذكي (Smart Spam)",
     "🔹 حفظ الإعدادات تلقائياً",
     "🔹 أوامر صوتية",
     "🔹 ثيمات جديدة",
     "🔹 تحسين الأداء والسرعة",
+    "🔹 نظام إشعارات متقدم",
 }
 for _, update in ipairs(updates) do
     createInfoText(update, pos, colors.warning, 12)
-    pos = pos + 22
+    pos = pos + 24
 end
 
 pos = pos + 25
@@ -2025,11 +2208,11 @@ setupOneClick(minimizeBtn, function()
 end)
 
 ---------------------------------------
--- تأثيرات حركية Premium
+-- تأثيرات حركية 100ZX
 ---------------------------------------
 task.spawn(function()
     while true do
-        local info = TweenInfo.new(3, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
+        local info = TweenInfo.new(2.5, Enum.EasingStyle.Sine, Enum.EasingDirection.InOut)
         local colors = getThemeColors(currentTheme)
         
         local stroke = mainFrame:FindFirstChild("UIStroke")
@@ -2038,14 +2221,14 @@ task.spawn(function()
         end
         TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.primary}):Play()
         
-        task.wait(3)
+        task.wait(2.5)
         
         if stroke then
             TweenService:Create(stroke, info, {Color = colors.secondary}):Play()
         end
         TweenService:Create(toggleBtn.UIStroke, info, {Color = colors.secondary}):Play()
         
-        task.wait(3)
+        task.wait(2.5)
     end
 end)
 
@@ -2054,9 +2237,10 @@ mainFrame.Visible = false
 toggleBtn.Visible = true
 
 print("╔════════════════════════════════════════════════════════════╗")
-print("║  🔥 ABC ULTIMATE HUB V25 - 10X PREMIUM 🔥               ║")
+print("║  🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥              ║")
 print("║  👨‍💻 المطور: Hamza000599                                  ║")
-print("║  ✅ 12 ثيماً احترافية                                  ║")
+print("║  ✅ 14 ثيماً احترافية                                  ║")
 print("║  ✅ واجهة مخصصة للموبايل                              ║")
-print("║  ✅ سرعة فائقة + تصميم Premium                        ║")
+print("║  ✅ سرعة فائقة + تصميم 100ZX                         ║")
+print("║  ✅ مميزات إضافية: سرعة + قفز                        ║")
 print("╚════════════════════════════════════════════════════════════╝")
