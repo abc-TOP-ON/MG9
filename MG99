@@ -48,21 +48,18 @@ local currentTheme = "neon"
 local customCommands = {}
 local lastSafePos = nil
 local isMainOpen = false
-local BackgroundEffect = "stars" -- options: stars, waves, particles, gradient
+local BackgroundEffect = "stars"
 
 ---------------------------------------
 -- 🛡️ نظام الحماية المتقدم (الدرع الأسطوري)
 ---------------------------------------
 local AdvancedProtection = {
-    -- الحماية من اللاق (Anti-Lag)
     AntiLag = {
         Enabled = false,
-        Mode = "aggressive", -- aggressive, balanced, light
+        Mode = "aggressive",
         MaxPing = 150,
         AutoFix = true,
     },
-    
-    -- حماية من الانفجارات
     AntiExplosion = {
         Enabled = false,
         RemoveExplosions = true,
@@ -71,8 +68,6 @@ local AdvancedProtection = {
         RemoveSparks = true,
         ProtectBuildings = true,
     },
-    
-    -- حماية من الواقعية (Realism)
     AntiRealism = {
         Enabled = false,
         RemoveFog = true,
@@ -83,35 +78,27 @@ local AdvancedProtection = {
         RemoveSunRays = true,
         FixBrightness = true,
     },
-    
-    -- حماية من التأخير (FPS Boost)
     FPSBoost = {
         Enabled = false,
-        Level = "ultra", -- ultra, high, medium, low
+        Level = "ultra",
         DisableShadows = true,
         DisableParticles = true,
         ReduceGraphics = true,
         DisableWater = true,
     },
-    
-    -- حماية من التجميد (Anti-Freeze)
     AntiFreeze = {
         Enabled = false,
         CheckInterval = 0.5,
         MaxFreezeTime = 2,
         AutoReset = true,
     },
-    
-    -- حماية من الـ Fling
     AntiFlingPlus = {
         Enabled = false,
-        Strength = "extreme", -- extreme, high, medium, low
+        Strength = "extreme",
         TeleportToSafe = true,
         AntiBounce = true,
         LockPosition = false,
     },
-    
-    -- حماية من الاختراق (Anti-Hack)
     AntiHack = {
         Enabled = false,
         BlockInjection = true,
@@ -120,8 +107,6 @@ local AdvancedProtection = {
         BlockNoClip = true,
         AutoReport = false,
     },
-    
-    -- تنظيف الخريطة (Clean World)
     CleanWorld = {
         Enabled = false,
         RemoveDecals = true,
@@ -132,7 +117,6 @@ local AdvancedProtection = {
     },
 }
 
--- متغيرات مؤقتة للحماية
 local ProtectionTimers = {
     AntiLag = nil,
     AntiExplosion = nil,
@@ -144,7 +128,6 @@ local ProtectionTimers = {
     CleanWorld = nil,
 }
 
--- إحصائيات الحماية
 local ProtectionStats = {
     BlocksCount = 0,
     LastBlock = "",
@@ -167,7 +150,6 @@ local ProtectionThreads = {
     AntiAFK = nil,
 }
 
--- متغيرات المؤثرات
 local ParticleEffects = {}
 local BackgroundThread = nil
 local IconAnimations = {}
@@ -177,7 +159,6 @@ local IconAnimations = {}
 ---------------------------------------
 local SaveKey = "ABC_Ultimate_Settings_" .. player.UserId
 
--- دالة لحفظ الإعدادات
 local function saveSettings()
     local data = {
         theme = currentTheme,
@@ -212,7 +193,6 @@ local function saveSettings()
     end
 end
 
--- دالة لتحميل الإعدادات
 local function loadSettings()
     local data = nil
     
@@ -280,7 +260,7 @@ local function setupOneClick(button, callback)
 end
 
 ---------------------------------------
--- دوال مساعدة للتصميم 100ZX
+-- دوال مساعدة للتصميم
 ---------------------------------------
 local function createCorner(parent, radius)
     local corner = Instance.new("UICorner", parent)
@@ -342,8 +322,6 @@ end
 ---------------------------------------
 -- 🌟 تأثيرات الخلفية المتحركة
 ---------------------------------------
-
--- 1. تأثير النجوم
 local function createStarsEffect(parent)
     local stars = {}
     for i = 1, 50 do
@@ -363,7 +341,6 @@ local function createStarsEffect(parent)
         })
     end
     
-    -- حركة النجوم
     task.spawn(function()
         while true do
             for _, star in pairs(stars) do
@@ -375,7 +352,6 @@ local function createStarsEffect(parent)
                     if newY > 1 then newY = 0 end
                     star.frame.Position = UDim2.new(newX, 0, newY, 0)
                     
-                    -- وميض
                     local trans = star.frame.BackgroundTransparency
                     trans = trans + math.sin(tick() * star.twinkleSpeed) * 0.01
                     star.frame.BackgroundTransparency = math.clamp(trans, 0.1, 0.9)
@@ -388,7 +364,6 @@ local function createStarsEffect(parent)
     return stars
 end
 
--- 2. تأثير الأمواج
 local function createWavesEffect(parent)
     local waves = {}
     for i = 1, 3 do
@@ -428,7 +403,6 @@ local function createWavesEffect(parent)
     return waves
 end
 
--- 3. تأثير الجسيمات
 local function createParticlesEffect(parent)
     local particles = {}
     for i = 1, 30 do
@@ -490,7 +464,6 @@ local function createParticlesEffect(parent)
     return particles
 end
 
--- 4. تأثير التدرج المتحرك
 local function createGradientEffect(parent)
     local gradientFrame = Instance.new("Frame", parent)
     gradientFrame.Size = UDim2.new(1, 0, 1, 0)
@@ -517,14 +490,11 @@ local function createGradientEffect(parent)
     return {frame = gradientFrame, gradient = gradient}
 end
 
--- دالة لتشغيل تأثير الخلفية
 local function startBackgroundEffect(effectName, parent)
-    -- إيقاف التأثير السابق
     if BackgroundThread then
         BackgroundThread = nil
     end
     
-    -- تنظيف التأثيرات القديمة
     for _, child in pairs(parent:GetChildren()) do
         if child:IsA("Frame") and child.ZIndex == 0 and child.Name ~= "bgGradient" then
             child:Destroy()
@@ -546,11 +516,10 @@ local function startBackgroundEffect(effectName, parent)
 end
 
 ---------------------------------------
--- 🎨 الألوان 100ZX مع الثيمات الجديدة
+-- 🎨 الألوان مع الثيمات
 ---------------------------------------
 local function getThemeColors(themeName)
     local themes = {
-        -- الثيمات الأصلية
         neon = {
             primary = Color3.fromRGB(0, 200, 255),
             secondary = Color3.fromRGB(150, 0, 255),
@@ -789,8 +758,6 @@ local function getThemeColors(themeName)
             info = Color3.fromRGB(180, 230, 255),
             glow = Color3.fromRGB(100, 220, 255),
         },
-        
-        -- 🎨 الثيمات الجديدة
         blood = {
             primary = Color3.fromRGB(200, 0, 0),
             secondary = Color3.fromRGB(150, 0, 0),
@@ -919,8 +886,6 @@ local colors = getThemeColors(currentTheme)
 ---------------------------------------
 -- 🎬 رسوم متحركة عند الإرسال
 ---------------------------------------
-
--- تأثير انفجار نجمي
 local function createStarExplosion(parent, position, color)
     local explosion = Instance.new("Frame", parent)
     explosion.Size = UDim2.new(0, 5, 0, 5)
@@ -930,19 +895,16 @@ local function createStarExplosion(parent, position, color)
     explosion.ZIndex = 100
     createCorner(explosion, 3)
     
-    -- تكبير واختفاء
     local info = TweenInfo.new(0.5, Enum.EasingStyle.Quad, Enum.EasingDirection.Out)
     TweenService:Create(explosion, info, {
         Size = UDim2.new(0, 40, 0, 40),
         BackgroundTransparency = 1
     }):Play()
     
-    -- حذف بعد الانتهاء
     task.wait(0.5)
     explosion:Destroy()
 end
 
--- تأثير وميض
 local function createFlashEffect(parent, color)
     local flash = Instance.new("Frame", parent)
     flash.Size = UDim2.new(1, 0, 1, 0)
@@ -957,7 +919,6 @@ local function createFlashEffect(parent, color)
     flash:Destroy()
 end
 
--- تأثير دوائر متوسعة
 local function createExpandingCircles(parent, position, color)
     for i = 1, 3 do
         local circle = Instance.new("Frame", parent)
@@ -994,7 +955,6 @@ local function createExpandingCircles(parent, position, color)
     end
 end
 
--- تأثير الجسيمات المتطايرة
 local function createParticleBurst(parent, position, color)
     local particles = {}
     for i = 1, 12 do
@@ -1038,7 +998,6 @@ local function createParticleBurst(parent, position, color)
     end
 end
 
--- دالة لتشغيل تأثير عشوائي عند الإرسال
 local function playSendAnimation(button)
     if not button then return end
     
@@ -1050,7 +1009,6 @@ local function playSendAnimation(button)
         Y = button.Position.Y.Scale + button.Size.Y.Scale / 2
     }
     
-    -- اختيار تأثير عشوائي
     local effects = {
         function() createStarExplosion(parent, center, colors.primary) end,
         function() createFlashEffect(parent, colors.primary) end,
@@ -1139,7 +1097,6 @@ local function applyTheme(themeName)
         end
     end
     
-    -- تحديث تأثير الخلفية
     if mainFrame then
         startBackgroundEffect(BackgroundEffect, mainFrame)
     end
@@ -1154,7 +1111,7 @@ local function applyTheme(themeName)
 end
 
 ---------------------------------------
--- ✅ أيقونة الدخول/الخروج (صغيرة)
+-- ✅ أيقونة الدخول/الخروج
 ---------------------------------------
 local toggleBtn = Instance.new("ImageButton", gui)
 toggleBtn.Size = UDim2.new(0, 45, 0, 45)
@@ -1191,7 +1148,6 @@ toggleText.ZIndex = 2
 toggleText.TextScaled = true
 toggleText.TextWrapped = true
 
--- تأثير نبض خفيف
 task.spawn(function()
     while true do
         local colors = getThemeColors(currentTheme)
@@ -1203,7 +1159,6 @@ task.spawn(function()
     end
 end)
 
--- سحب الأيقونة
 local function setupDragging(button)
     local dragging = false
     local dragStart = nil
@@ -1250,7 +1205,7 @@ end
 setupDragging(toggleBtn)
 
 ---------------------------------------
--- الواجهة الرئيسية 100ZX
+-- الواجهة الرئيسية
 ---------------------------------------
 local mainFrame = Instance.new("Frame", gui)
 mainFrame.Size = UDim2.new(0, 420, 0, 650)
@@ -1271,11 +1226,10 @@ blur.Enabled = false
 
 local mainShadow = createShadow(mainFrame, 20, 0.3)
 
--- بدء تأثير الخلفية
 startBackgroundEffect(BackgroundEffect, mainFrame)
 
 ---------------------------------------
--- الهيدر 100ZX
+-- الهيدر
 ---------------------------------------
 local header = Instance.new("Frame", mainFrame)
 header.Size = UDim2.new(1, 0, 0, 65)
@@ -1311,7 +1265,6 @@ subtitle.Font = Enum.Font.Gotham
 subtitle.TextSize = 10
 subtitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- 🌟 أيقونات متحركة في الهيدر
 local function createAnimatedHeaderButton(parent, text, color, posX, animationType)
     local btn = Instance.new("TextButton", parent)
     btn.Size = UDim2.new(0, 35, 0, 35)
@@ -1324,17 +1277,14 @@ local function createAnimatedHeaderButton(parent, text, color, posX, animationTy
     btn.ZIndex = 10
     btn.AutoButtonColor = true
     
-    -- تأثيرات حركية
     local animating = false
     
     btn.MouseEnter:Connect(function()
         if animating then return end
         animating = true
         
-        -- تكبير
         TweenService:Create(btn, TweenInfo.new(0.2, Enum.EasingStyle.Quad), {TextSize = 26}):Play()
         
-        -- دوران أو اهتزاز حسب النوع
         if animationType == "spin" then
             TweenService:Create(btn, TweenInfo.new(1, Enum.EasingStyle.Quad), {Rotation = 360}):Play()
         elseif animationType == "bounce" then
@@ -1377,7 +1327,7 @@ local closeBtn = createAnimatedHeaderButton(header, "🚪", colors.danger, -95, 
 local minimizeBtn = createAnimatedHeaderButton(header, "✕", colors.textDim, -55, "pulse")
 
 ---------------------------------------
--- شريط الحالة 100ZX
+-- شريط الحالة
 ---------------------------------------
 local statusBar = Instance.new("Frame", mainFrame)
 statusBar.Size = UDim2.new(1, -30, 0, 30)
@@ -1417,7 +1367,7 @@ task.spawn(function()
 end)
 
 ---------------------------------------
--- علامات تبويب 100ZX
+-- علامات تبويب
 ---------------------------------------
 local tabFrame = Instance.new("Frame", mainFrame)
 tabFrame.Size = UDim2.new(1, -30, 0, 38)
@@ -1496,7 +1446,7 @@ spamTab.TextColor3 = colors.text
 spamTab.UIStroke.Color = colors.primary
 
 ---------------------------------------
--- حاوية SPAM 100ZX
+-- حاوية SPAM
 ---------------------------------------
 local spamContainer = Instance.new("Frame", mainFrame)
 spamContainer.Size = UDim2.new(1, -30, 1, -170)
@@ -1628,61 +1578,28 @@ controlRow.Position = UDim2.new(0, 0, 0, 126)
 controlRow.BackgroundTransparency = 1
 
 local startBtn = Instance.new("TextButton", controlRow)
-startBtn.Size = UDim2.new(0.30, -5, 1, 0)
+startBtn.Size = UDim2.new(0.47, -5, 1, 0)
 startBtn.Position = UDim2.new(0, 0, 0, 0)
 startBtn.Text = "▶ تشغيل"
 startBtn.BackgroundColor3 = colors.success
 startBtn.TextColor3 = colors.text
 startBtn.Font = Enum.Font.GothamBold
-startBtn.TextSize = 12
+startBtn.TextSize = 14
 createCorner(startBtn, 12)
 createStroke(startBtn, colors.success, 2)
 startBtn.AutoButtonColor = true
 
 local stopBtn = Instance.new("TextButton", controlRow)
-stopBtn.Size = UDim2.new(0.30, -5, 1, 0)
-stopBtn.Position = UDim2.new(0.32, 5, 0, 0)
+stopBtn.Size = UDim2.new(0.47, -5, 1, 0)
+stopBtn.Position = UDim2.new(0.53, 5, 0, 0)
 stopBtn.Text = "⏹ إيقاف"
 stopBtn.BackgroundColor3 = colors.danger
 stopBtn.TextColor3 = colors.text
 stopBtn.Font = Enum.Font.GothamBold
-stopBtn.TextSize = 12
+stopBtn.TextSize = 14
 createCorner(stopBtn, 12)
 createStroke(stopBtn, colors.danger, 2)
 stopBtn.AutoButtonColor = true
-
--- زر الحماية السريع
-local protectBtn = Instance.new("TextButton", controlRow)
-protectBtn.Size = UDim2.new(0.35, -5, 1, 0)
-protectBtn.Position = UDim2.new(0.64, 5, 0, 0)
-protectBtn.Text = "🛡️ حماية"
-protectBtn.BackgroundColor3 = colors.gold
-protectBtn.TextColor3 = colors.text
-protectBtn.Font = Enum.Font.GothamBold
-protectBtn.TextSize = 12
-createCorner(protectBtn, 12)
-createStroke(protectBtn, colors.gold, 2)
-protectBtn.AutoButtonColor = true
-
-setupOneClick(protectBtn, function()
-    -- فتح تبويب الإعدادات وتفعيل الحماية
-    settingsTab:Fire()
-    settingsFrame.Visible = true
-    spamContainer.Visible = false
-    commandsContainer.Visible = false
-    infoFrame.Visible = false
-    
-    -- تمرير إلى قسم الحماية
-    scrollContainer.CanvasPosition = Vector2.new(0, 900)
-    
-    statusLabel.Text = "🛡️ تم فتح الحماية المتقدمة"
-    statusLabel.TextColor3 = colors.gold
-    task.wait(1.5)
-    statusLabel.Text = "جاهز للتشغيل"
-    statusLabel.TextColor3 = colors.textDim
-    
-    playSendAnimation(protectBtn)
-end)
 
 local timerDisplay = Instance.new("TextLabel", spamContainer)
 timerDisplay.Size = UDim2.new(1, 0, 0, 22)
@@ -1734,7 +1651,6 @@ setupOneClick(smartBtn, function()
         smartBtn.UIStroke.Color = colors.success
         statusLabel.Text = "🧠 تم تفعيل التكرار الذكي"
         statusLabel.TextColor3 = colors.success
-        -- تشغيل تأثير عند التفعيل
         playSendAnimation(smartBtn)
     else
         smartBtn.BackgroundColor3 = colors.bg3
@@ -1893,7 +1809,6 @@ local function refreshCommandsList()
                     ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd.command)
                 end)
             end)
-            -- تشغيل تأثير عند الإرسال
             playSendAnimation(useBtn)
             statusLabel.Text = "✅ تم إرسال: " .. cmd.name
             statusLabel.TextColor3 = colors.success
@@ -1949,7 +1864,7 @@ end)
 refreshCommandsList()
 
 ---------------------------------------
--- نافذة الإعدادات 100ZX
+-- نافذة الإعدادات
 ---------------------------------------
 local settingsFrame = Instance.new("Frame", mainFrame)
 settingsFrame.Size = UDim2.new(1, -30, 1, -170)
@@ -1974,7 +1889,6 @@ settingsTitle.Font = Enum.Font.GothamBold
 settingsTitle.TextSize = 16
 settingsTitle.TextXAlignment = Enum.TextXAlignment.Left
 
--- زر حفظ الإعدادات
 local saveBtn = Instance.new("TextButton", settingsHeader)
 saveBtn.Size = UDim2.new(0, 60, 0, 30)
 saveBtn.Position = UDim2.new(1, -65, 0.5, -15)
@@ -1991,7 +1905,6 @@ setupOneClick(saveBtn, function()
     playSendAnimation(saveBtn)
 end)
 
--- زر حذف الإعدادات
 local resetBtn = Instance.new("TextButton", settingsHeader)
 resetBtn.Size = UDim2.new(0, 50, 0, 30)
 resetBtn.Position = UDim2.new(1, -120, 0.5, -15)
@@ -2032,7 +1945,6 @@ themeTitle.BackgroundTransparency = 1
 themeTitle.Font = Enum.Font.GothamBold
 themeTitle.TextSize = 15
 
--- 🎨 قائمة الثيمات الكاملة (مع الثيمات الجديدة)
 local allThemes = {"neon", "dark", "light", "red", "green", "purple", "ocean", "sunset", "cyber", "royal", "galaxy", "crystal", "magma", "ice", "blood", "midnight", "forest", "gold", "pink", "chocolate", "aqua"}
 local themeNames = {
     neon = "✨ نيون",
@@ -2142,7 +2054,6 @@ protectTitle.BackgroundTransparency = 1
 protectTitle.Font = Enum.Font.GothamBold
 protectTitle.TextSize = 15
 
--- دالة إنشاء زر التبديل
 local function createToggle(name, pos, icon, callback)
     local frame = Instance.new("Frame", scrollContainer)
     frame.Size = UDim2.new(1, 0, 0, 45)
@@ -2199,9 +2110,7 @@ local function createToggle(name, pos, icon, callback)
     return toggle
 end
 
--- دالة fireSpam المحسنة للسبام الذكي
 local function fireSpam(cmd)
-    -- إذا كان التكرار الذكي مفعل
     if SmartSpam.Active then
         local success, result = pcall(function()
             return ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
@@ -2258,7 +2167,6 @@ local function fireSpam(cmd)
         
         return true
     else
-        -- الإرسال العادي
         pcall(function()
             ReplicatedStorage.HDAdminHDClient.Signals.CreateLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
         end)
@@ -2269,7 +2177,6 @@ local function fireSpam(cmd)
     end
 end
 
--- خيارات الحماية
 createToggle("🌀 مضاد الفلينج", 515, "🌀", function(s) 
     Settings.AntiFling = s
     
@@ -2626,7 +2533,6 @@ advProtectTitle.BackgroundTransparency = 1
 advProtectTitle.Font = Enum.Font.GothamBold
 advProtectTitle.TextSize = 16
 
--- دالة إنشاء زر تبديل متقدم
 local function createAdvancedToggle(name, pos, icon, category, subKey, color)
     local frame = Instance.new("Frame", scrollContainer)
     frame.Size = UDim2.new(1, 0, 0, 40)
@@ -2674,19 +2580,16 @@ local function createAdvancedToggle(name, pos, icon, category, subKey, color)
         toggle.Text = state and "ON" or "OFF"
         toggle.UIStroke.Color = state and colors.success or colors.danger
         
-        -- تحديث الإعداد
         if category and subKey then
             AdvancedProtection[category][subKey].Enabled = state
         end
         
-        -- تشغيل/إيقاف الحماية
         if state then
             startAdvancedProtection(category, subKey)
         else
             stopAdvancedProtection(category, subKey)
         end
         
-        -- تحديث الإحصائيات
         updateProtectionStats()
         
         saveSettings()
@@ -2698,38 +2601,29 @@ local function createAdvancedToggle(name, pos, icon, category, subKey, color)
     return toggle
 end
 
--- أزرار الحماية المتقدمة
 local advPos = 955
 
--- 1. مضاد اللاق
 createAdvancedToggle("🌀 مضاد اللاق (Anti-Lag)", advPos, "🌀", "AntiLag", "Enabled", colors.info)
 advPos = advPos + 45
 
--- 2. مضاد الانفجارات
 createAdvancedToggle("💥 مضاد الانفجارات", advPos, "💥", "AntiExplosion", "Enabled", colors.danger)
 advPos = advPos + 45
 
--- 3. مضاد الواقعية
 createAdvancedToggle("🎨 مضاد الواقعية", advPos, "🎨", "AntiRealism", "Enabled", colors.gold)
 advPos = advPos + 45
 
--- 4. تحسين الأداء (FPS)
 createAdvancedToggle("⚡ تحسين الأداء (FPS)", advPos, "⚡", "FPSBoost", "Enabled", colors.success)
 advPos = advPos + 45
 
--- 5. مضاد التجميد
 createAdvancedToggle("❄️ مضاد التجميد", advPos, "❄️", "AntiFreeze", "Enabled", colors.primary)
 advPos = advPos + 45
 
--- 6. مضاد الفلينج المتقدم
 createAdvancedToggle("🛡️ مضاد الفلينج بلس", advPos, "🛡️", "AntiFlingPlus", "Enabled", colors.warning)
 advPos = advPos + 45
 
--- 7. مضاد الاختراق
 createAdvancedToggle("🔒 مضاد الاختراق", advPos, "🔒", "AntiHack", "Enabled", colors.danger)
 advPos = advPos + 45
 
--- 8. تنظيف العالم
 createAdvancedToggle("🧹 تنظيف العالم", advPos, "🧹", "CleanWorld", "Enabled", colors.gold)
 
 advPos = advPos + 50
@@ -2776,7 +2670,6 @@ local uptimeStat = createStatLabel(statsGrid, "⏱️ وقت التشغيل: 00:
 
 advPos = advPos + 90
 
--- تحديث إحصائيات الحماية
 local function updateProtectionStats()
     local activeCount = 0
     for category, data in pairs(AdvancedProtection) do
@@ -2794,7 +2687,6 @@ local function updateProtectionStats()
     uptimeStat.Text = "⏱️ وقت التشغيل: " .. string.format("%02d:%02d", minutes, seconds)
 end
 
--- تحديث كل 5 ثواني
 task.spawn(function()
     while true do
         updateProtectionStats()
@@ -2805,7 +2697,7 @@ end)
 scrollContainer.CanvasSize = UDim2.new(0, 0, 0, advPos + 120)
 
 ---------------------------------------
--- نافذة المعلومات 100ZX
+-- نافذة المعلومات
 ---------------------------------------
 local infoFrame = Instance.new("Frame", mainFrame)
 infoFrame.Size = UDim2.new(1, -30, 1, -170)
@@ -3088,7 +2980,6 @@ setupOneClick(startBtn, function()
     statusLabel.Text = "🔄 جاري التكرار..."
     statusLabel.TextColor3 = colors.primary
     
-    -- تشغيل تأثير عند البدء
     playSendAnimation(startBtn)
     
     if SmartSpam.Active then
@@ -3248,23 +3139,17 @@ end)
 ---------------------------------------
 -- 🛡️ دوال الحماية المتقدمة
 ---------------------------------------
-
--- بدء الحماية
 local function startAdvancedProtection(category, subKey)
     local config = AdvancedProtection[category]
     if not config then return end
     
-    -- إيقاف الحماية القديمة إذا كانت موجودة
     stopAdvancedProtection(category, subKey)
     
     if category == "AntiLag" then
-        -- مضاد اللاق
         ProtectionTimers.AntiLag = task.spawn(function()
             while config.Enabled do
                 pcall(function()
-                    -- تقليل اللاق
                     if config.Mode == "aggressive" then
-                        -- إزالة المؤثرات الثقيلة
                         for _, effect in pairs(workspace:GetDescendants()) do
                             if effect:IsA("ParticleEmitter") then
                                 effect.Enabled = false
@@ -3279,13 +3164,11 @@ local function startAdvancedProtection(category, subKey)
                             end
                         end
                         
-                        -- تقليل جودة المؤثرات
                         Lighting.GlobalShadows = false
                         Lighting.FogEnd = 1000
                         Lighting.FogStart = 500
                         
                     elseif config.Mode == "balanced" then
-                        -- وضع متوازن
                         for _, effect in pairs(workspace:GetDescendants()) do
                             if effect:IsA("ParticleEmitter") and effect.Enabled then
                                 effect.Rate = math.min(effect.Rate, 50)
@@ -3293,10 +3176,8 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- تقليل ping
                     if config.AutoFix then
                         local success, result = pcall(function()
-                            -- محاولة تحسين الاتصال
                             if game:GetService("NetworkClient") then
                                 game:GetService("NetworkClient"):SetOutgoingKBPSLimit(0)
                             end
@@ -3308,11 +3189,9 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "AntiExplosion" then
-        -- مضاد الانفجارات
         ProtectionTimers.AntiExplosion = task.spawn(function()
             while config.Enabled do
                 pcall(function()
-                    -- إزالة الانفجارات
                     if config.RemoveExplosions then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Explosion") then
@@ -3324,7 +3203,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إزالة النار
                     if config.RemoveFire then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Fire") then
@@ -3333,7 +3211,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إزالة الدخان
                     if config.RemoveSmoke then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Smoke") then
@@ -3345,7 +3222,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إزالة الشرارات
                     if config.RemoveSparks then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Sparkles") then
@@ -3354,7 +3230,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- حماية المباني
                     if config.ProtectBuildings then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("BasePart") and v.Anchored == false and v:GetMass() > 500 then
@@ -3370,11 +3245,9 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "AntiRealism" then
-        -- مضاد الواقعية
         ProtectionTimers.AntiRealism = task.spawn(function()
             while config.Enabled do
                 pcall(function()
-                    -- إزالة الضباب
                     if config.RemoveFog then
                         Lighting.FogEnd = 100000
                         Lighting.FogStart = 0
@@ -3382,7 +3255,6 @@ local function startAdvancedProtection(category, subKey)
                         Lighting.Atmosphere.FogStart = 0
                     end
                     
-                    -- إزالة التأثيرات البصرية
                     if config.RemoveBloom then
                         for _, v in pairs(Lighting:GetChildren()) do
                             if v:IsA("BloomEffect") then
@@ -3423,13 +3295,11 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إصلاح السطوع
                     if config.FixBrightness then
                         Lighting.Brightness = 1.5
                         Lighting.ExposureCompensation = 0
                     end
                     
-                    -- إزالة المؤثرات الواقعية من الكاميرا
                     local cam = workspace.CurrentCamera
                     if cam and cam:FindFirstChildOfClass("Camera") then
                         for _, v in pairs(cam:GetChildren()) do
@@ -3444,13 +3314,11 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "FPSBoost" then
-        -- تحسين الأداء
         ProtectionTimers.FPSBoost = task.spawn(function()
             while config.Enabled do
                 pcall(function()
                     local level = config.Level
                     
-                    -- إيقاف الظلال
                     if config.DisableShadows then
                         Lighting.ShadowSoftness = 0
                         for _, v in pairs(workspace:GetDescendants()) do
@@ -3460,7 +3328,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إيقاف الجسيمات
                     if config.DisableParticles then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("ParticleEmitter") then
@@ -3472,10 +3339,8 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- تقليل الجرافيكس
                     if config.ReduceGraphics then
                         if level == "ultra" then
-                            -- أقل جودة
                             settings().Rendering.QualityLevel = 1
                             settings().Rendering.FrameRateLimit = 60
                         elseif level == "high" then
@@ -3487,7 +3352,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إيقاف الماء
                     if config.DisableWater then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Water") or v:IsA("Terrain") then
@@ -3501,7 +3365,6 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "AntiFreeze" then
-        -- مضاد التجميد
         ProtectionTimers.AntiFreeze = task.spawn(function()
             local lastPosition = nil
             local freezeTime = 0
@@ -3518,7 +3381,6 @@ local function startAdvancedProtection(category, subKey)
                             if distance < 0.01 then
                                 freezeTime = freezeTime + config.CheckInterval
                                 if freezeTime > config.MaxFreezeTime and config.AutoReset then
-                                    -- إعادة تعيين اللاعب
                                     char:BreakJoints()
                                     player:LoadCharacter()
                                     freezeTime = 0
@@ -3538,7 +3400,6 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "AntiFlingPlus" then
-        -- مضاد الفلينج المتقدم
         ProtectionTimers.AntiFlingPlus = task.spawn(function()
             local lastVelocity = Vector3.new(0, 0, 0)
             local safePos = nil
@@ -3557,7 +3418,6 @@ local function startAdvancedProtection(category, subKey)
                                      strength == "medium" and 250 or 400
                         
                         if magnitude > limit then
-                            -- إيقاف الحركة
                             hrp.Velocity = Vector3.new(0, 0, 0)
                             hrp.RotVelocity = Vector3.new(0, 0, 0)
                             
@@ -3569,11 +3429,9 @@ local function startAdvancedProtection(category, subKey)
                             ProtectionStats.LastBlock = "Fling"
                             
                         elseif config.AntiBounce and magnitude < 1 and velocity.Y < -0.1 then
-                            -- منع الارتداد
                             hrp.Velocity = Vector3.new(0, 0, 0)
                         end
                         
-                        -- حفظ الموقع الآمن
                         if magnitude < 10 then
                             safePos = hrp.CFrame
                         end
@@ -3584,11 +3442,9 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "AntiHack" then
-        -- مضاد الاختراق
         ProtectionTimers.AntiHack = task.spawn(function()
             while config.Enabled do
                 pcall(function()
-                    -- منع الحقن
                     if config.BlockInjection then
                         for _, v in pairs(game:GetDescendants()) do
                             if v:IsA("LocalScript") or v:IsA("ModuleScript") then
@@ -3599,7 +3455,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- منع سرعة الحركة
                     if config.BlockSpeedHack then
                         local char = player.Character
                         if char then
@@ -3611,7 +3466,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- منع الطيران
                     if config.BlockFlyHack then
                         local char = player.Character
                         if char and char:FindFirstChild("Humanoid") then
@@ -3625,7 +3479,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- منع الاختراق من خلال الجدران
                     if config.BlockNoClip then
                         local char = player.Character
                         if char then
@@ -3642,11 +3495,9 @@ local function startAdvancedProtection(category, subKey)
         end)
         
     elseif category == "CleanWorld" then
-        -- تنظيف العالم
         ProtectionTimers.CleanWorld = task.spawn(function()
             while config.Enabled do
                 pcall(function()
-                    -- إزالة الديكالات
                     if config.RemoveDecals then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Decal") then
@@ -3658,7 +3509,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إزالة المؤثرات غير الضرورية
                     if config.RemoveEffects then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Sparkles") or 
@@ -3670,7 +3520,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- إزالة العناصر غير الضرورية
                     if config.RemoveUnnecessary then
                         for _, v in pairs(workspace:GetDescendants()) do
                             if v:IsA("Part") and v.Name:find("Debris") then
@@ -3682,7 +3531,6 @@ local function startAdvancedProtection(category, subKey)
                         end
                     end
                     
-                    -- تنظيف الحطام
                     if config.ClearDebris then
                         game:GetService("Debris"):Clear()
                     end
@@ -3693,7 +3541,6 @@ local function startAdvancedProtection(category, subKey)
     end
 end
 
--- إيقاف الحماية
 local function stopAdvancedProtection(category, subKey)
     local timerName = nil
     
@@ -3721,7 +3568,6 @@ local function stopAdvancedProtection(category, subKey)
     end
 end
 
--- إعادة تعيين الحماية عند الخروج
 game:BindToClose(function()
     for _, timer in pairs(ProtectionTimers) do
         if timer then
@@ -3731,7 +3577,7 @@ game:BindToClose(function()
 end)
 
 ---------------------------------------
--- تأثيرات حركية 100ZX
+-- تأثيرات حركية
 ---------------------------------------
 task.spawn(function()
     while true do
@@ -3759,11 +3605,8 @@ end)
 -- تحميل الإعدادات عند التشغيل
 ---------------------------------------
 loadSettings()
-
--- تطبيق الثيم المحفوظ
 applyTheme(currentTheme)
 
--- عرض السكربت
 mainFrame.Visible = false
 toggleBtn.Visible = true
 
@@ -3772,17 +3615,9 @@ print("║  🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥              ║")
 print("║  👨‍💻 المطور: Hamza000599                                  ║")
 print("║  ✨ أيقونات متحركة في الهيدر                           ║")
 print("║  🎬 رسوم متحركة عند الإرسال                           ║")
-print("║  🌟 4 تأثيرات خلفية متحركة (نجوم/أمواج/جسيمات/تدرج)   ║")
+print("║  🌟 4 تأثيرات خلفية متحركة                            ║")
 print("║  🎨 21 ثيماً احترافية                                 ║")
 print("║  💾 حفظ الإعدادات التلقائي                            ║")
 print("║  🧠 التكرار الذكي مع كشف السبام                       ║")
 print("║  🛡️ 8 حمايات متقدمة (الدرع الأسطوري)                 ║")
-print("║     - مضاد اللاق                                      ║")
-print("║     - مضاد الانفجارات                                 ║")
-print("║     - مضاد الواقعية                                   ║")
-print("║     - تحسين الأداء (FPS)                              ║")
-print("║     - مضاد التجميد                                    ║")
-print("║     - مضاد الفلينج بلس                                ║")
-print("║     - مضاد الاختراق                                   ║")
-print("║     - تنظيف العالم                                    ║")
 print("╚════════════════════════════════════════════════════════════╝")
