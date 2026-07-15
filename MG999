@@ -50,8 +50,8 @@ local lastSafePos = nil
 local isMainOpen = false
 local BackgroundEffect = "stars"
 
--- متغير السرعة المختارة
-local selectedSpeed = 0.01
+-- السرعة الفعلية = 0.001 (الرقم المعروض وهمي)
+local selectedSpeed = 0.001
 local speedMode = "mid" -- slow, mid, ultra
 
 ---------------------------------------
@@ -179,7 +179,7 @@ local function saveSettings()
         lastInput = inputBox and inputBox.Text or "",
         spamTime = timeBox and timeBox.Text or "10",
         spamCopies = copyBox and copyBox.Text or "3",
-        spamSpeed = speedBox and speedBox.Text or "0.01"
+        spamSpeed = speedBox and speedBox.Text or "0.000001"
     }
     
     if shared then
@@ -243,10 +243,20 @@ local SmartSpam = {
     ResponseCount = 0,
     MaxResponseCount = 3,
     AutoAdjustSpeed = true,
-    CurrentSpeed = 0.01,
+    CurrentSpeed = 0.001,
     MinSpeed = 0.00000000000001,
     MaxSpeed = 0.1,
     LastResponse = "",
+}
+
+-- نظام التحكم بالسرعة (Cooldown Manager)
+local CooldownManager = {
+    Active = true,
+    MaxCommandsPerSecond = 15,
+    CommandCounter = 0,
+    ResetTime = 0,
+    CooldownDuration = 2,
+    PauseDuration = 0.02,
 }
 
 ---------------------------------------
@@ -1549,7 +1559,7 @@ local speedCell = createSettingCell(settingsRow, "⚡ السرعة", 0.52)
 local speedBox = Instance.new("TextBox", speedCell)
 speedBox.Size = UDim2.new(0.6, 0, 0.45, 0)
 speedBox.Position = UDim2.new(0.2, 0, 0.45, 0)
-speedBox.Text = "0.01"
+speedBox.Text = "0.000001"  -- رقم وهمي
 speedBox.TextColor3 = colors.text
 speedBox.BackgroundColor3 = colors.bg3
 speedBox.TextSize = 12
@@ -1603,11 +1613,11 @@ createCorner(slowSpeedBtn, 10)
 createStroke(slowSpeedBtn, colors.info, 1)
 slowSpeedBtn.AutoButtonColor = true
 
--- زر سرعة متوسطة 0.01
+-- زر سرعة متوسطة 0.001 (يظهر 0.000001)
 local midSpeedBtn = Instance.new("TextButton", speedRow)
 midSpeedBtn.Size = UDim2.new(0.30, -5, 1, 0)
 midSpeedBtn.Position = UDim2.new(0.35, 0, 0, 0)
-midSpeedBtn.Text = "⚡ 0.01"
+midSpeedBtn.Text = "⚡ 0.000001"
 midSpeedBtn.BackgroundColor3 = colors.bg3
 midSpeedBtn.TextColor3 = colors.text
 midSpeedBtn.Font = Enum.Font.GothamBold
@@ -1616,11 +1626,11 @@ createCorner(midSpeedBtn, 10)
 createStroke(midSpeedBtn, colors.success, 1)
 midSpeedBtn.AutoButtonColor = true
 
--- زر سرعة لا نهائية 0.00000000000001
+-- زر سرعة فائقة 0.001 (يظهر 0.0000001)
 local ultraSpeedBtn = Instance.new("TextButton", speedRow)
 ultraSpeedBtn.Size = UDim2.new(0.30, -5, 1, 0)
 ultraSpeedBtn.Position = UDim2.new(0.70, 0, 0, 0)
-ultraSpeedBtn.Text = "🔥 ∞"
+ultraSpeedBtn.Text = "🔥 0.0000001"
 ultraSpeedBtn.BackgroundColor3 = colors.bg3
 ultraSpeedBtn.TextColor3 = colors.text
 ultraSpeedBtn.Font = Enum.Font.GothamBold
@@ -1630,10 +1640,10 @@ createStroke(ultraSpeedBtn, colors.danger, 1)
 ultraSpeedBtn.AutoButtonColor = true
 
 -- دوال اختيار السرعة
-local function selectSpeed(mode, speed, btn, color)
+local function selectSpeed(mode, speed, btn, color, displayText)
     selectedSpeed = speed
     speedMode = mode
-    speedBox.Text = string.format("%.14f", speed)
+    speedBox.Text = displayText
     
     -- تحديث ألوان الأزرار
     slowSpeedBtn.BackgroundColor3 = colors.bg3
@@ -1646,14 +1656,13 @@ local function selectSpeed(mode, speed, btn, color)
     btn.BackgroundColor3 = color
     btn.UIStroke.Color = color
     
-    -- تحديث التكرار الذكي
     if SmartSpam.Active then
         SmartSpam.CurrentSpeed = speed
         SmartSpam.MinSpeed = 0.00000000000001
         SmartSpam.MaxSpeed = 0.1
     end
     
-    statusLabel.Text = "⚡ تم اختيار سرعة: " .. string.format("%.14f", speed)
+    statusLabel.Text = "⚡ سرعة: " .. displayText .. " (فعلي: " .. string.format("%.3f", speed) .. ")"
     statusLabel.TextColor3 = color
     task.wait(1.5)
     statusLabel.Text = "جاهز للتشغيل"
@@ -1661,17 +1670,17 @@ local function selectSpeed(mode, speed, btn, color)
 end
 
 setupOneClick(slowSpeedBtn, function()
-    selectSpeed("slow", 0.1, slowSpeedBtn, colors.info)
+    selectSpeed("slow", 0.1, slowSpeedBtn, colors.info, "0.1")
     playSendAnimation(slowSpeedBtn)
 end)
 
 setupOneClick(midSpeedBtn, function()
-    selectSpeed("mid", 0.01, midSpeedBtn, colors.success)
+    selectSpeed("mid", 0.001, midSpeedBtn, colors.success, "0.000001")
     playSendAnimation(midSpeedBtn)
 end)
 
 setupOneClick(ultraSpeedBtn, function()
-    selectSpeed("ultra", 0.00000000000001, ultraSpeedBtn, colors.danger)
+    selectSpeed("ultra", 0.001, ultraSpeedBtn, colors.danger, "0.0000001")
     playSendAnimation(ultraSpeedBtn)
 end)
 
@@ -1709,7 +1718,7 @@ createCorner(stopBtn, 12)
 createStroke(stopBtn, colors.danger, 2)
 stopBtn.AutoButtonColor = true
 
--- تم إزالة مؤشر السرعة الحالية (speedIndicator)
+-- تم إزالة مؤشر السرعة الحالية
 
 -- مؤقت الوقت
 local timerDisplay = Instance.new("TextLabel", spamContainer)
@@ -2222,14 +2231,49 @@ local function createToggle(name, pos, icon, callback)
 end
 
 local function fireSpam(cmd)
-    -- إرسال فوري بدون تأخير
-    pcall(function()
-        ReplicatedStorage.HDAdminHDClient.Signals.CreateLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
-    end)
-    pcall(function()
-        ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
-    end)
-    return true
+    -- نظام التحكم بالسرعة (Cooldown)
+    if CooldownManager.Active then
+        local now = tick()
+        
+        if now - CooldownManager.ResetTime >= 1 then
+            CooldownManager.CommandCounter = 0
+            CooldownManager.ResetTime = now
+        end
+        
+        if CooldownManager.CommandCounter >= CooldownManager.MaxCommandsPerSecond then
+            local cooldownEnd = CooldownManager.ResetTime + CooldownManager.CooldownDuration
+            local waitTime = cooldownEnd - now
+            if waitTime > 0 then
+                statusLabel.Text = "⏳ جاري التهدئة..."
+                statusLabel.TextColor3 = colors.warning
+                task.wait(waitTime + 0.1)
+            end
+            CooldownManager.CommandCounter = 0
+            CooldownManager.ResetTime = tick()
+        end
+        
+        CooldownManager.CommandCounter = CooldownManager.CommandCounter + 1
+    end
+    
+    -- إرسال مع محاولة إعادة
+    local maxRetries = 3
+    for attempt = 1, maxRetries do
+        local success = pcall(function()
+            ReplicatedStorage.HDAdminHDClient.Signals.CreateLog:FireServer({Message = cmd, Player = player, LogType = "chatLogs"})
+        end)
+        
+        if success then
+            pcall(function()
+                ReplicatedStorage.HDAdminHDClient.Signals.RequestCommandModification:InvokeServer(cmd)
+            end)
+            return true
+        else
+            if attempt < maxRetries then
+                task.wait(0.3 * attempt)
+            end
+        end
+    end
+    return false
 end
 
 createToggle("🌀 مضاد الفلينج", 515, "🌀", function(s) 
@@ -2679,7 +2723,7 @@ advPos = advPos + 45
 
 createAdvancedToggle("🧹 تنظيف العالم", advPos, "🧹", "CleanWorld", "Enabled", colors.gold)
 
--- تم إزالة إحصائيات الحماية (statsFrame)
+-- تم إزالة إحصائيات الحماية
 advPos = advPos + 0
 
 scrollContainer.CanvasSize = UDim2.new(0, 0, 0, advPos + 30)
@@ -2775,7 +2819,7 @@ local newFeatures = {
     "🛡️ 8 حمايات متقدمة",
     "🌀 مضاد اللاق والانفجارات",
     "⚡ تحسين الأداء FPS",
-    "🚀 3 سرعات للسبام (0.1 - 0.01 - ∞)",
+    "🚀 3 سرعات للسبام (0.1 - 0.001 - 0.001 وهمي)",
 }
 for _, feature in ipairs(newFeatures) do
     createInfoText("✅ " .. feature, pos, colors.success, 12)
@@ -2852,8 +2896,8 @@ createInfoSection("🚀 سرعات السبام", "⚡", pos)
 pos = pos + 37
 local speedInfo = {
     "🐢 0.1: سرعة بطيئة - آمنة",
-    "⚡ 0.01: سرعة متوسطة - متوازنة",
-    "🔥 ∞: سرعة لا نهائية - أقصى سرعة",
+    "⚡ 0.000001: سرعة متوسطة (فعلي 0.001)",
+    "🔥 0.0000001: سرعة فائقة (فعلي 0.001)",
 }
 for _, info in ipairs(speedInfo) do
     createInfoText("• " .. info, pos, colors.textDim, 11)
@@ -2973,7 +3017,7 @@ setupOneClick(startBtn, function()
     
     local duration = Spam.InfiniteTime and math.huge or (tonumber(timeBox.Text) or 10)
     local copies = Spam.InfiniteCopies and math.huge or (tonumber(copyBox.Text) or 3)
-    local speed = selectedSpeed  -- استخدام السرعة المختارة
+    local speed = selectedSpeed
     
     Spam.Active = true
     Spam.TotalSent = 0
@@ -3622,5 +3666,5 @@ print("║  🎨 21 ثيماً احترافية                                 
 print("║  💾 حفظ الإعدادات التلقائي                            ║")
 print("║  🧠 التكرار الذكي مع كشف السبام                       ║")
 print("║  🛡️ 8 حمايات متقدمة (الدرع الأسطوري)                 ║")
-print("║  🚀 3 سرعات للسبام (0.1 - 0.01 - ∞)                   ║")
+print("║  🚀 3 سرعات للسبام (0.1 - 0.001 - 0.001 وهمي)         ║")
 print("╚════════════════════════════════════════════════════════════╝")
