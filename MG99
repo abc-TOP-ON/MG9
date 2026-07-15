@@ -1339,7 +1339,7 @@ local themeBtn = createAnimatedHeaderButton(header, "🎨", colors.primary, -175
 local settingsBtn = createAnimatedHeaderButton(header, "⚙️", colors.gold, -135, "pulse")
 local closeBtn = createAnimatedHeaderButton(header, "🚪", colors.danger, -95, "glow")
 local minimizeBtn = createAnimatedHeaderButton(header, "✕", colors.textDim, -55, "pulse")
-
+local playersBtn = createAnimatedHeaderButton(header, "👥", colors.info, -255, "pulse")
 ---------------------------------------
 -- شريط الحالة
 ---------------------------------------
@@ -3655,7 +3655,540 @@ applyTheme(currentTheme)
 
 mainFrame.Visible = false
 toggleBtn.Visible = true
+-- ═══════════════════════════════════════════════════════════════
+-- 👥 نظام اللاعبين المتقدم - النسخة الكاملة
+-- 🏷️ ألقاب: هيد ادمن | ادمن | مشرف | غامض | عضو
+-- ═══════════════════════════════════════════════════════════════
 
+-- 📋 نافذة اللاعبين
+local playersFrame = Instance.new("Frame", mainFrame)
+playersFrame.Size = UDim2.new(1, -30, 1, -170)
+playersFrame.Position = UDim2.new(0, 15, 0, 160)
+playersFrame.BackgroundColor3 = colors.bg2
+playersFrame.BackgroundTransparency = 0.3
+playersFrame.Visible = false
+playersFrame.ClipsDescendants = true
+createCorner(playersFrame, 16)
+createStroke(playersFrame, colors.info, 1.5)
+
+-- 📌 هيدر نافذة اللاعبين
+local playersHeader = Instance.new("Frame", playersFrame)
+playersHeader.Size = UDim2.new(1, 0, 0, 45)
+playersHeader.BackgroundTransparency = 1
+
+local playersTitle = Instance.new("TextLabel", playersHeader)
+playersTitle.Size = UDim2.new(0.5, -40, 1, 0)
+playersTitle.Position = UDim2.new(0, 10, 0, 0)
+playersTitle.Text = "👥 اللاعبين في السيرفر"
+playersTitle.TextColor3 = colors.info
+playersTitle.BackgroundTransparency = 1
+playersTitle.Font = Enum.Font.GothamBold
+playersTitle.TextSize = 16
+playersTitle.TextXAlignment = Enum.TextXAlignment.Left
+
+-- 📊 إحصائيات اللاعبين
+local playersStats = Instance.new("TextLabel", playersHeader)
+playersStats.Size = UDim2.new(0, 280, 1, 0)
+playersStats.Position = UDim2.new(1, -290, 0, 0)
+playersStats.Text = "👥 0 | 🟢 0 | 📋 0/0"
+playersStats.TextColor3 = colors.textDim
+playersStats.BackgroundTransparency = 1
+playersStats.Font = Enum.Font.Gotham
+playersStats.TextSize = 12
+playersStats.TextXAlignment = Enum.TextXAlignment.Right
+
+-- 🔄 زر تحديث يدوي
+local refreshBtn = Instance.new("TextButton", playersHeader)
+refreshBtn.Size = UDim2.new(0, 60, 0, 30)
+refreshBtn.Position = UDim2.new(1, -80, 0.5, -15)
+refreshBtn.Text = "🔄 تحديث"
+refreshBtn.BackgroundColor3 = colors.info
+refreshBtn.TextColor3 = colors.text
+refreshBtn.Font = Enum.Font.GothamBold
+refreshBtn.TextSize = 11
+createCorner(refreshBtn, 8)
+refreshBtn.AutoButtonColor = true
+
+-- 📋 قائمة اللاعبين (ScrollingFrame)
+local playersList = Instance.new("ScrollingFrame", playersFrame)
+playersList.Size = UDim2.new(1, -10, 1, -60)
+playersList.Position = UDim2.new(0, 5, 0, 55)
+playersList.BackgroundTransparency = 1
+playersList.ScrollBarThickness = 4
+playersList.ScrollBarImageColor3 = colors.info
+playersList.CanvasSize = UDim2.new(0, 0, 0, 0)
+
+-- 🗂️ متغيرات تتبع اللاعبين
+local PlayerTracker = {
+    Players = {},
+    JoinCount = {},
+    LeaveCount = {},
+    TotalJoins = 0,
+    TotalLeaves = 0,
+    CurrentPlayers = 0,
+    PlayerTags = {},
+}
+
+-- 🏷️ نظام الألقاب (Tags) - مخصص للماب حقك
+local TagSystem = {
+    Tags = {
+        ["هيد ادمن"] = {
+            Color = Color3.fromRGB(150, 0, 255),
+            Icon = "👑",
+            Rank = 4,
+            TextColor = Color3.fromRGB(255, 255, 255)
+        },
+        ["ادمن"] = {
+            Color = Color3.fromRGB(255, 0, 0),
+            Icon = "🔴",
+            Rank = 3,
+            TextColor = Color3.fromRGB(255, 255, 255)
+        },
+        ["مشرف"] = {
+            Color = Color3.fromRGB(0, 200, 50),
+            Icon = "🟢",
+            Rank = 2,
+            TextColor = Color3.fromRGB(255, 255, 255)
+        },
+        ["غامض"] = {
+            Color = Color3.fromRGB(100, 0, 150),
+            Icon = "🌑",
+            Rank = 1,
+            TextColor = Color3.fromRGB(200, 150, 255)
+        },
+        ["عضو"] = {
+            Color = Color3.fromRGB(80, 80, 80),
+            Icon = "⬜",
+            Rank = 0,
+            TextColor = Color3.fromRGB(200, 200, 200)
+        },
+    },
+    
+    -- دالة لجلب لقب اللاعب
+    GetPlayerTag = function(player)
+        -- الطريقة 1: من متغير Rank داخل اللاعب
+        if player:FindFirstChild("Rank") then
+            local rank = player.Rank.Value
+            if rank == "هيد ادمن" then return "هيد ادمن"
+            elseif rank == "ادمن" then return "ادمن"
+            elseif rank == "مشرف" then return "مشرف"
+            elseif rank == "غامض" then return "غامض"
+            end
+        end
+        
+        -- الطريقة 2: من الـ Team
+        if player.Team then
+            local teamName = player.Team.Name
+            if teamName == "هيد ادمن" then return "هيد ادمن"
+            elseif teamName == "ادمن" then return "ادمن"
+            elseif teamName == "مشرف" then return "مشرف"
+            elseif teamName == "غامض" then return "غامض"
+            end
+        end
+        
+        -- الطريقة 3: ألقاب مخصصة حسب أسماء اللاعبين (عدل هنا)
+        local specialPlayers = {
+            -- ["اسم_اللاعب"] = "اللقب"
+            -- ["Hamza000599"] = "هيد ادمن",
+            -- ["AdminName"] = "ادمن",
+        }
+        if specialPlayers[player.Name] then
+            return specialPlayers[player.Name]
+        end
+        
+        -- الطريقة 4: نظام الغامض للاعبين الجدد (أقل من 30 يوم)
+        local age = getAccountAge(player.UserId)
+        if age ~= "غير معروف" and tonumber(age) and tonumber(age) < 30 then
+            return "غامض"
+        end
+        
+        -- اللقب الافتراضي
+        return "عضو"
+    end,
+    
+    GetTagColor = function(tagName)
+        local tag = TagSystem.Tags[tagName]
+        return tag and tag.Color or Color3.fromRGB(80, 80, 80)
+    end,
+    
+    GetTagIcon = function(tagName)
+        local tag = TagSystem.Tags[tagName]
+        return tag and tag.Icon or "⬜"
+    end,
+    
+    GetTagRank = function(tagName)
+        local tag = TagSystem.Tags[tagName]
+        return tag and tag.Rank or 0
+    end,
+    
+    GetTagTextColor = function(tagName)
+        local tag = TagSystem.Tags[tagName]
+        return tag and tag.TextColor or Color3.fromRGB(255, 255, 255)
+    end,
+}
+
+-- 📋 دالة نسخ النص إلى الحافظة
+local function copyToClipboard(text)
+    local success = pcall(function()
+        setclipboard(text)
+    end)
+    if success then
+        statusLabel.Text = "📋 تم نسخ: " .. text
+        statusLabel.TextColor3 = colors.success
+        task.wait(1.5)
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+        return true
+    else
+        local success2 = pcall(function()
+            local textBox = Instance.new("TextBox")
+            textBox.Text = text
+            textBox:Select()
+            textBox:Copy()
+            textBox:Destroy()
+        end)
+        if success2 then
+            statusLabel.Text = "📋 تم نسخ: " .. text
+            statusLabel.TextColor3 = colors.success
+            task.wait(1.5)
+            statusLabel.Text = "جاهز للتشغيل"
+            statusLabel.TextColor3 = colors.textDim
+            return true
+        end
+    end
+    statusLabel.Text = "❌ فشل النسخ"
+    statusLabel.TextColor3 = colors.danger
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+    return false
+end
+
+-- 📅 دالة حساب عمر الحساب
+local function getAccountAge(userId)
+    local success, data = pcall(function()
+        return game:GetService("HttpService"):GetAsync("https://users.roblox.com/v1/users/" .. userId)
+    end)
+    if success then
+        local json = game:GetService("HttpService"):JSONDecode(data)
+        if json and json.created then
+            local created = DateTime.fromIsoDate(json.created)
+            local now = DateTime.now()
+            local days = (now - created).Days
+            return math.floor(days)
+        end
+    end
+    return "غير معروف"
+end
+
+-- 🔄 تحديث قائمة اللاعبين
+local function updatePlayersList()
+    -- تنظيف القائمة
+    for _, child in pairs(playersList:GetChildren()) do
+        if child:IsA("Frame") then
+            child:Destroy()
+        end
+    end
+    
+    local allPlayers = Players:GetPlayers()
+    local currentCount = #allPlayers
+    PlayerTracker.CurrentPlayers = currentCount
+    
+    -- حساب الإحصائيات
+    local totalJoins = 0
+    local totalLeaves = 0
+    for _, count in pairs(PlayerTracker.JoinCount) do
+        totalJoins = totalJoins + count
+    end
+    for _, count in pairs(PlayerTracker.LeaveCount) do
+        totalLeaves = totalLeaves + count
+    end
+    
+    playersStats.Text = "👥 " .. currentCount .. " | 🟢 " .. currentCount .. " | 📋 " .. totalJoins .. "/" .. totalLeaves
+    
+    -- ترتيب اللاعبين حسب الرتبة (الأعلى أولاً)
+    table.sort(allPlayers, function(a, b)
+        local rankA = TagSystem.GetTagRank(TagSystem.GetPlayerTag(a))
+        local rankB = TagSystem.GetTagRank(TagSystem.GetPlayerTag(b))
+        if rankA ~= rankB then
+            return rankA > rankB
+        end
+        return a.DisplayName:lower() < b.DisplayName:lower()
+    end)
+    
+    -- إنشاء عنصر لكل لاعب
+    for i, plr in ipairs(allPlayers) do
+        local userId = plr.UserId
+        
+        -- جلب لقب اللاعب
+        local tagName = TagSystem.GetPlayerTag(plr)
+        local tagColor = TagSystem.GetTagColor(tagName)
+        local tagIcon = TagSystem.GetTagIcon(tagName)
+        local tagTextColor = TagSystem.GetTagTextColor(tagName)
+        
+        -- الإطار الرئيسي
+        local frame = Instance.new("Frame", playersList)
+        frame.Size = UDim2.new(1, -10, 0, 85)
+        frame.Position = UDim2.new(0, 5, 0, (i-1) * 90 + 5)
+        frame.BackgroundColor3 = colors.bg3
+        frame.BackgroundTransparency = 0.2
+        createCorner(frame, 14)
+        createStroke(frame, colors.textDim, 0.3)
+        
+        -- 🖼️ صورة اللاعب (Avatar)
+        local avatar = Instance.new("ImageLabel", frame)
+        avatar.Size = UDim2.new(0, 55, 0, 55)
+        avatar.Position = UDim2.new(0, 10, 0.5, -27.5)
+        avatar.BackgroundColor3 = colors.bg2
+        avatar.BackgroundTransparency = 0.5
+        createCorner(avatar, 14)
+        
+        local thumbnailUrl = "https://www.roblox.com/headshot-thumbnail/image?userId=" .. userId .. "&width=150&height=150&format=png"
+        avatar.Image = thumbnailUrl
+        
+        -- 🟢 حالة اللاعب (Online)
+        local statusIcon = Instance.new("Frame", frame)
+        statusIcon.Size = UDim2.new(0, 14, 0, 14)
+        statusIcon.Position = UDim2.new(0, 53, 0.5, -22)
+        statusIcon.BackgroundColor3 = colors.success
+        createCorner(statusIcon, 7)
+        createStroke(statusIcon, colors.bg, 2)
+        
+        -- 🏷️ اللقب (Tag)
+        local tagFrame = Instance.new("Frame", frame)
+        tagFrame.Size = UDim2.new(0, 0, 0, 24)
+        tagFrame.Position = UDim2.new(0, 72, 0, 3)
+        tagFrame.BackgroundColor3 = tagColor
+        tagFrame.BackgroundTransparency = 0.15
+        createCorner(tagFrame, 6)
+        createStroke(tagFrame, tagColor, 1.5)
+        
+        local tagLabel = Instance.new("TextLabel", tagFrame)
+        tagLabel.Size = UDim2.new(1, -10, 1, 0)
+        tagLabel.Position = UDim2.new(0, 5, 0, 0)
+        tagLabel.Text = tagIcon .. " " .. tagName
+        tagLabel.TextColor3 = tagTextColor
+        tagLabel.BackgroundTransparency = 1
+        tagLabel.Font = Enum.Font.GothamBold
+        tagLabel.TextSize = 11
+        tagLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- حساب عرض اللقب تلقائياً
+        local tagTextWidth = #tagName * 10 + 30
+        tagFrame.Size = UDim2.new(0, math.min(tagTextWidth, 160), 0, 24)
+        
+        -- 📝 اسم العرض (Display Name)
+        local displayName = Instance.new("TextLabel", frame)
+        displayName.Size = UDim2.new(0.35, -5, 0, 20)
+        displayName.Position = UDim2.new(0, 72, 0, 30)
+        displayName.Text = plr.DisplayName
+        displayName.TextColor3 = colors.text
+        displayName.BackgroundTransparency = 1
+        displayName.Font = Enum.Font.GothamBold
+        displayName.TextSize = 14
+        displayName.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- 🆔 اسم المستخدم (UserName)
+        local userName = Instance.new("TextLabel", frame)
+        userName.Size = UDim2.new(0.3, -5, 0, 16)
+        userName.Position = UDim2.new(0, 72, 0, 50)
+        userName.Text = "@" .. plr.Name
+        userName.TextColor3 = colors.textDim
+        userName.BackgroundTransparency = 1
+        userName.Font = Enum.Font.Gotham
+        userName.TextSize = 10
+        userName.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- 📅 عمر الحساب
+        local accountAge = getAccountAge(userId)
+        local ageText = accountAge .. " يوم"
+        if accountAge == "غير معروف" then
+            ageText = "غير معروف"
+        end
+        
+        local ageLabel = Instance.new("TextLabel", frame)
+        ageLabel.Size = UDim2.new(0.2, -5, 0, 16)
+        ageLabel.Position = UDim2.new(0.72, 0, 0.3, 0)
+        ageLabel.Text = "📅 " .. ageText
+        ageLabel.TextColor3 = colors.info
+        ageLabel.BackgroundTransparency = 1
+        ageLabel.Font = Enum.Font.Gotham
+        ageLabel.TextSize = 10
+        ageLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- 🔄 عدد مرات الدخول/الخروج
+        local joinCount = PlayerTracker.JoinCount[userId] or 0
+        local leaveCount = PlayerTracker.LeaveCount[userId] or 0
+        
+        local statsLabel = Instance.new("TextLabel", frame)
+        statsLabel.Size = UDim2.new(0.2, -5, 0, 16)
+        statsLabel.Position = UDim2.new(0.72, 0, 0.55, 0)
+        statsLabel.Text = "🔄 " .. joinCount .. "/" .. leaveCount
+        statsLabel.TextColor3 = colors.warning
+        statsLabel.BackgroundTransparency = 1
+        statsLabel.Font = Enum.Font.Gotham
+        statsLabel.TextSize = 10
+        statsLabel.TextXAlignment = Enum.TextXAlignment.Left
+        
+        -- 📋 زر نسخ الاسم مع اللقب
+        local copyBtn = Instance.new("TextButton", frame)
+        copyBtn.Size = UDim2.new(0, 35, 0, 35)
+        copyBtn.Position = UDim2.new(1, -100, 0.5, -17.5)
+        copyBtn.Text = "📋"
+        copyBtn.TextColor3 = colors.primary
+        copyBtn.BackgroundTransparency = 1
+        copyBtn.Font = Enum.Font.GothamBold
+        copyBtn.TextSize = 18
+        copyBtn.AutoButtonColor = true
+        
+        setupOneClick(copyBtn, function()
+            local textToCopy = "[" .. tagName .. "] " .. plr.DisplayName .. " (" .. plr.Name .. ")"
+            copyToClipboard(textToCopy)
+            playSendAnimation(copyBtn)
+            
+            local oldText = copyBtn.Text
+            copyBtn.Text = "✅"
+            copyBtn.TextColor3 = colors.success
+            task.wait(0.5)
+            copyBtn.Text = oldText
+            copyBtn.TextColor3 = colors.primary
+        end)
+        
+        -- 🆔 زر نسخ المعرف (UserID)
+        local idBtn = Instance.new("TextButton", frame)
+        idBtn.Size = UDim2.new(0, 35, 0, 35)
+        idBtn.Position = UDim2.new(1, -60, 0.5, -17.5)
+        idBtn.Text = "🆔"
+        idBtn.TextColor3 = colors.gold
+        idBtn.BackgroundTransparency = 1
+        idBtn.Font = Enum.Font.GothamBold
+        idBtn.TextSize = 18
+        idBtn.AutoButtonColor = true
+        
+        setupOneClick(idBtn, function()
+            copyToClipboard(tostring(userId))
+            playSendAnimation(idBtn)
+            
+            local oldText = idBtn.Text
+            idBtn.Text = "✅"
+            idBtn.TextColor3 = colors.success
+            task.wait(0.5)
+            idBtn.Text = oldText
+            idBtn.TextColor3 = colors.gold
+        end)
+    end
+    
+    -- تحديث حجم القائمة
+    playersList.CanvasSize = UDim2.new(0, 0, 0, #allPlayers * 90 + 10)
+end
+
+-- 🟢 عند دخول لاعب
+local function onPlayerAdded(plr)
+    PlayerTracker.CurrentPlayers = PlayerTracker.CurrentPlayers + 1
+    local userId = plr.UserId
+    PlayerTracker.JoinCount[userId] = (PlayerTracker.JoinCount[userId] or 0) + 1
+    PlayerTracker.TotalJoins = PlayerTracker.TotalJoins + 1
+    
+    local tagName = TagSystem.GetPlayerTag(plr)
+    PlayerTracker.PlayerTags[userId] = tagName
+    
+    if playersFrame.Visible then
+        updatePlayersList()
+    end
+    
+    statusLabel.Text = "🟢 دخل " .. plr.DisplayName .. " [" .. tagName .. "]"
+    statusLabel.TextColor3 = colors.success
+    task.wait(2)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end
+
+-- 🔴 عند خروج لاعب
+local function onPlayerRemoving(plr)
+    PlayerTracker.CurrentPlayers = math.max(0, PlayerTracker.CurrentPlayers - 1)
+    local userId = plr.UserId
+    PlayerTracker.LeaveCount[userId] = (PlayerTracker.LeaveCount[userId] or 0) + 1
+    PlayerTracker.TotalLeaves = PlayerTracker.TotalLeaves + 1
+    
+    task.wait(0.3)
+    if playersFrame.Visible then
+        updatePlayersList()
+    end
+    
+    statusLabel.Text = "🔴 خرج " .. plr.DisplayName
+    statusLabel.TextColor3 = colors.danger
+    task.wait(2)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end
+
+-- ربط أحداث الدخول والخروج
+Players.PlayerAdded:Connect(onPlayerAdded)
+Players.PlayerRemoving:Connect(onPlayerRemoving)
+
+-- 🔄 تحديث تلقائي كل 5 ثواني
+task.spawn(function()
+    while true do
+        if playersFrame and playersFrame.Visible then
+            updatePlayersList()
+        end
+        task.wait(5)
+    end
+end)
+
+-- 🎯 أحداث زر التحديث اليدوي
+setupOneClick(refreshBtn, function()
+    updatePlayersList()
+    playSendAnimation(refreshBtn)
+    statusLabel.Text = "🔄 تم تحديث القائمة"
+    statusLabel.TextColor3 = colors.info
+    task.wait(1.5)
+    statusLabel.Text = "جاهز للتشغيل"
+    statusLabel.TextColor3 = colors.textDim
+end)
+
+-- 🎯 أحداث زر اللاعبين (اللي ضفته في الهيدر)
+setupOneClick(playersBtn, function()
+    playersFrame.Visible = not playersFrame.Visible
+    if playersFrame.Visible then
+        playersBtn.Text = "✕"
+        playersBtn.TextColor3 = colors.danger
+        spamContainer.Visible = false
+        commandsContainer.Visible = false
+        settingsFrame.Visible = false
+        infoFrame.Visible = false
+        updatePlayersList()
+        statusLabel.Text = "👥 قائمة اللاعبين"
+        statusLabel.TextColor3 = colors.info
+        playSendAnimation(playersBtn)
+    else
+        playersBtn.Text = "👥"
+        playersBtn.TextColor3 = colors.info
+        spamContainer.Visible = true
+        statusLabel.Text = "جاهز للتشغيل"
+        statusLabel.TextColor3 = colors.textDim
+    end
+end)
+
+-- 📊 تحديث الإحصائيات بشكل مستمر
+task.spawn(function()
+    while true do
+        if playersFrame and playersFrame.Visible then
+            local totalJoins = 0
+            local totalLeaves = 0
+            for _, count in pairs(PlayerTracker.JoinCount) do
+                totalJoins = totalJoins + count
+            end
+            for _, count in pairs(PlayerTracker.LeaveCount) do
+                totalLeaves = totalLeaves + count
+            end
+            playersStats.Text = "👥 " .. #Players:GetPlayers() .. " | 🟢 " .. #Players:GetPlayers() .. " | 📋 " .. totalJoins .. "/" .. totalLeaves
+        end
+        task.wait(2)
+    end
+end)
+
+print("✅ نظام اللاعبين تم تحميله بنجاح!")
 print("╔════════════════════════════════════════════════════════════╗")
 print("║  🔥 ABC ULTIMATE HUB V26 - 100ZX MASTER 🔥              ║")
 print("║  👨‍💻 المطور: Hamza000599                                  ║")
