@@ -1646,10 +1646,6 @@ local function selectSpeed(mode, speed, btn, color)
     btn.BackgroundColor3 = color
     btn.UIStroke.Color = color
     
-    -- تحديث مؤشر السرعة
-    speedIndicator.Text = "⚡ السرعة الحالية: " .. string.format("%.14f", speed)
-    speedIndicator.TextColor3 = color
-    
     -- تحديث التكرار الذكي
     if SmartSpam.Active then
         SmartSpam.CurrentSpeed = speed
@@ -1713,20 +1709,12 @@ createCorner(stopBtn, 12)
 createStroke(stopBtn, colors.danger, 2)
 stopBtn.AutoButtonColor = true
 
--- مؤشر السرعة الحالية
-local speedIndicator = Instance.new("TextLabel", spamContainer)
-speedIndicator.Size = UDim2.new(1, 0, 0, 25)
-speedIndicator.Position = UDim2.new(0, 0, 0, 180)
-speedIndicator.Text = "⚡ السرعة الحالية: 0.01"
-speedIndicator.TextColor3 = colors.success
-speedIndicator.BackgroundTransparency = 1
-speedIndicator.TextSize = 13
-speedIndicator.Font = Enum.Font.GothamBold
+-- تم إزالة مؤشر السرعة الحالية (speedIndicator)
 
 -- مؤقت الوقت
 local timerDisplay = Instance.new("TextLabel", spamContainer)
 timerDisplay.Size = UDim2.new(1, 0, 0, 25)
-timerDisplay.Position = UDim2.new(0, 0, 0, 210)
+timerDisplay.Position = UDim2.new(0, 0, 0, 195)
 timerDisplay.Text = "⏱️ --"
 timerDisplay.TextColor3 = colors.warning
 timerDisplay.BackgroundTransparency = 1
@@ -1738,7 +1726,7 @@ timerDisplay.Font = Enum.Font.GothamBold
 ---------------------------------------
 local smartFrame = Instance.new("Frame", spamContainer)
 smartFrame.Size = UDim2.new(1, 0, 0, 30)
-smartFrame.Position = UDim2.new(0, 0, 0, 240)
+smartFrame.Position = UDim2.new(0, 0, 0, 225)
 smartFrame.BackgroundTransparency = 1
 
 local smartLabel = Instance.new("TextLabel", smartFrame)
@@ -2657,8 +2645,6 @@ local function createAdvancedToggle(name, pos, icon, category, subKey, color)
             stopAdvancedProtection(category, subKey)
         end
         
-        updateProtectionStats()
-        
         saveSettings()
         playSendAnimation(toggle)
     end
@@ -2693,75 +2679,10 @@ advPos = advPos + 45
 
 createAdvancedToggle("🧹 تنظيف العالم", advPos, "🧹", "CleanWorld", "Enabled", colors.gold)
 
-advPos = advPos + 50
+-- تم إزالة إحصائيات الحماية (statsFrame)
+advPos = advPos + 0
 
--- إحصائيات الحماية
-local statsFrame = Instance.new("Frame", scrollContainer)
-statsFrame.Size = UDim2.new(1, 0, 0, 80)
-statsFrame.Position = UDim2.new(0, 0, 0, advPos)
-statsFrame.BackgroundColor3 = colors.bg2
-statsFrame.BackgroundTransparency = 0.5
-createCorner(statsFrame, 12)
-createStroke(statsFrame, colors.gold, 0.5)
-
-local statsTitle = Instance.new("TextLabel", statsFrame)
-statsTitle.Size = UDim2.new(1, 0, 0, 25)
-statsTitle.Text = "📊 إحصائيات الحماية"
-statsTitle.TextColor3 = colors.gold
-statsTitle.BackgroundTransparency = 1
-statsTitle.Font = Enum.Font.GothamBold
-statsTitle.TextSize = 14
-
-local statsGrid = Instance.new("Frame", statsFrame)
-statsGrid.Size = UDim2.new(1, -10, 1, -30)
-statsGrid.Position = UDim2.new(0, 5, 0, 28)
-statsGrid.BackgroundTransparency = 1
-
-local function createStatLabel(parent, text, pos, color)
-    local label = Instance.new("TextLabel", parent)
-    label.Size = UDim2.new(0.48, 0, 0.45, 0)
-    label.Position = UDim2.new(pos, 0, 0, 0)
-    label.Text = text
-    label.TextColor3 = color or colors.textDim
-    label.BackgroundTransparency = 1
-    label.Font = Enum.Font.Gotham
-    label.TextSize = 11
-    label.TextXAlignment = Enum.TextXAlignment.Left
-    return label
-end
-
-local blocksStat = createStatLabel(statsGrid, "🛡️ تم الحظر: 0", 0, colors.success)
-local threatsStat = createStatLabel(statsGrid, "⚠️ تهديدات مكتشفة: 0", 0.52, colors.danger)
-local activeStat = createStatLabel(statsGrid, "🟢 حمايات نشطة: 0/8", 0, colors.primary)
-local uptimeStat = createStatLabel(statsGrid, "⏱️ وقت التشغيل: 00:00", 0.52, colors.info)
-
-advPos = advPos + 90
-
-local function updateProtectionStats()
-    local activeCount = 0
-    for category, data in pairs(AdvancedProtection) do
-        if type(data) == "table" and data.Enabled then
-            activeCount = activeCount + 1
-        end
-    end
-    activeStat.Text = "🟢 حمايات نشطة: " .. activeCount .. "/8"
-    blocksStat.Text = "🛡️ تم الحظر: " .. ProtectionStats.BlocksCount
-    threatsStat.Text = "⚠️ تهديدات مكتشفة: " .. ProtectionStats.ThreatsDetected
-    
-    local elapsed = os.time() - Spam.StartTime
-    local minutes = math.floor(elapsed / 60)
-    local seconds = elapsed % 60
-    uptimeStat.Text = "⏱️ وقت التشغيل: " .. string.format("%02d:%02d", minutes, seconds)
-end
-
-task.spawn(function()
-    while true do
-        updateProtectionStats()
-        task.wait(5)
-    end
-end)
-
-scrollContainer.CanvasSize = UDim2.new(0, 0, 0, advPos + 120)
+scrollContainer.CanvasSize = UDim2.new(0, 0, 0, advPos + 30)
 
 ---------------------------------------
 -- نافذة المعلومات
